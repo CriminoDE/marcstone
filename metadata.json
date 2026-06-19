@@ -1,0 +1,6 @@
+{
+  "name": "Markcraft",
+  "description": "An epic medieval-fantasy multiplayer card battle game inspired by Hearthstone with custom hero power pathways, interactive spell targeting, custom card generation, and real-time magical sound effects.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

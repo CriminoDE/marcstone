@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+/* Custom cards and glowing scrollbar enhancements */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.4);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(234, 179, 8, 0.4);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(234, 179, 8, 0.6);
+}
+
+.glow-selected {
+  box-shadow: 0 0 15px rgba(234, 179, 8, 0.8), 0 0 5px rgba(234, 179, 8, 0.5);
+}
+
+.glow-ready {
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.8);
+}
+
+.glow-taunt {
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.85);
+}
+
+.sh-glow {
+  box-shadow: 0 0 25px rgba(59, 130, 246, 0.4);
+}
+
