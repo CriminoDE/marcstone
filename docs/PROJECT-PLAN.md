@@ -3,7 +3,8 @@
 **Arbeitstitel:** Marcstone (epischer Name kommt in Phase 2)
 **Was:** Browser-basiertes Sammelkarten-Duell im Stil von Hearthstone, fuer 1-gegen-1 online ueber Link. Eigene Regeln, eigene Karten, staerker anpassbar als das Original.
 **Fuer wen:** Henry + sein Bruder Marc (und Freunde die per Link reinkommen). Aktuell kein kommerzielles Ziel, reine Spielerei mit Ambition.
-**Stand:** Phase 1 in Arbeit.
+**Stand:** Phase 1 LIVE. Spiel laeuft unter https://marcstone.onrender.com
+**Render-Service:** `srv-d8qt0gho3t8c73ad3uig` (Team `tea-d8qsj3ernols73ejngkg`, Region Frankfurt, Gratis)
 
 ---
 
@@ -34,7 +35,7 @@ Ziel: Zwei Leute koennen ueber einen Link zuverlaessig gegeneinander spielen ohn
 - [x] Timer-Ticken: letzte 5 Sekunden je ein Tick, deutlich lauter
 - [x] KI-Modus ausblenden (kein versehentlicher Gemini-Aufruf)
 - [x] GitHub-Action Wach-Ping gegen Server-Schlaf
-- [ ] Auf Render deployen, Live-URL testen
+- [x] Auf Render deployen, Live-URL testen (live + WS-Reconnect gegen Live-URL getestet)
 
 **Bekannte Grenze:** Server-Neustart (Deploy/Absturz) loescht laufende Spiele, weil alles im RAM liegt. Akzeptabel fuer Phase 1. Echte Absturzsicherheit = Phase 4 (Datenbank).
 
