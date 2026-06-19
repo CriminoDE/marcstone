@@ -675,7 +675,7 @@ export default function App() {
             Choose Your Specialized Power
           </h2>
           <p className="text-xs text-slate-400 font-sans leading-relaxed">
-            Your deck is ready for battle! Settle on one of three dynamic hero abilities to command for the rest of this Marcstone duel.
+            Your deck is ready for battle! Settle on one of three dynamic hero abilities to command for the rest of this Marcgard duel.
           </p>
         </div>
 
@@ -747,7 +747,7 @@ export default function App() {
         {/* Header bar */}
         <div className="max-w-4xl mx-auto w-full bg-slate-900/60 rounded-3xl border border-slate-800 p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col gap-1.5 text-center md:text-left">
-            <span className="text-[10px] font-mono tracking-widest text-amber-500 uppercase font-bold">Markcraft Matchmaker</span>
+            <span className="text-[10px] font-mono tracking-widest text-amber-500 uppercase font-bold">Marcgard Matchmaker</span>
             <h2 className="text-2xl font-extrabold text-white uppercase tracking-wider">Room Lobby Lounge</h2>
           </div>
 
@@ -872,7 +872,7 @@ export default function App() {
       <header className="max-w-7xl mx-auto w-full bg-slate-900/90 border border-slate-800 rounded-2xl p-3 shadow-lg flex flex-wrap gap-4 items-center justify-between z-20">
         <div className="flex items-center gap-3">
           <h1 className="text-sm font-black text-amber-500 uppercase tracking-widest font-sans">
-            Markcraft Arena Duel
+            Marcgard Arena
           </h1>
           <span className="text-[10px] bg-slate-800/80 border border-slate-700 font-mono text-slate-400 px-2 py-0.5 rounded-full">
             Code: {room.roomId}

@@ -281,7 +281,7 @@ export const CARD_TEMPLATES = {
     description: "👁️ Seize control of an enemy minion.",
   },
 
-  // Newly Balanced Marcstone cards
+  // Newly Balanced Marcgard cards
   "m_squire": {
     name: "Marc's Squire",
     type: "minion",

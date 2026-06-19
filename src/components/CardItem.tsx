@@ -161,7 +161,7 @@ export function CardItem({
       {/* Active Hover Tooltips Popup overlay */}
       {isHovered && tooltips.length > 0 && (
         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-stone-900 text-stone-100 border border-amber-500/30 rounded-lg p-2 shadow-2xl scale-95 transition-all text-[9.5px] space-y-1 z-50 animate-fade-in font-sans">
-          <div className="font-bold border-b border-stone-850 pb-1 text-center text-amber-400 text-[10px] tracking-wide uppercase font-serif">Marcstone Kodex</div>
+          <div className="font-bold border-b border-stone-850 pb-1 text-center text-amber-400 text-[10px] tracking-wide uppercase font-serif">Marcgard Kodex</div>
           {tooltips.map((tip, i) => (
             <div key={i} className="leading-snug text-left text-slate-300">
               {tip}

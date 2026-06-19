@@ -1,4 +1,4 @@
-// Web Audio API medieval-themed synthesizer for Marcstone sound effects
+// Web Audio API medieval-themed synthesizer for Marcgard sound effects
 // No external assets required, ensuring 100% offline-first reliability
 
 let audioCtx: AudioContext | null = null;

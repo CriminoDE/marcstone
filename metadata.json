@@ -1,6 +1,6 @@
 {
-  "name": "Markcraft",
-  "description": "An epic medieval-fantasy multiplayer card battle game inspired by Hearthstone with custom hero power pathways, interactive spell targeting, custom card generation, and real-time magical sound effects.",
+  "name": "Marcgard",
+  "description": "Marcgard - ein dunkles, nordisch-mystisches Mehrspieler-Kartenduell. Wikinger, Hexen, Seher und Raben. Inspiriert von Hearthstone, mit eigenen Helden-Kraeften, Zauber-Zielen und Live-Soundeffekten.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

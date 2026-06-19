@@ -68,7 +68,7 @@ export function Lobby({
           🔮 Online Real-time Card Arena
         </span>
         <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white mt-4 font-sans uppercase">
-          Markcraft <span className="text-amber-500">Stone</span>
+          Marc<span className="text-amber-500">gard</span>
         </h1>
         <p className="text-slate-400 mt-2 text-sm md:text-base max-w-lg mx-auto leading-relaxed">
           A real-time multiplayer card game inspired by Hearthstone. Play with your brother instantly across devices!
@@ -418,7 +418,7 @@ export function Lobby({
           
           <div className="mt-4 text-center">
             <span className="text-[8px] font-mono text-amber-500/60 uppercase tracking-widest bg-amber-950/20 px-3 py-1 rounded-full border border-amber-900/10">
-              ECWBSB - Gepflegt im Markcraft Archivar
+              Gepflegt im Archivar von Marcgard
             </span>
           </div>
         </div>
