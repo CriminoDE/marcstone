@@ -26,14 +26,14 @@ Warum nicht Vercel: Das Spiel ist ein zustandsbehafteter WebSocket-Server mit Ra
 ### Phase 1 - Fundament (LIVE bringen + stabil machen)
 Ziel: Zwei Leute koennen ueber einen Link zuverlaessig gegeneinander spielen ohne rauszufliegen.
 
-- [ ] Auto-Reconnect im Client (Verbindung bricht ab -> automatischer Neuversuch bis es klappt)
-- [ ] Auto-Rejoin: Raum-ID + Klasse + Name in localStorage, nach Reconnect automatisch zurueck ins Spiel
-- [ ] Ping/Pong-Herzschlag zwischen Client und Server (tote Verbindungen schnell erkennen)
-- [ ] Sichtbarer Verbindungs-Status statt stilles Einfrieren
-- [ ] Endzug-Knopf: gedrueckt halten + fuellender Kreis statt Sofort-Ausloesung
-- [ ] Timer-Ticken: letzte 5 Sekunden je ein Tick, deutlich lauter
-- [ ] KI-Modus ausblenden (kein versehentlicher Gemini-Aufruf)
-- [ ] GitHub-Action Wach-Ping gegen Server-Schlaf
+- [x] Auto-Reconnect im Client (Verbindung bricht ab -> automatischer Neuversuch bis es klappt)
+- [x] Auto-Rejoin: Raum-ID + Klasse + Name in localStorage, nach Reconnect automatisch zurueck ins Spiel
+- [x] Ping/Pong-Herzschlag zwischen Client und Server (tote Verbindungen schnell erkennen)
+- [x] Sichtbarer Verbindungs-Status statt stilles Einfrieren
+- [x] Endzug-Knopf: gedrueckt halten + fuellender Kreis statt Sofort-Ausloesung
+- [x] Timer-Ticken: letzte 5 Sekunden je ein Tick, deutlich lauter
+- [x] KI-Modus ausblenden (kein versehentlicher Gemini-Aufruf)
+- [x] GitHub-Action Wach-Ping gegen Server-Schlaf
 - [ ] Auf Render deployen, Live-URL testen
 
 **Bekannte Grenze:** Server-Neustart (Deploy/Absturz) loescht laufende Spiele, weil alles im RAM liegt. Akzeptabel fuer Phase 1. Echte Absturzsicherheit = Phase 4 (Datenbank).

@@ -1,0 +1,23 @@
+name: Keep-Alive Ping
+
+# Pingt den Render-Gratis-Server regelmaessig an, damit er nicht nach ~15 Min Inaktivitaet
+# einschlaeft (was laufende Spiele killen wuerde). Die Server-URL steckt in der Repo-Variable
+# RENDER_URL (Settings -> Secrets and variables -> Actions -> Variables).
+
+on:
+  schedule:
+    - cron: "*/10 * * * *" # alle 10 Minuten
+  workflow_dispatch: {} # manuell ausloesbar
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Health-Endpoint anpingen
+        run: |
+          if [ -z "${{ vars.RENDER_URL }}" ]; then
+            echo "RENDER_URL ist noch nicht gesetzt - ueberspringe Ping."
+            exit 0
+          fi
+          echo "Pinge ${{ vars.RENDER_URL }}/api/health"
+          curl -fsS --max-time 30 "${{ vars.RENDER_URL }}/api/health" || echo "Ping fehlgeschlagen (Server evtl. am Aufwachen)."

@@ -1,0 +1,18 @@
+# Render Blueprint fuer Marcstone.
+# Dokumentiert die Hosting-Konfiguration. Render kann den Service hieraus erzeugen,
+# oder er wird per Render-API angelegt (gleiche Werte).
+
+services:
+  - type: web
+    name: marcstone
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    healthCheckPath: /api/health
+    autoDeploy: false # Deploys werden gezielt per API/Push ausgeloest
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # GEMINI_API_KEY nur noetig falls der KI-Gegner wieder aktiviert wird (aktuell aus).

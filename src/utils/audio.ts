@@ -23,34 +23,46 @@ export function playSound(type: "play_card" | "attack" | "spell" | "heal" | "vic
 
     switch (type) {
       case "countdown_warning": {
-        // Deep tick
+        // Deep warning gong at 10s - clearly audible
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = "sine";
-        osc.frequency.setValueAtTime(300, now);
-        osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
-        gain.gain.setValueAtTime(0.1, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        osc.frequency.setValueAtTime(330, now);
+        osc.frequency.exponentialRampToValueAtTime(120, now + 0.18);
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
         osc.connect(gain);
         gain.connect(destination);
         osc.start(now);
-        osc.stop(now + 0.1);
+        osc.stop(now + 0.2);
         break;
       }
 
       case "countdown_urgent": {
-        // High pitched urgent beep
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = "square";
-        osc.frequency.setValueAtTime(800, now);
-        osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
-        gain.gain.setValueAtTime(0.08, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-        osc.connect(gain);
-        gain.connect(destination);
-        osc.start(now);
-        osc.stop(now + 0.1);
+        // Loud sharp clock TICK for the final 5 seconds.
+        // Two-layer: a hard click transient + a short pitched body so it cuts through music/SFX.
+        const click = ctx.createOscillator();
+        const clickGain = ctx.createGain();
+        click.type = "square";
+        click.frequency.setValueAtTime(1400, now);
+        click.frequency.exponentialRampToValueAtTime(900, now + 0.04);
+        clickGain.gain.setValueAtTime(0.4, now);
+        clickGain.gain.exponentialRampToValueAtTime(0.01, now + 0.07);
+        click.connect(clickGain);
+        clickGain.connect(destination);
+        click.start(now);
+        click.stop(now + 0.08);
+
+        const body = ctx.createOscillator();
+        const bodyGain = ctx.createGain();
+        body.type = "triangle";
+        body.frequency.setValueAtTime(700, now);
+        bodyGain.gain.setValueAtTime(0.3, now);
+        bodyGain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        body.connect(bodyGain);
+        bodyGain.connect(destination);
+        body.start(now);
+        body.stop(now + 0.11);
         break;
       }
 

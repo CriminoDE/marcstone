@@ -58,7 +58,6 @@ export function Lobby({
   onQuickJoin,
   onDeleteRoom,
 }: LobbyProps) {
-  const [vsAI, setVsAI] = React.useState(false);
   const classesList: HeroClass[] = ["Mage", "Priest", "Hunter", "Paladin"];
 
   return (
@@ -77,13 +76,13 @@ export function Lobby({
 
         {/* Patch Notes */}
         <div className="mt-6 max-w-lg mx-auto bg-slate-900/50 border border-slate-800 rounded-2xl p-4 text-left">
-          <h3 className="text-xs font-mono font-bold text-amber-500 tracking-widest uppercase mb-2">📜 Patch Notes v1.5.0</h3>
+          <h3 className="text-xs font-mono font-bold text-amber-500 tracking-widest uppercase mb-2">📜 Patch Notes v1.6.0 - Festung</h3>
           <ul className="text-[10px] text-slate-400 space-y-1 list-disc pl-4 font-sans">
-            <li><strong>Leaderboard:</strong> Neue Ehrenhalle in der Lobby zählt deine verdienten Siege!</li>
-            <li><strong>Alchemie-Schmiede:</strong> Das Tippen der Werte (Angriff/Leben) ist reibungsloser. Nun wirklich nur noch EINMAL pro Match nutzbar.</li>
-            <li><strong>Reconnect-Schutz:</strong> Das Spiel verlangt nun strikt, beim Rejoinen deine originale Klasse zu wählen.</li>
-            <li><strong>Audio Cues:</strong> New deep warnings at 10s and urgent high-pitched beeps at 5s added for the turn timers!</li>
-            <li><strong>New Cards Added:</strong> Added tricky & powerful combinations for each class.</li>
+            <li><strong>Stabiler Online:</strong> Automatischer Reconnect. Verbindung weg? Du landest von selbst wieder im laufenden Spiel.</li>
+            <li><strong>Herzschlag:</strong> Tote Verbindungen werden erkannt, kein stilles Einfrieren mehr.</li>
+            <li><strong>Zug beenden:</strong> Knopf jetzt GEDRÜCKT HALTEN bis der Balken voll ist - kein Aus-Versehen-Beenden mehr.</li>
+            <li><strong>Timer:</strong> Letzte 5 Sekunden ticken laut und deutlich runter.</li>
+            <li><strong>Eigenes Hosting:</strong> Läuft jetzt auf einem eigenen Server statt im KI-Studio.</li>
           </ul>
         </div>
       </div>
@@ -183,19 +182,9 @@ export function Lobby({
                   </p>
                 </div>
                 
-                <label className="flex items-center gap-2 cursor-pointer bg-slate-950 p-2 rounded-xl border border-slate-800 hover:border-purple-500/50 transition-colors">
-                  <input 
-                    type="checkbox" 
-                    checked={vsAI}
-                    onChange={(e) => setVsAI(e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-700 text-purple-600 focus:ring-purple-600 bg-slate-900" 
-                  />
-                  <span className="text-[10px] font-mono text-purple-300 font-bold tracking-wide">PLAY AGAINST GEMINI AI 🧠</span>
-                </label>
-
                 <button
                   type="button"
-                  onClick={() => onCreateRoom(vsAI)}
+                  onClick={() => onCreateRoom(false)}
                   className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-sans font-bold text-xs py-3 px-4 rounded-xl shadow-md cursor-pointer transition-all hover:scale-103 text-center uppercase tracking-wider"
                 >
                   Create Game Room 🚀

@@ -3,6 +3,7 @@ import { Lobby } from "./components/Lobby";
 import { CardItem } from "./components/CardItem";
 import { HeroState } from "./components/HeroState";
 import { ChatPanel } from "./components/ChatPanel";
+import { EndTurnButton } from "./components/EndTurnButton";
 import { Card, RoomState, HeroClass, ClientAction, GameEvent, OpenRoomInfo, OnlinePlayerInfo } from "./types";
 import { HERO_POWER_COST, HERO_POWERS, HERO_POWERS_LIST } from "./constants";
 import { playSound } from "./utils/audio";
@@ -55,6 +56,13 @@ export default function App() {
   
   const lastTickPlayed = React.useRef<number>(-1);
 
+  // Connection refs for robust auto-reconnect + auto-rejoin
+  const wsRef = useRef<WebSocket | null>(null);
+  const shouldReconnectRef = useRef<boolean>(true);
+  const reconnectTimerRef = useRef<number | null>(null);
+  const playerNameRef = useRef<string>(playerName);
+  const connectionIdRef = useRef<string>("");
+
   // Determine local orientation roles
   const isP1 = room && room.player1 && (room.player1.id === connectionId || room.player1.name === playerName);
   const me = isP1 ? room?.player1 : room?.player2;
@@ -72,13 +80,14 @@ export default function App() {
          const remaining = Math.max(0, Math.floor((room.turnEndTime - Date.now()) / 1000));
          setTimeRemaining(remaining);
          
-         // Play warning sounds if active turn on our side
+         // Play warning sounds if active turn on our side.
+         // 10s = deep gong, then a loud tick on each of the last 5 seconds (5,4,3,2,1).
          if (room.turn === me?.id) {
              if (remaining === 10 && lastTickPlayed.current !== 10) {
                  lastTickPlayed.current = 10;
                  playSound("countdown_warning");
-             } else if (remaining === 5 && lastTickPlayed.current !== 5) {
-                 lastTickPlayed.current = 5;
+             } else if (remaining <= 5 && remaining >= 1 && lastTickPlayed.current !== remaining) {
+                 lastTickPlayed.current = remaining;
                  playSound("countdown_urgent");
              }
          }
@@ -91,9 +100,10 @@ export default function App() {
     return () => clearInterval(interval);
   }, [room?.turnEndTime, room?.phase, room?.heroSelectionEndTime, me?.id]);
 
-  // Auto save playerName to localStorage
+  // Auto save playerName to localStorage + keep ref in sync for the long-lived socket handlers
   useEffect(() => {
     localStorage.setItem("arcanum_playerName", playerName);
+    playerNameRef.current = playerName;
   }, [playerName]);
 
   // Live register client duelist name with server for lobby displays
@@ -106,73 +116,75 @@ export default function App() {
     }
   }, [ws, isConnected, playerName]);
 
-  // Connect to authoritative WebSocket server on mount
+  // Connect to authoritative WebSocket server, with auto-reconnect + auto-rejoin.
   useEffect(() => {
-    const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${proto}//${window.location.host}`;
-    
-    console.log(`Connecting to WebSocket card server at: ${wsUrl}`);
-    const socket = new WebSocket(wsUrl);
+    shouldReconnectRef.current = true;
 
-    socket.onopen = () => {
-      console.log("WebSocket connection established!");
-      setIsConnected(true);
-      setErrorMsg(null);
-    };
+    const KEY_ROOM = "marc_roomId";
+    const KEY_CLASS = "marc_heroClass";
 
-    socket.onmessage = (event) => {
+    const handleMessage = (event: MessageEvent) => {
       try {
         const gameEvent = JSON.parse(event.data) as GameEvent;
-        
+        const myName = playerNameRef.current;
+
         switch (gameEvent.type) {
           case "ROOM_STATE_UPDATE": {
             const updatedRoom = gameEvent.payload;
-            
-            // Deduce connection ID from player roles on initial room syncs
-            if (!connectionId) {
-              if (updatedRoom.player1 && updatedRoom.player1.name === playerName) {
-                setConnectionId(updatedRoom.player1.id);
-              } else if (updatedRoom.player2 && updatedRoom.player2.name === playerName) {
-                setConnectionId(updatedRoom.player2.id);
-              }
+
+            // Identify my player slot (by current id or by name) and keep connectionId fresh.
+            // Matching by name is what makes reconnect work: after a rejoin the server hands us a new id.
+            const mine =
+              updatedRoom.player1 && (updatedRoom.player1.id === connectionIdRef.current || updatedRoom.player1.name === myName)
+                ? updatedRoom.player1
+                : updatedRoom.player2 && (updatedRoom.player2.id === connectionIdRef.current || updatedRoom.player2.name === myName)
+                ? updatedRoom.player2
+                : null;
+
+            if (mine && mine.id !== connectionIdRef.current) {
+              connectionIdRef.current = mine.id;
+              setConnectionId(mine.id);
+            }
+
+            // Remember where we are, so a disconnect can auto-rejoin the same room + class.
+            if (mine) {
+              localStorage.setItem(KEY_ROOM, updatedRoom.roomId);
+              localStorage.setItem(KEY_CLASS, mine.heroClass);
             }
 
             setRoom((prev) => {
               if (prev && prev.phase !== updatedRoom.phase && updatedRoom.phase === "victory") {
-                const myRoleP1 = updatedRoom.player1?.name === playerName;
-                const myId = myRoleP1 ? updatedRoom.player1?.id : updatedRoom.player2?.id;
-                const isWinnerMe = updatedRoom.winnerId === myId;
-                if (isWinnerMe) {
+                const myId = mine?.id;
+                if (myId && updatedRoom.winnerId === myId) {
                   playSound("victory");
-                } else {
-                  if (updatedRoom.winnerId !== "DRAW") {
-                    playSound("loss");
-                  }
+                } else if (updatedRoom.winnerId !== "DRAW") {
+                  playSound("loss");
                 }
               }
               return updatedRoom;
             });
 
-            // Clear targeting choices if state changes or turn swaps
             clearTargeting();
             break;
           }
           case "CHAT_MESSAGE": {
-            // Let room update handle synchronization; handles chat directly
             setRoom((prev) => {
               if (!prev) return null;
               const exists = prev.messages.some((m) => m.id === gameEvent.payload.id);
               if (exists) return prev;
-              return {
-                ...prev,
-                messages: [...prev.messages, gameEvent.payload],
-              };
+              return { ...prev, messages: [...prev.messages, gameEvent.payload] };
             });
             break;
           }
           case "ERROR": {
             setErrorMsg(gameEvent.payload.message);
             showToast(gameEvent.payload.message, "warning");
+            // If a rejoin failed because the room is gone or full, stop trying to rejoin it.
+            const m = gameEvent.payload.message.toLowerCase();
+            if (m.includes("not found") || m.includes("nicht gefunden") || m.includes("voll")) {
+              localStorage.removeItem(KEY_ROOM);
+              localStorage.removeItem(KEY_CLASS);
+            }
             break;
           }
           case "LOBBY_STATE_UPDATE": {
@@ -189,25 +201,64 @@ export default function App() {
       }
     };
 
-    socket.onclose = () => {
-      console.warn("WebSocket disconnected from card server. Reconnection recommended.");
-      setIsConnected(false);
-      setWs(null);
+    const connect = () => {
+      const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const wsUrl = `${proto}//${window.location.host}`;
+      console.log(`Connecting to WebSocket card server at: ${wsUrl}`);
+
+      const socket = new WebSocket(wsUrl);
+      wsRef.current = socket;
+      setWs(socket);
+
+      socket.onopen = () => {
+        console.log("WebSocket connection established!");
+        setIsConnected(true);
+        setErrorMsg(null);
+
+        // Register name for the lobby list.
+        socket.send(JSON.stringify({ type: "REGISTER_NAME", payload: { name: playerNameRef.current } }));
+
+        // Auto-rejoin a game we were in before the disconnect.
+        const savedRoom = localStorage.getItem(KEY_ROOM);
+        const savedClass = (localStorage.getItem(KEY_CLASS) as HeroClass) || "Mage";
+        if (savedRoom) {
+          console.log(`Auto-rejoining room ${savedRoom} as ${savedClass}`);
+          socket.send(JSON.stringify({
+            type: "JOIN_ROOM",
+            payload: { roomId: savedRoom, playerName: playerNameRef.current, heroClass: savedClass },
+          }));
+        }
+      };
+
+      socket.onmessage = handleMessage;
+
+      socket.onclose = () => {
+        console.warn("WebSocket disconnected. Will attempt to reconnect...");
+        setIsConnected(false);
+        if (shouldReconnectRef.current) {
+          if (reconnectTimerRef.current) window.clearTimeout(reconnectTimerRef.current);
+          reconnectTimerRef.current = window.setTimeout(connect, 2000);
+        }
+      };
+
+      socket.onerror = (err) => {
+        console.error("WebSocket encountered an error:", err);
+        socket.close(); // triggers onclose -> reconnect
+      };
     };
 
-    socket.onerror = (err) => {
-      console.error("WebSocket encountered an error:", err);
-    };
-
-    setWs(socket);
+    connect();
 
     return () => {
-      socket.close();
+      shouldReconnectRef.current = false;
+      if (reconnectTimerRef.current) window.clearTimeout(reconnectTimerRef.current);
+      wsRef.current?.close();
     };
   }, []);
 
   const sendAction = (action: ClientAction) => {
-    if (ws && ws.readyState === WebSocket.OPEN) {
+    const socket = wsRef.current;
+    if (socket && socket.readyState === WebSocket.OPEN) {
       // Play local tactile sound effects on action dispatch
       if (action.type === "PLAY_CARD") {
         playSound("play_card");
@@ -218,9 +269,9 @@ export default function App() {
       } else if (action.type === "SELECT_HERO_POWER" || action.type === "CREATE_CUSTOM_CARD") {
         playSound("heal");
       }
-      ws.send(JSON.stringify(action));
+      socket.send(JSON.stringify(action));
     } else {
-      showToast("Cannot connect to card battle server. Reconnecting...", "warning");
+      showToast("Verbindung zum Server verloren. Verbinde neu...", "warning");
     }
   };
 
@@ -328,6 +379,10 @@ export default function App() {
       type: "LEAVE_ROOM",
       payload: { roomId: room.roomId },
     });
+    // Deliberate leave: forget the room so auto-rejoin doesn't drag us back in.
+    localStorage.removeItem("marc_roomId");
+    localStorage.removeItem("marc_heroClass");
+    connectionIdRef.current = "";
     setRoom(null);
     clearTargeting();
   };
@@ -1050,16 +1105,7 @@ export default function App() {
                   )}
 
                   {isActiveTurn ? (
-                    <button
-                      onClick={handleEndTurn}
-                      type="button"
-                      className={`px-6 py-3 font-bold font-sans text-xs tracking-wider uppercase rounded-xl cursor-pointer transition-all shadow-md flex items-center gap-2 ${timeRemaining <= 10 ? 'bg-red-500 hover:bg-red-400 text-white animate-pulse' : 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-slate-950 shadow-emerald-950/20'}`}
-                    >
-                      <span>🛡️ End Turn</span>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${timeRemaining <= 10 ? 'bg-white/20' : 'bg-black/20'}`}>
-                        {timeRemaining}s
-                      </span>
-                    </button>
+                    <EndTurnButton timeRemaining={timeRemaining} onEndTurn={handleEndTurn} />
                   ) : (
                     <button
                       disabled

@@ -1489,7 +1489,14 @@ setInterval(() => {
 wss.on("connection", (ws) => {
   const connectionId = `usr-${Math.random().toString(36).substring(2, 8)}`;
   clients.set(connectionId, ws);
-  
+
+  // Heartbeat: browsers auto-reply to protocol pings. We mark the socket alive on every pong;
+  // the heartbeat interval below terminates sockets that stopped answering (half-open connections).
+  (ws as any).isAlive = true;
+  ws.on("pong", () => {
+    (ws as any).isAlive = true;
+  });
+
   console.log(`Client connected: ${connectionId}`);
 
   // Push latest lobby state on new connection
@@ -1533,14 +1540,36 @@ wss.on("connection", (ws) => {
   });
 });
 
-// API health endpoint (required/standard)
+// Heartbeat sweep: ping every client every 30s, terminate the ones that didn't pong since last sweep.
+// Keeps connections warm through idle proxies and frees rooms from dead sockets fast.
+const heartbeatInterval = setInterval(() => {
+  wss.clients.forEach((ws) => {
+    if ((ws as any).isAlive === false) {
+      ws.terminate();
+      return;
+    }
+    (ws as any).isAlive = false;
+    try {
+      ws.ping();
+    } catch {
+      // socket already gone; the close handler cleans up
+    }
+  });
+}, 30000);
+
+wss.on("close", () => {
+  clearInterval(heartbeatInterval);
+});
+
+// API health endpoint (required/standard). Also used by the keep-alive ping to stop the host sleeping.
 app.get("/api/health", (req, res) => {
   res.json({ status: "alive", rooms: rooms.size, clients: clients.size });
 });
 
 // Serve modern React frontend
 async function startServer() {
-  const PORT = 3000;
+  // Render (and most hosts) inject the port via env. Fall back to 3000 for local dev.
+  const PORT = Number(process.env.PORT) || 3000;
 
   // Handle ES Modules vs CommonJS compat safely for both dev and bundled production
   let currentFilename = "";
