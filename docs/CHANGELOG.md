@@ -7,6 +7,15 @@ Format: `## [Version] - Datum` mit Kategorien Hinzugefuegt / Geaendert / Behoben
 
 ---
 
+## [2.7.0] - Fairer Bot + Schmiede server-autoritativ (aus Balance-Review-Agent)
+
+### Behoben
+- **Bot loest Battlecries aus:** Holgar spielte Firelord/Dr. Marc/Marc's Breath/Ragnaros/Sylvanas als Vanilla-Koerper (Battlecry-Logik hing nur in `PLAY_CARD`). Logik in `resolveBattlecry()` ausgelagert + im Bot-Pfad aufgerufen. Fuer Marc's Breath waehlt der Bot ein sinnvolles Ziel (heilt sich unter 15, sonst nukt er den Menschen auf 15). Verifiziert: Bot legte Dr. Marc -> Boom-Bots feuerten.
+- **Schmiede Server-Trust-Luecke (Fairness):** Manuelle Karten-Kosten wurden clientseitig berechnet, Server uebernahm sie fast ungeprueft -> ein manipulierter Client konnte ein 0-Mana-10/10 bauen. Kostenformel als `computeForgeCost()` auf den Server gezogen (spiegelt die Client-Formel), Client-`cost` wird ignoriert, Stats auf 1-10 geclampt, >10-Mana-Karten abgelehnt. Verifiziert: 10/10-mit-allem abgelehnt, 5/5-mit-cost-0 landet mit 4 Mana in der Hand.
+
+### Geaendert
+- **Lobby-Tagline:** „Fordere deinen Bruder per Link heraus" raus. Stattdessen Seher-Lore (Marc-Prophezeiung) + dezente Credit-Zeile „Game Design: Marc Haevernick" in der Display-Schrift.
+
 ## [2.6.0] - Karten-/Logik-Fixes (aus Balance-Review-Agent)
 
 ### Behoben

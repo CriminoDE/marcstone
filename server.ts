@@ -302,6 +302,118 @@ function botPlaySpell(room: RoomState, bot: PlayerState, human: PlayerState, car
   addLog(room, `🔮 ${bot.name} wirkt ${card.name}.`);
 }
 
+// Resolve a minion's Battlecry. Shared by human PLAY_CARD and the practice bot, so Holgar
+// actually triggers Firelord / Dr. Marc / Marc's Breath / Ragnaros / Sylvanas instead of
+// playing them as vanilla bodies. For targeted battlecries (alexstrasza) pass the chosen
+// targetId/isTargetHero; the bot computes a sensible default before calling.
+function resolveBattlecry(
+  room: RoomState,
+  player: PlayerState,
+  opponent: PlayerState,
+  card: Card,
+  targetId?: string,
+  isTargetHero?: boolean,
+) {
+  if (card.templateId === "m_firelord") {
+    addLog(room, `👑🔥 Marc the Firelord entfesselt ein Inferno!`);
+    const hpBefore = opponent.health;
+    opponent.health -= 4;
+    addLog(room, `🔥 ${opponent.name}s Held nimmt 4 Schaden (${hpBefore} → ${opponent.health}).`);
+    opponent.board.forEach(m => {
+      if (m.hasDivineShield) {
+        m.hasDivineShield = false;
+      } else {
+        m.health -= 4;
+      }
+    });
+    opponent.board = opponent.board.filter(m => m.health > 0);
+    triggerRageChat(room, opponent, "high_damage");
+  } else if (card.templateId === "dr_boom") {
+    addLog(room, `💣💥 Dr. Marc unleashes chaotic Boom-Bots!`);
+    for (let k = 0; k < 3; k++) {
+      const targets = [opponent, ...opponent.board];
+      if (targets.length > 0) {
+        const randTarget = targets[Math.floor(Math.random() * targets.length)];
+        if ("heroClass" in randTarget) {
+          const hpBefore = randTarget.health;
+          randTarget.health -= 1;
+          addLog(room, `💥 Boom-Bot trifft ${randTarget.name}s Held für 1 (${hpBefore} → ${randTarget.health}).`);
+        } else {
+          if (randTarget.hasDivineShield) {
+            randTarget.hasDivineShield = false;
+          } else {
+            randTarget.health -= 1;
+          }
+          addLog(room, `💥 Boom-Bot hits ${randTarget.name}!`);
+        }
+      }
+    }
+    opponent.board = opponent.board.filter(m => m.health > 0);
+  } else if (card.templateId === "alexstrasza") {
+    // Marc's Breath: setzt das Leben EINES beliebigen Helden auf 15 (Ziel waehlt der Spieler).
+    const targetHero = isTargetHero
+      ? (targetId === player.id ? player : opponent)
+      : opponent;
+    const before = targetHero.health;
+    targetHero.health = 15;
+    const verb = before > 15 ? "faellt auf" : before < 15 ? "steigt auf" : "bleibt bei";
+    addLog(room, `🐉❤️ Marc's Breath: ${targetHero.name}s Held ${verb} 15 (${before} → 15).`);
+    if (before > 15) triggerRageChat(room, targetHero, "high_damage");
+  } else if (card.templateId === "ragnaros") {
+    addLog(room, `🔥 DIE INSECT! Ragnaros blasts a random enemy for 8 damage!`);
+    const targets = [opponent, ...opponent.board];
+    if (targets.length > 0) {
+        const randTarget = targets[Math.floor(Math.random() * targets.length)];
+        if ("heroClass" in randTarget) {
+           randTarget.health -= 8;
+           addLog(room, `🔥 Ragnaros hits enemy Hero for 8 damage!`);
+        } else {
+           if (randTarget.hasDivineShield) {
+              randTarget.hasDivineShield = false;
+           } else {
+              randTarget.health -= 8;
+           }
+           addLog(room, `🔥 Ragnaros hits ${randTarget.name} for 8 damage!`);
+        }
+    }
+    opponent.board = opponent.board.filter(m => m.health > 0);
+    triggerRageChat(room, opponent, "high_damage");
+  } else if (card.templateId === "sylvanas") {
+    if (opponent.board.length > 0 && player.board.length < 7) {
+      const stealIdx = Math.floor(Math.random() * opponent.board.length);
+      const stolen = opponent.board.splice(stealIdx, 1)[0];
+      player.board.push(stolen);
+      addLog(room, `🏹 Sylvanas stole ${stolen.name} to your side!`);
+      triggerRageChat(room, opponent, "high_damage");
+    }
+  }
+}
+
+// Server-authoritative forge cost. Mirrors the client formula (App.tsx) so a manipulated
+// client cannot send a 0-Mana 10/10. The client-supplied `cost` is ignored on the server.
+function computeForgeCost(p: {
+  type: "minion" | "spell";
+  attack?: number; health?: number;
+  hasTaunt?: boolean; hasCharge?: boolean; hasDivineShield?: boolean;
+  spellEffect?: "damage" | "heal" | "draw"; spellValue?: number;
+}): number {
+  const clamp = (n: number) => Math.min(10, Math.max(1, Math.floor(n) || 1));
+  if (p.type === "minion") {
+    const atk = clamp(Number(p.attack) || 1);
+    const hp = clamp(Number(p.health) || 1);
+    const baseStatCost = Math.ceil((atk + hp) / 2);
+    const abilityCount = (p.hasTaunt ? 1 : 0) + (p.hasCharge ? 1 : 0) + (p.hasDivineShield ? 1 : 0);
+    const abilityCost = (p.hasTaunt ? 1 : 0) + (p.hasCharge ? 2 : 0) + (p.hasDivineShield ? 1 : 0);
+    let scalingPenalty = abilityCount > 1 ? abilityCount * 2 : 0;
+    if (atk >= 5 && abilityCount >= 2) scalingPenalty += 4;
+    return Math.max(1, baseStatCost + abilityCost + scalingPenalty - 1);
+  }
+  const spVal = clamp(Number(p.spellValue) || 1);
+  if (p.spellEffect === "heal") return Math.ceil(spVal / 2);
+  if (p.spellEffect === "draw") return Math.ceil(spVal * 2.5);
+  return Math.ceil(spVal); // damage (default)
+}
+
 // Local practice bot: pure heuristics, no external API. Plays affordable cards
 // (minions first while there is room), then attacks (taunts first, else the hero), then ends.
 async function playAITurn(room: RoomState) {
@@ -329,6 +441,14 @@ async function playAITurn(room: RoomState) {
         pick.isReady = pick.hasCharge || false;
         bot.board.push(pick);
         addLog(room, `🛡️ ${bot.name} stellt ${pick.name} auf (${pick.attack}/${pick.health}).`);
+        // Battlecry ausloesen. Marc's Breath braucht ein Ziel: Bot heilt sich, wenn er
+        // unter 15 und nicht ueber dem Menschen liegt, sonst nukt er den Menschen auf 15 runter.
+        if (pick.templateId === "alexstrasza") {
+          const healSelf = bot.health < 15 && bot.health <= human.health;
+          resolveBattlecry(room, bot, human, pick, healSelf ? bot.id : human.id, true);
+        } else {
+          resolveBattlecry(room, bot, human, pick);
+        }
       } else {
         botPlaySpell(room, bot, human, pick);
       }
@@ -737,80 +857,8 @@ function handleGameAction(connectionId: string, action: ClientAction) {
 
         addLog(room, `${player.name} played ${card.name} (${card.cost} Mana, stats: ${card.attack}/${card.health}).`);
 
-        // Resolve Hearthstone card Battlecries!
-        if (card.templateId === "m_firelord") {
-          addLog(room, `👑🔥 Marc the Firelord entfesselt ein Inferno!`);
-          const hpBefore = opponent.health;
-          opponent.health -= 4;
-          addLog(room, `🔥 ${opponent.name}s Held nimmt 4 Schaden (${hpBefore} → ${opponent.health}).`);
-          opponent.board.forEach(m => {
-            if (m.hasDivineShield) {
-              m.hasDivineShield = false;
-            } else {
-              m.health -= 4;
-            }
-          });
-          opponent.board = opponent.board.filter(m => m.health > 0);
-          triggerRageChat(room, opponent, "high_damage");
-        } else if (card.templateId === "dr_boom") {
-          addLog(room, `💣💥 Dr. Marc unleashes chaotic Boom-Bots!`);
-          for (let k = 0; k < 3; k++) {
-            const targets = [opponent, ...opponent.board];
-            if (targets.length > 0) {
-              const randTarget = targets[Math.floor(Math.random() * targets.length)];
-              if ("heroClass" in randTarget) {
-                const hpBefore = randTarget.health;
-                randTarget.health -= 1;
-                addLog(room, `💥 Boom-Bot trifft ${randTarget.name}s Held für 1 (${hpBefore} → ${randTarget.health}).`);
-              } else {
-                if (randTarget.hasDivineShield) {
-                  randTarget.hasDivineShield = false;
-                } else {
-                  randTarget.health -= 1;
-                }
-                addLog(room, `💥 Boom-Bot hits ${randTarget.name}!`);
-              }
-            }
-          }
-          opponent.board = opponent.board.filter(m => m.health > 0);
-        } else if (card.templateId === "alexstrasza") {
-          // Marc's Breath: setzt das Leben EINES beliebigen Helden auf 15 (Ziel waehlt der Spieler).
-          const targetHero = isTargetHero
-            ? (targetId === player.id ? player : opponent)
-            : opponent;
-          const before = targetHero.health;
-          targetHero.health = 15;
-          const verb = before > 15 ? "faellt auf" : before < 15 ? "steigt auf" : "bleibt bei";
-          addLog(room, `🐉❤️ Marc's Breath: ${targetHero.name}s Held ${verb} 15 (${before} → 15).`);
-          if (before > 15) triggerRageChat(room, targetHero, "high_damage");
-        } else if (card.templateId === "ragnaros") {
-          addLog(room, `🔥 DIE INSECT! Ragnaros blasts a random enemy for 8 damage!`);
-          const targets = [opponent, ...opponent.board];
-          if (targets.length > 0) {
-              const randTarget = targets[Math.floor(Math.random() * targets.length)];
-              if ("heroClass" in randTarget) {
-                 randTarget.health -= 8;
-                 addLog(room, `🔥 Ragnaros hits enemy Hero for 8 damage!`);
-              } else {
-                 if (randTarget.hasDivineShield) {
-                    randTarget.hasDivineShield = false;
-                 } else {
-                    randTarget.health -= 8;
-                 }
-                 addLog(room, `🔥 Ragnaros hits ${randTarget.name} for 8 damage!`);
-              }
-          }
-          opponent.board = opponent.board.filter(m => m.health > 0);
-          triggerRageChat(room, opponent, "high_damage");
-        } else if (card.templateId === "sylvanas") {
-          if (opponent.board.length > 0 && player.board.length < 7) {
-            const stealIdx = Math.floor(Math.random() * opponent.board.length);
-            const stolen = opponent.board.splice(stealIdx, 1)[0];
-            player.board.push(stolen);
-            addLog(room, `🏹 Sylvanas stole ${stolen.name} to your side!`);
-            triggerRageChat(room, opponent, "high_damage");
-          }
-        }
+        // Resolve Hearthstone card Battlecries (shared with the bot via resolveBattlecry).
+        resolveBattlecry(room, player, opponent, card, targetId, isTargetHero);
       } else {
         // Play spell card
         player.mana -= card.cost;
@@ -1217,7 +1265,7 @@ function handleGameAction(connectionId: string, action: ClientAction) {
     }
 
     case "CREATE_CUSTOM_CARD": {
-      const { roomId, name, type, cost, attack, health, emoji, description, hasTaunt, hasCharge, hasDivineShield, spellEffect, spellValue } = action.payload;
+      const { roomId, name, type, attack, health, emoji, description, hasTaunt, hasCharge, hasDivineShield, spellEffect, spellValue } = action.payload;
       const room = rooms.get(roomId);
       if (!room) return;
 
@@ -1234,22 +1282,39 @@ function handleGameAction(connectionId: string, action: ClientAction) {
         return;
       }
 
+      // Stats serverseitig auf 1-10 clampen + Kosten autoritativ berechnen (Client-`cost` ignorieren).
+      const cardType: "minion" | "spell" = type === "spell" ? "spell" : "minion";
+      const clampStat = (n: number) => Math.min(10, Math.max(1, Math.floor(Number(n)) || 1));
+      const safeAttack = cardType === "minion" ? clampStat(attack) : undefined;
+      const safeHealth = cardType === "minion" ? clampStat(health) : undefined;
+      const safeSpellValue = cardType === "spell" ? clampStat(spellValue) : undefined;
+      const serverCost = computeForgeCost({
+        type: cardType,
+        attack: safeAttack, health: safeHealth,
+        hasTaunt: !!hasTaunt, hasCharge: !!hasCharge, hasDivineShield: !!hasDivineShield,
+        spellEffect, spellValue: safeSpellValue,
+      });
+      if (serverCost > 10) {
+        ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Diese Karte ist zu maechtig (max 10 Mana)." } }));
+        return;
+      }
+
       const customCard: Card = {
         id: `custom-${Math.random().toString(36).substring(2, 6)}`,
         templateId: "custom_magic",
-        name: name || (type === "spell" ? "Custom Spell" : "Custom Minion"),
-        type: type || "minion",
-        cost: Math.min(10, Math.max(0, Number(cost) || 0)),
-        attack: type === "minion" ? (Number(attack) || 1) : undefined,
-        health: type === "minion" ? (Number(health) || 1) : undefined,
-        maxHealth: type === "minion" ? (Number(health) || 1) : undefined,
+        name: name || (cardType === "spell" ? "Custom Spell" : "Custom Minion"),
+        type: cardType,
+        cost: serverCost,
+        attack: safeAttack,
+        health: safeHealth,
+        maxHealth: safeHealth,
         emoji: emoji || "🔮",
         description: description || "Ein meisterhaft geschmiedeter Zauber.",
-        hasTaunt: type === "minion" ? !!hasTaunt : false,
-        hasCharge: type === "minion" ? !!hasCharge : false,
-        hasDivineShield: type === "minion" ? !!hasDivineShield : false,
-        spellEffect: type === "spell" ? spellEffect : undefined,
-        spellValue: type === "spell" ? (Number(spellValue) || 1) : undefined,
+        hasTaunt: cardType === "minion" ? !!hasTaunt : false,
+        hasCharge: cardType === "minion" ? !!hasCharge : false,
+        hasDivineShield: cardType === "minion" ? !!hasDivineShield : false,
+        spellEffect: cardType === "spell" ? spellEffect : undefined,
+        spellValue: safeSpellValue,
         isReady: false,
       };
 

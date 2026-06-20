@@ -55,7 +55,10 @@ export function Lobby({
           Marc<span className="text-mg-bronze drop-shadow-[0_2px_20px_rgba(176,132,59,0.55)]">gard</span>
         </h1>
         <p className="text-mg-fog mt-3 text-sm md:text-base max-w-md mx-auto leading-relaxed font-body italic">
-          Ein dunkles Kartenspiel aus Eis und Blut. Fordere deinen Bruder per Link heraus, auf jedem Gerät.
+          Ein dunkles Kartenspiel aus Eis und Blut. Der dunkle Seher Marc hat den Untergang geweissagt, stell dich ihm, oder geh mit der Welt unter.
+        </p>
+        <p className="font-display text-mg-bronze/60 mt-3 text-[11px] md:text-xs tracking-[0.25em] uppercase">
+          Game Design: Marc Haevernick
         </p>
       </header>
 
@@ -228,7 +231,14 @@ export function Lobby({
           </h3>
           <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
             <div>
-              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.6 · Karten-Fixes</div>
+              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.7 · Fairer Übungsgegner</div>
+              <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
+                <li>Holgar löst jetzt Battlecries aus (Firelord, Dr. Marc, Marc's Breath & Co.) statt sie als stumme Körper zu spielen - deutlich härterer Gegner.</li>
+                <li>Schmiede gegen Schummeln abgesichert: Karten-Kosten werden serverseitig berechnet, kein 0-Mana-10/10 mehr möglich.</li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-[11px] font-display font-bold text-mg-fog">v2.6 · Karten-Fixes</div>
               <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
                 <li>Meteor & Gedankenkontrolle funktionieren jetzt - waren vorher tote Karten (Mana verpufft).</li>
                 <li>Zugwechsel-Bug behoben (kein doppeltes Weiterschalten mehr bei knapper Zeit).</li>
