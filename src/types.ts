@@ -101,4 +101,5 @@ export type ClientAction =
   | { type: "RESTART_GAME"; payload: { roomId: string } }
   | { type: "LEAVE_ROOM"; payload: { roomId: string } }
   | { type: "REGISTER_NAME"; payload: { name: string } }
+  | { type: "ADD_BOT"; payload: { roomId: string } }
   | { type: "DELETE_ROOM"; payload: { roomId: string } };

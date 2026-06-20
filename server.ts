@@ -2,14 +2,12 @@ import express from "express";
 import { createServer } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import path from "path";
-import { GoogleGenAI, Type } from "@google/genai";
 import { Card, PlayerState, RoomState, ChatMessage, HeroClass, ClientAction, GameEvent } from "./src/types";
 import { CARD_TEMPLATES, createCardInstance, HERO_POWER_COST, HERO_POWERS, HERO_POWERS_LIST, STANDARD_CLASS_CARDS } from "./src/constants";
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY || "dummy", // we should ideally have the user add it
-  httpOptions: { headers: { 'User-Agent': 'aistudio-build' } }
-});
+// Local practice bot id. No external AI / API is used - the bot plays via simple
+// heuristics, so testing solo is free and has zero cost/abuse surface.
+const BOT_ID = "AI_GEMINI_OPPONENT";
 
 const app = express();
 const httpServer = createServer(app);
@@ -217,117 +215,103 @@ function processEndTurn(room: RoomState, currentTurnConnectionId: string) {
   }
 }
 
+// Simple spell resolution for the practice bot (no targeting AI - sensible defaults).
+function botPlaySpell(room: RoomState, bot: PlayerState, human: PlayerState, card: Card) {
+  const dmgFace = (n: number) => resolveDamage(room, bot, human, n, undefined, true);
+  const wipe = (n: number) => {
+    human.board.forEach((m) => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= n; });
+    human.board = human.board.filter((m) => m.health > 0);
+  };
+  const draw = (n: number) => {
+    for (let i = 0; i < n; i++) { if (bot.deck.length > 0) { const d = bot.deck.pop()!; if (bot.hand.length < 10) bot.hand.push(d); } }
+  };
+  switch (card.templateId) {
+    case "arc_shot": dmgFace(2); break;
+    case "fireball": dmgFace(6); break;
+    case "meteor": dmgFace(8); break;
+    case "pyroblast": dmgFace(10); break;
+    case "heal_touch": resolveHeal(room, bot, human, 6, undefined, true); break;
+    case "consecration": wipe(2); break;
+    case "flamestrike": wipe(4); break;
+    case "pot_greed": draw(2); break;
+    case "mind_control":
+      if (human.board.length > 0 && bot.board.length < 7) bot.board.push(human.board.splice(Math.floor(Math.random() * human.board.length), 1)[0]);
+      break;
+    case "custom_magic":
+      if (card.spellEffect === "heal") resolveHeal(room, bot, human, card.spellValue || 1, undefined, true);
+      else if (card.spellEffect === "draw") draw(card.spellValue || 1);
+      else dmgFace(card.spellValue || 1);
+      break;
+    default: dmgFace(2);
+  }
+  addLog(room, `🔮 ${bot.name} wirkt ${card.name}.`);
+}
+
+// Local practice bot: pure heuristics, no external API. Plays affordable cards
+// (minions first while there is room), then attacks (taunts first, else the hero), then ends.
 async function playAITurn(room: RoomState) {
-  const aiPlayer = room.player2;
+  const bot = room.player2;
   const human = room.player1;
-  if (!aiPlayer || !human || aiPlayer.id !== "AI_GEMINI_OPPONENT") return;
+  if (!bot || !human || bot.id !== BOT_ID) return;
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
   try {
-    // 1. Give AI 2 seconds "thinking" pause visually
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    
-    // Safety check if game ended or turn switched
-    if (room.phase !== "playing" || room.turn !== aiPlayer.id) return;
+    await sleep(1200);
+    if (room.phase !== "playing" || room.turn !== bot.id) return;
 
-    // AI logic: Evaluate board and play cards (Basic heuristic or call Gemini API)
-    // Since card logic functions aren't directly exposed easily without `connectionId` trickery,
-    // we can invoke Gemini API to decide an action string and then we execute it programmatically.
-    
-    const prompt = `You are playing Hearthstone. 
-Your Mana: ${aiPlayer.mana}. Your Health: ${aiPlayer.health}.
-Your Hand: ${aiPlayer.hand.map(c => `[ID:${c.id}] ${c.name} (Cost: ${c.cost})`).join(", ")}
-Your Board: ${aiPlayer.board.map(c => `[ID:${c.id}] ${c.name} (${c.attack}/${c.health}) ${c.isReady ? "Ready" : "Sleeping"}`).join(", ")}
-Opponent Health: ${human.health}.
-Opponent Board: ${human.board.map(c => `[ID:${c.id}] ${c.name} (${c.attack}/${c.health}) ${c.hasTaunt ? "TAUNT" : ""}`).join(", ")}
+    // 1) Play cards while we can afford something
+    for (let guard = 0; guard < 25; guard++) {
+      if (room.phase !== "playing") break;
+      const affordable = bot.hand.filter((c) => c.cost <= bot.mana);
+      if (affordable.length === 0) break;
+      let pick = bot.board.length < 7 ? affordable.find((c) => c.type === "minion") : undefined;
+      if (!pick) pick = affordable.find((c) => c.type === "spell");
+      if (!pick) break;
 
-Respond in valid JSON format:
-{
-  "cardToPlayId": "id-or-null",
-  "attackerId": "id-or-null",
-  "targetId": "id-or-hero-or-null"
-}
-Only pick valid IDs or null if no moves are possible. Prefer playing cards if you have mana. Prefer attacking if possible.
-`;
-    
-    const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
+      bot.mana -= pick.cost;
+      bot.hand.splice(bot.hand.indexOf(pick), 1);
+      if (pick.type === "minion") {
+        pick.isReady = pick.hasCharge || false;
+        bot.board.push(pick);
+        addLog(room, `🛡️ ${bot.name} stellt ${pick.name} auf (${pick.attack}/${pick.health}).`);
+      } else {
+        botPlaySpell(room, bot, human, pick);
       }
-    });
-
-    try {
-      const move = JSON.parse(response.text?.trim() || "{}");
-      
-      // Execute play card
-      if (move.cardToPlayId) {
-        const cardIndex = aiPlayer.hand.findIndex(c => c.id === move.cardToPlayId);
-        if (cardIndex !== -1 && aiPlayer.mana >= aiPlayer.hand[cardIndex].cost) {
-           const playedCard = aiPlayer.hand[cardIndex];
-           aiPlayer.mana -= playedCard.cost;
-           aiPlayer.hand.splice(cardIndex, 1);
-           
-           if (playedCard.type === "minion") {
-             const newMinion = createCardInstance(playedCard.templateId, playedCard.id);
-             if (playedCard.hasCharge) newMinion.isReady = true;
-             aiPlayer.board.push(newMinion);
-             addLog(room, `🤖 Gemini AI played ${playedCard.name}!`);
-           } else {
-             // simplified spell targeting hero
-             human.health -= 3; // basic fireball
-             addLog(room, `🤖 Gemini AI cast ${playedCard.name}! Deal 3 damage to ${human.name}.`);
-           }
-        }
-      }
-
-      // Execute attack
-      if (move.attackerId && move.targetId) {
-        const attacker = aiPlayer.board.find(c => c.id === move.attackerId);
-        if (attacker && attacker.isReady) {
-           if (move.targetId === "hero" || move.targetId === human.id || move.targetId === "null") {
-              human.health -= attacker.attack;
-              addLog(room, `🤖 Gemini AI attacked ${human.name} with ${attacker.name} for ${attacker.attack} damage!`);
-              attacker.isReady = false;
-           } else {
-              const targetRow = human.board;
-              const tCard = targetRow.find(c => c.id === move.targetId);
-              if (tCard) {
-                tCard.health -= attacker.attack;
-                attacker.health -= tCard.attack;
-                addLog(room, `🤖 Gemini AI's ${attacker.name} attacked ${tCard.name}!`);
-                attacker.isReady = false;
-                
-                if (tCard.health <= 0) {
-                  human.board = human.board.filter(c => c.id !== tCard.id);
-                  addLog(room, `💀 ${tCard.name} was destroyed!`);
-                }
-                if (attacker.health <= 0) {
-                  aiPlayer.board = aiPlayer.board.filter(c => c.id !== attacker.id);
-                  addLog(room, `💀 ${attacker.name} was destroyed!`);
-                }
-              }
-           }
-        }
-      }
-
-    } catch (e) {
-      console.error("Gemini AI error parsing JSON", e);
+      checkGameVictory(room);
     }
 
-  } catch (err) {
-    console.error("Gemini AI prompt failed", err);
-  } finally {
-    // Wait a brief moment before ending turn so we broadcast the intermediate board state changes
-    broadcastToRoom(room.roomId, {
-      type: "ROOM_STATE_UPDATE",
-      payload: room,
-    });
+    // 2) Attack with every ready minion
+    if (room.phase === "playing") {
+      for (const attacker of [...bot.board]) {
+        if (room.phase !== "playing") break;
+        if (!bot.board.includes(attacker) || !attacker.isReady) continue;
 
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    if (room.phase === "playing" && room.turn === aiPlayer.id) {
-       processEndTurn(room, aiPlayer.id);
+        const taunts = human.board.filter((m) => m.hasTaunt);
+        if (taunts.length > 0) {
+          const target = [...taunts].sort((a, b) => a.health - b.health)[0];
+          if (target.hasDivineShield) target.hasDivineShield = false; else target.health -= attacker.attack;
+          if (attacker.hasDivineShield) attacker.hasDivineShield = false; else attacker.health -= target.attack;
+          attacker.isReady = false;
+          addLog(room, `⚔️ ${attacker.name} prallt auf ${target.name}.`);
+          if (target.health <= 0) triggerRageChat(room, human, "minion_died");
+          bot.board = bot.board.filter((m) => m.health > 0);
+          human.board = human.board.filter((m) => m.health > 0);
+        } else {
+          human.health -= attacker.attack;
+          attacker.isReady = false;
+          addLog(room, `⚔️ ${attacker.name} trifft ${human.name} fuer ${attacker.attack}.`);
+          if (attacker.attack >= 4) triggerRageChat(room, human, "high_damage");
+        }
+        checkGameVictory(room);
+      }
+    }
+  } catch (err) {
+    console.error("Bot turn error", err);
+  } finally {
+    broadcastToRoom(room.roomId, { type: "ROOM_STATE_UPDATE", payload: room });
+    await sleep(1000);
+    if (room.phase === "playing" && room.turn === bot.id) {
+      processEndTurn(room, bot.id);
     }
   }
 }
@@ -1313,6 +1297,38 @@ function handleGameAction(connectionId: string, action: ClientAction) {
       if (name && typeof name === "string") {
         onlinePlayerNames.set(connectionId, name.trim());
       }
+      broadcastLobbyState();
+      break;
+    }
+
+    case "ADD_BOT": {
+      const { roomId } = action.payload;
+      const room = rooms.get(roomId);
+      if (!room) return;
+      // Only the host of an empty, not-yet-started room may add the practice bot.
+      if (!room.player1 || room.player1.id !== connectionId) return;
+      if (room.player2 || room.phase !== "lobby") return;
+
+      room.player2 = {
+        id: BOT_ID,
+        name: "Holgar (Übungsgegner)",
+        heroClass: "Hunter",
+        health: 30,
+        maxHealth: 30,
+        mana: 0,
+        maxMana: 0,
+        deck: [],
+        hand: [],
+        board: [],
+        heroPowerUsed: false,
+        isReady: false,
+        isOnline: true,
+        selectedHeroPowerIndex: 0,
+      };
+      room.isAIGame = true;
+      addLog(room, "🛡️ Holgar der Übungsgegner betritt die Halle!");
+
+      broadcastToRoom(roomId, { type: "ROOM_STATE_UPDATE", payload: room });
       broadcastLobbyState();
       break;
     }

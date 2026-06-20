@@ -377,6 +377,14 @@ export default function App() {
     });
   };
 
+  const handleAddBot = () => {
+    if (!room) return;
+    sendAction({
+      type: "ADD_BOT",
+      payload: { roomId: room.roomId },
+    });
+  };
+
   const handleLeaveRoom = () => {
     if (!room) return;
     sendAction({
@@ -842,8 +850,21 @@ export default function App() {
               🚀 Duel Battle Start!
             </button>
           ) : (
-            <div className="text-xs text-mg-fog max-w-sm text-center leading-relaxed">
-              Send the Room Code to your brother's phone or desktop to begin the card duel. Once he joins, you can initiate match.
+            <div className="flex flex-col items-center gap-4">
+              <div className="text-xs text-mg-fog max-w-sm text-center leading-relaxed font-body">
+                Schick den Code an Marc (Handy oder PC). Sobald er beitritt, kannst du das Duell starten.
+              </div>
+              <div className="flex items-center gap-3 text-[10px] text-mg-stone-light uppercase tracking-widest font-display">
+                <span className="h-px w-10 bg-mg-stone" /> oder <span className="h-px w-10 bg-mg-stone" />
+              </div>
+              <button
+                onClick={handleAddBot}
+                type="button"
+                className="px-7 py-3 font-display font-bold text-xs uppercase tracking-[0.12em] rounded-xl cursor-pointer bg-mg-slate-raised text-mg-frost-text border border-mg-stone hover:border-mg-bronze hover:text-mg-bronze-bright transition-all"
+              >
+                🛡️ Übungsgegner hinzufügen
+              </button>
+              <span className="text-[10px] text-mg-fog/70 font-body italic">Zum Testen allein - ein lokaler Bot, kostenlos.</span>
             </div>
           )}
 
