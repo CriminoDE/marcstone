@@ -59,6 +59,9 @@ export default function App() {
   const [toast, setToast] = useState<{ message: string; type: "info" | "warning" | "success" } | null>(null);
   const [copiedCode, setCopiedCode] = useState<boolean>(false);
 
+  // Karten-Vorschau: Handkarte antippen -> gross lesen -> erst dann spielen.
+  const [previewCardId, setPreviewCardId] = useState<string | null>(null);
+
   // Alchemy Forge dynamic form states
   const [showAlchemyForge, setShowAlchemyForge] = useState(false);
   const [forgeName, setForgeName] = useState("Flame-branded Squire");
@@ -526,7 +529,8 @@ export default function App() {
   };
 
   // 2. Play Actions
-  const handleCardClick = (card: Card) => {
+  // Wird aus der Karten-Vorschau heraus aufgerufen ("Spielen"-Knopf). Spielt jetzt.
+  const playCardNow = (card: Card) => {
     if (!room || room.phase !== "playing" || !isActiveTurn || !me) return;
 
     // Validate mana
@@ -534,6 +538,8 @@ export default function App() {
       showToast(`Not enough Mana! This card costs ${card.cost} Mana.`, "warning");
       return;
     }
+
+    setPreviewCardId(null); // Vorschau schliessen, damit Ziel/Board sichtbar ist
 
     if (card.type === "minion") {
       // Minions are played directly on battlefield instantly
@@ -1057,6 +1063,22 @@ export default function App() {
     room.phase === "playing" &&
     (((room.player1?.health ?? 99) <= 10) || ((room.player2?.health ?? 99) <= 10));
 
+  // Live-Karte fuer die Vorschau (verschwindet automatisch, sobald sie die Hand verlaesst).
+  const previewCard = me?.hand.find((c) => c.id === previewCardId) || null;
+  const previewKeywords: string[] = [];
+  if (previewCard) {
+    if (previewCard.hasTaunt) previewKeywords.push("🛡️ Spott: Gegner müssen zuerst diesen Diener angreifen.");
+    if (previewCard.hasCharge) previewKeywords.push("⚡ Ansturm: Kann sofort im selben Zug angreifen.");
+    if (previewCard.hasDivineShield) previewKeywords.push("✨ Gottesschild: Ignoriert die erste Schadensquelle komplett.");
+    const d = previewCard.description.toLowerCase();
+    if (d.includes("battlecry") || previewCard.description.includes("🔥") || previewCard.description.includes("💣") || previewCard.description.includes("❤️"))
+      previewKeywords.push("💥 Kampfschrei: Löst direkt beim Ausspielen einen Einmaleffekt aus.");
+    if (previewCard.type === "spell") previewKeywords.push("🔮 Zauber: Einmaliger Effekt, danach verbraucht.");
+  }
+  const previewAffordable = !!me && previewCard ? me.mana >= previewCard.cost : false;
+  const previewBoardFull = !!me && previewCard?.type === "minion" ? me.board.length >= 7 : false;
+  const previewCanPlay = !!isActiveTurn && previewAffordable && !previewBoardFull;
+
   return (
     <div
       onClick={handleCancelTargeting}
@@ -1342,13 +1364,7 @@ export default function App() {
                         card={card}
                         isSelected={isPlayedSelected}
                         canBePlayed={isActiveTurn && isAffordable}
-                        onClick={() => {
-                          if (isActiveTurn) {
-                            handleCardClick(card);
-                          } else {
-                            showToast("It is your opponent's action turn!", "warning");
-                          }
-                        }}
+                        onClick={() => setPreviewCardId(card.id)}
                       />
                     );
                   })
@@ -1634,6 +1650,81 @@ export default function App() {
               );
             })()}
           </form>
+        </div>
+      )}
+
+      {/* Karten-Vorschau: gross lesen, dann bewusst spielen (Handy-freundlich) */}
+      {previewCard && (
+        <div
+          className="fixed inset-0 bg-mg-void/85 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={(e) => { e.stopPropagation(); setPreviewCardId(null); }}
+        >
+          <div
+            className="bg-gradient-to-b from-mg-slate to-mg-void border-2 border-mg-bronze/60 rounded-3xl p-5 max-w-sm w-full shadow-2xl animate-fade-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Kopf: Kosten + Name + Typ */}
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-11 h-11 rounded-full bg-gradient-to-b from-mg-frost to-mg-frost-deep border-2 border-mg-bronze-bright flex items-center justify-center font-display font-black text-lg text-mg-frost-text shadow-[0_0_10px_rgba(95,168,214,0.5)] shrink-0">
+                {previewCard.cost}
+              </div>
+              <div className="min-w-0">
+                <h3 className="font-display font-black text-white text-lg leading-tight truncate">{previewCard.name}</h3>
+                <span className="text-[10px] font-mono uppercase tracking-widest text-mg-bronze">
+                  {previewCard.type === "minion" ? "Diener" : "Zauber"} · {previewCard.cost} Mana
+                </span>
+              </div>
+            </div>
+
+            {/* Grosses Artwork */}
+            <div className="h-28 rounded-2xl bg-mg-void/70 border border-mg-stone flex items-center justify-center text-6xl mb-3 shadow-inner">
+              {previewCard.emoji}
+            </div>
+
+            {/* Werte (Diener) */}
+            {previewCard.type === "minion" && (
+              <div className="flex justify-center gap-6 mb-3 font-display font-black">
+                <span className="flex items-center gap-1.5 text-mg-frost-text text-lg"><span className="text-sm">⚔️</span>{previewCard.attack}</span>
+                <span className="flex items-center gap-1.5 text-mg-poison text-lg"><span className="text-sm">❤️</span>{previewCard.health}</span>
+              </div>
+            )}
+
+            {/* Beschreibung */}
+            <p className="text-sm text-mg-frost-text/90 font-body leading-relaxed text-center mb-3">{previewCard.description}</p>
+
+            {/* Schluesselwort-Erklaerungen (= Tooltips, am Handy lesbar) */}
+            {previewKeywords.length > 0 && (
+              <div className="bg-mg-void/60 border border-mg-stone rounded-xl p-3 mb-4 space-y-1.5">
+                <div className="text-[9px] uppercase tracking-widest text-mg-bronze-bright font-mono font-bold text-center">Marcgard Kodex</div>
+                {previewKeywords.map((tip, i) => (
+                  <div key={i} className="text-[11px] text-mg-fog font-body leading-snug">{tip}</div>
+                ))}
+              </div>
+            )}
+
+            {/* Aktionen */}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => playCardNow(previewCard)}
+                disabled={!previewCanPlay}
+                className={`flex-1 py-3 rounded-xl font-display font-bold text-xs uppercase tracking-wider transition-all ${
+                  previewCanPlay
+                    ? "bg-gradient-to-b from-mg-bronze-bright to-mg-bronze text-mg-void cursor-pointer hover:brightness-110 active:scale-98"
+                    : "bg-mg-stone text-mg-fog opacity-60 cursor-not-allowed"
+                }`}
+              >
+                {!isActiveTurn ? "⏳ Nicht dein Zug" : !previewAffordable ? "Zu wenig Mana" : previewBoardFull ? "Brett voll (max 7)" : previewCard.type === "minion" ? "⚔️ Beschwören" : "✨ Wirken"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewCardId(null)}
+                className="px-4 py-3 rounded-xl font-display font-bold text-xs uppercase tracking-wider bg-mg-slate-raised text-mg-fog border border-mg-stone hover:text-white hover:border-mg-stone-light cursor-pointer transition-all"
+              >
+                Schließen
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

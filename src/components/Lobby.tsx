@@ -228,7 +228,14 @@ export function Lobby({
           </h3>
           <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
             <div>
-              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.2 · Sichtbare Magie</div>
+              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.3 · Karten lesen</div>
+              <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
+                <li>Karte antippen öffnet jetzt eine große Vorschau (kein Verklicken mehr) - mit Werten + Schlüsselwort-Erklärungen, auch am Handy.</li>
+                <li>Erst „Beschwören/Wirken“ spielt die Karte wirklich aus.</li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-[11px] font-display font-bold text-mg-fog">v2.2 · Sichtbare Magie</div>
               <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
                 <li>Zauber & Heldenschüsse fliegen sichtbar (Geschoss/Pfeil) + Runenkreis je Element.</li>
                 <li>Treffer machen jetzt Geräusch, Held-Treffer zeigt Schadenszahl + roten Blitz.</li>

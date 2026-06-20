@@ -7,6 +7,15 @@ Format: `## [Version] - Datum` mit Kategorien Hinzugefuegt / Geaendert / Behoben
 
 ---
 
+## [2.3.0] - Karten-Vorschau (Tap-to-read) + Handy-Tooltips
+
+### Hinzugefuegt
+- **Karten-Vorschau statt Sofort-Spielen**: Handkarte antippen oeffnet eine grosse, lesbare Vorschau (Kosten, Werte, Beschreibung, Schluesselwort-Erklaerungen = "Marcgard Kodex"). Erst der "Beschwoeren/Wirken"-Knopf spielt die Karte; danebentippen schliesst. Loest versehentliches Ausspielen am Handy + bringt Tooltips auf Touch-Geraete. (`previewCardId`-State, `playCardNow` ersetzt das direkte Klick-Spielen.)
+
+### Offen (naechste Welle, mit Henry abgestimmt)
+- Marc's Breath (alexstrasza) zielbar machen ("beliebiger Held" auf 15) + sichtbarer Effekt.
+- Alchemie-Schmiede: **Goetter-Wuerfel** (sichtbarer Wuerfel, gebalancter Zufall ~1 Stufe ueber Einsatz, steigende Mana-Kosten) zusaetzlich zum manuellen Bauen (bleibt 1x/Spiel).
+
 ## [2.2.0] - Sichtbare Magie: Projektile, Sounds, klarer Log
 
 ### Hinzugefuegt
