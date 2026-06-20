@@ -7,6 +7,7 @@ import { EndTurnButton } from "./components/EndTurnButton";
 import { FuseTimer } from "./components/FuseTimer";
 import { Atmosphere } from "./components/Atmosphere";
 import { MusicToggle } from "./components/MusicToggle";
+import { FfaGame } from "./components/FfaGame";
 import { Card, RoomState, HeroClass, ClientAction, GameEvent, OpenRoomInfo, OnlinePlayerInfo, PlayerState } from "./types";
 import { HERO_POWER_COST, HERO_POWERS, HERO_POWERS_LIST } from "./constants";
 import { playSound, playRaven } from "./utils/audio";
@@ -244,8 +245,11 @@ export default function App() {
 
             // Identify my player slot (by current id or by name) and keep connectionId fresh.
             // Matching by name is what makes reconnect work: after a rejoin the server hands us a new id.
+            // FFA: das eigene Seat steckt in players[] (nicht player1/player2).
             const mine =
-              updatedRoom.player1 && (updatedRoom.player1.id === connectionIdRef.current || updatedRoom.player1.name === myName)
+              updatedRoom.mode === "ffa"
+                ? (updatedRoom.players || []).find(p => p.id === connectionIdRef.current || p.name === myName) || null
+                : updatedRoom.player1 && (updatedRoom.player1.id === connectionIdRef.current || updatedRoom.player1.name === myName)
                 ? updatedRoom.player1
                 : updatedRoom.player2 && (updatedRoom.player2.id === connectionIdRef.current || updatedRoom.player2.name === myName)
                 ? updatedRoom.player2
@@ -424,11 +428,13 @@ export default function App() {
   };
 
   // 1. Core Lobby Buttons
-  const handleCreateRoom = (vsAI: boolean = false) => {
+  const handleCreateRoom = (vsAI: boolean = false, mode: "duel" | "ffa" = "duel", maxPlayers?: number) => {
     setErrorMsg(null);
     sendAction({
       type: "CREATE_ROOM",
-      payload: { playerName, heroClass: selectedClass, playAgainstAI: vsAI },
+      payload: mode === "ffa"
+        ? { playerName, heroClass: selectedClass, mode: "ffa", maxPlayers }
+        : { playerName, heroClass: selectedClass, playAgainstAI: vsAI },
     });
   };
 
@@ -970,6 +976,22 @@ export default function App() {
           onDeleteRoom={handleDeleteRoom}
         />
       </div>
+    );
+  }
+
+  // FFA (Free-for-All): komplett eigener Render-Pfad, lässt die Duell-UI unangetastet.
+  if (room.mode === "ffa") {
+    return (
+      <FfaGame
+        room={room}
+        connectionId={connectionId}
+        myName={playerName}
+        sendAction={sendAction}
+        onLeave={handleLeaveRoom}
+        showToast={showToast}
+        timeRemaining={timeRemaining}
+        heroSelectionTimeRemaining={heroSelectionTimeRemaining}
+      />
     );
   }
 

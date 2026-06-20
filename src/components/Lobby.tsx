@@ -10,7 +10,7 @@ interface LobbyProps {
   setSelectedClass: (heroClass: HeroClass) => void;
   roomIdInput: string;
   setRoomIdInput: (room: string) => void;
-  onCreateRoom: (vsAI: boolean) => void;
+  onCreateRoom: (vsAI: boolean, mode?: "duel" | "ffa", maxPlayers?: number) => void;
   onJoinRoom: () => void;
   errorMsg: string | null;
   openRooms: OpenRoomInfo[];
@@ -152,6 +152,27 @@ export function Lobby({
           ⚔️ Duell erstellen
         </button>
 
+        {/* Free-for-All (Spassmodus) */}
+        <div className="mt-3">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-mg-fog font-display mb-1.5 text-center">Free-for-All · Spassmodus · jeder gegen jeden</div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => onCreateRoom(false, "ffa", 3)}
+              className="flex-1 py-2.5 rounded-xl font-display font-bold text-xs uppercase tracking-wide bg-mg-slate-raised text-mg-frost-text border border-mg-blood-bright/40 hover:border-mg-blood-bright hover:bg-mg-blood/15 cursor-pointer transition-all"
+            >
+              🔺 Dreieck · 3 Spieler
+            </button>
+            <button
+              type="button"
+              onClick={() => onCreateRoom(false, "ffa", 4)}
+              className="flex-1 py-2.5 rounded-xl font-display font-bold text-xs uppercase tracking-wide bg-mg-slate-raised text-mg-frost-text border border-mg-blood-bright/40 hover:border-mg-blood-bright hover:bg-mg-blood/15 cursor-pointer transition-all"
+            >
+              💥 Chaos · 4 Spieler
+            </button>
+          </div>
+        </div>
+
         {/* Join by code */}
         <div className="mt-3 flex gap-2">
           <input
@@ -188,24 +209,37 @@ export function Lobby({
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-display font-bold text-xs text-mg-bronze tracking-widest">{r.roomId}</span>
-                    <span className="text-[10px] text-mg-fog">
-                      {r.p2Name ? (r.phase === "lobby" ? "⏳ Lobby" : "⚔️ Im Kampf") : "🪑 Wartet"}
-                    </span>
+                    {r.mode === "ffa" ? (
+                      <span className="text-[10px] text-mg-blood-bright font-bold">
+                        {r.phase === "lobby" ? `🔺 FFA · ${r.playerCount}/${r.maxPlayers}` : "💥 FFA läuft"}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-mg-fog">
+                        {r.p2Name ? (r.phase === "lobby" ? "⏳ Lobby" : "⚔️ Im Kampf") : "🪑 Wartet"}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-mg-frost-text/90 truncate mt-0.5">
                     <span className={`w-1.5 h-1.5 rounded-full ${r.p1Online ? "bg-mg-poison" : "bg-mg-blood-bright"}`} />
-                    <span className="truncate">{r.p1Name}</span>
-                    {r.p2Name && <span className="text-mg-stone-light">vs</span>}
-                    {r.p2Name && <span className="truncate">{r.p2Name}</span>}
+                    {r.mode === "ffa" ? (
+                      <span className="truncate">{r.p1Name}{r.p2Name ? `, ${r.p2Name}` : ""}{(r.playerCount ?? 0) > 2 ? ` +${(r.playerCount ?? 0) - 2}` : ""}</span>
+                    ) : (
+                      <>
+                        <span className="truncate">{r.p1Name}</span>
+                        {r.p2Name && <span className="text-mg-stone-light">vs</span>}
+                        {r.p2Name && <span className="truncate">{r.p2Name}</span>}
+                      </>
+                    )}
                   </div>
                 </div>
                 <div className="flex gap-1.5 shrink-0">
                   <button
                     type="button"
                     onClick={() => onQuickJoin(r.roomId)}
-                    className="text-[11px] font-display font-bold uppercase tracking-wide bg-mg-bronze hover:bg-mg-bronze-bright text-mg-void py-1.5 px-3 rounded-lg cursor-pointer transition-all"
+                    disabled={r.mode === "ffa" && r.phase !== "lobby"}
+                    className="text-[11px] font-display font-bold uppercase tracking-wide bg-mg-bronze hover:bg-mg-bronze-bright text-mg-void py-1.5 px-3 rounded-lg cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    {r.p2Name ? "Zurückkehren" : "Beitreten"}
+                    {r.mode === "ffa" ? (r.phase === "lobby" ? "Mitspielen" : "Läuft") : r.p2Name ? "Zurückkehren" : "Beitreten"}
                   </button>
                   <button
                     type="button"
@@ -231,7 +265,15 @@ export function Lobby({
           </h3>
           <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
             <div>
-              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.7 · Fairer Übungsgegner</div>
+              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.8 · Free-for-All 🔺</div>
+              <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
+                <li>Neuer Spassmodus: <b>Dreieck (3 Spieler)</b> und <b>Chaos (4 Spieler)</b>, jeder gegen jeden. Letzter Überlebender gewinnt.</li>
+                <li>Gegner oben im Dreieck angeordnet, du wählst bei Zaubern/Angriffen genau welchen Gegner du triffst.</li>
+                <li>Flächenzauber treffen alle Gegner, Ragnaros & Dr. Marc streuen über alle. Beitritt per Raum-Code, Start ab 3 Spielern.</li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-[11px] font-display font-bold text-mg-fog">v2.7 · Fairer Übungsgegner</div>
               <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
                 <li>Holgar löst jetzt Battlecries aus (Firelord, Dr. Marc, Marc's Breath & Co.) statt sie als stumme Körper zu spielen - deutlich härterer Gegner.</li>
                 <li>Schmiede gegen Schummeln abgesichert: Karten-Kosten werden serverseitig berechnet, kein 0-Mana-10/10 mehr möglich.</li>
