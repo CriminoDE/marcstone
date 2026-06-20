@@ -7,6 +7,20 @@ Format: `## [Version] - Datum` mit Kategorien Hinzugefuegt / Geaendert / Behoben
 
 ---
 
+## [2.10.0] - Todesstoß in Zeitlupe (Sieg-Replay)
+
+### Hinzugefuegt
+- **Sieg-Zeitlupen-Kino (Henrys grosser Wunsch):** Wenn ein Held faellt, wird der entscheidende Schlag gross + in Slow-Mo nachgespielt: die toedliche Karte fliegt herein, praesentiert sich tanzend in der Mitte (Diener-Koerper mit Angriffs-Badge oder Zauber-Sigille), holt aus und schlaegt/feuert in Zeitlupe auf das Helden-Wappen des Opfers, riesige Schadenszahl, dann epische Todes-Explosion + Boom. Danach erscheint der Sieg-Screen.
+- **Strukturierte "letzte Aktion" vom Server (`room.finisher`):** Der Server erfasst jeden Helden-Treffer (Diener-Angriff, Zauber, Heldenkraft, Battlecry, AoE) mit voller Info (wer, welche Karte/Emoji/Element, Schaden, Opfer) und legt beim Sieg den toedlichen Schlag ab. So kann der Client ihn exakt nachspielen statt nur Text zu zeigen. Greift in Duell **und** Free-for-All.
+- **Replay-Button:** Auf dem Sieg-Screen spielt "🎬 Todesstoß in Zeitlupe ansehen" den Moment beliebig oft nach.
+
+### Geaendert
+- **"So endete es" + Schlachtchronik richtig herum:** Beide zeigen jetzt die **neuesten** Aktionen zuerst (die History ist neueste-zuerst gespeichert; vorher wurden faelschlich die aeltesten Zeilen gezeigt bzw. die Chronik scrollte von neuen Aktionen weg).
+- **Mehr Kampf-Texte auf Deutsch:** Sieg-/Angriffs-/Battlecry-/Heldenkraft-Logs, die noch englisch waren (z.B. "is Victorous", Steady Shot, Dr. Marc, Ragnaros), uebersetzt - tauchen u.a. im "So endete es"-Block auf.
+
+### Hinweis
+- Reduced-Motion: das Kino spielt eine kurze, ruhige Fassung. Self-cleanup, kein Einfluss aufs Spiel-State.
+
 ## [2.9.1] - FFA-Lobby-Fix + hellerer Mana-Glow + epischer Todes-Moment
 
 ### Behoben

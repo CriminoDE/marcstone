@@ -265,7 +265,16 @@ export function Lobby({
           </h3>
           <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
             <div>
-              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.9.1 · Fixes & Wucht 💥</div>
+              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.10 · Todesstoß in Zeitlupe 🎬</div>
+              <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
+                <li><b>Sieg-Replay in Zeitlupe:</b> Wenn ein Held fällt, präsentiert sich die tödliche Karte groß und schlägt in Slow-Mo zu - riesige Schadenszahl, dann epische Todes-Explosion + Boom.</li>
+                <li>Funktioniert für Diener-Angriffe, Zauber, Heldenkräfte und Battlecries - im Duell <b>und</b> im Free-for-All.</li>
+                <li>Sieg-Screen: Button <b>„Todesstoß in Zeitlupe ansehen"</b> spielt den Moment beliebig oft nach.</li>
+                <li>Schlachtchronik & „So endete es" zeigen jetzt die <b>neuesten</b> Aktionen zuerst, viele Kampf-Texte auf Deutsch.</li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-[11px] font-display font-bold text-mg-fog">v2.9.1 · Fixes & Wucht 💥</div>
               <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
                 <li><b>Free-for-All:</b> Rückkehr in die Lobby gefixt (hing vorher nach Spielende).</li>
                 <li>Spielbare Karten <b>leuchten jetzt richtig hell</b> grün, nicht-spielbare sind dunkel.</li>

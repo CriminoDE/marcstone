@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { RoomState, PlayerState, Card, ClientAction, HeroClass } from "../types";
+import { RoomState, PlayerState, Card, ClientAction, HeroClass, FinishingBlow } from "../types";
 import { HeroState } from "./HeroState";
 import { CardItem } from "./CardItem";
 import { Atmosphere } from "./Atmosphere";
@@ -7,7 +7,7 @@ import { MusicToggle } from "./MusicToggle";
 import { FfaForge } from "./FfaForge";
 import { HERO_POWER_COST, HERO_POWERS_LIST } from "../constants";
 import { playRaven, playSound } from "../utils/audio";
-import { flashDamage, deathPoof, screenFlash, lungeAttack, spellCast, castProjectile, roundStartFlare, heroDeathExplosion, type SpellElement } from "../utils/combatFx";
+import { flashDamage, deathPoof, screenFlash, lungeAttack, spellCast, castProjectile, roundStartFlare, heroDeathExplosion, playFinisherCinematic, type SpellElement } from "../utils/combatFx";
 
 // Zauber/Heldenkraft -> Element fuer die Projektil-/Cast-VFX (gespiegelt aus App.tsx).
 const SPELL_ELEMENT: Record<string, SpellElement> = {
@@ -15,6 +15,14 @@ const SPELL_ELEMENT: Record<string, SpellElement> = {
   meteor: "fire", flamestrike: "fire", pyroblast: "fire", mind_control: "shadow", pot_greed: "arcane",
   blizzard: "frost", holy_nova: "holy", multi_shot: "arcane", divine_storm: "holy",
 };
+
+// Element/Farbe fuer das Sieg-Kino aus dem Finisher ableiten.
+function finisherElement(b: FinishingBlow): SpellElement {
+  if (b.kind === "attack") return "fire";
+  if (b.templateId && SPELL_ELEMENT[b.templateId]) return SPELL_ELEMENT[b.templateId];
+  if (b.kind === "power") return "arcane";
+  return "fire";
+}
 const HERO_POWER_ELEMENT: Record<HeroClass, SpellElement[]> = {
   Mage: ["fire", "frost", "arcane"], Priest: ["heal", "holy", "arcane"],
   Hunter: ["arcane", "arcane", "fire"], Paladin: ["holy", "holy", "holy"],
@@ -57,6 +65,8 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
   const [previewCardId, setPreviewCardId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [showForge, setShowForge] = useState(false);
+  const [cinematicActive, setCinematicActive] = useState(false);
+  const prevCinePhaseRef = useRef<string | null>(null);
 
   const seats = room.players ?? [];
   const me = seats.find(p => p.id === connectionId) || seats.find(p => p.name === myName);
@@ -118,6 +128,29 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
       prevTurnRef.current = room.turn;
     }
   }, [room.turn, room.phase, myId]);
+
+  // Sieg-Zeitlupen-Kino: entscheidenden Schlag gross + in Slow-Mo nachspielen.
+  const runFinisher = (b: FinishingBlow, outcome: "win" | "loss" | "draw") => {
+    setCinematicActive(true);
+    playFinisherCinematic(
+      { actorName: b.actorName, victimName: b.victimName, kind: b.kind, name: b.name, emoji: b.emoji, damage: b.damage, cardType: b.cardType, attack: b.attack, element: finisherElement(b) },
+      { onImpact: () => playSound("hero_death") }
+    ).finally(() => {
+      setCinematicActive(false);
+      if (outcome === "win") playSound("victory");
+      else if (outcome === "loss") playSound("loss");
+    });
+  };
+
+  useEffect(() => {
+    const prev = prevCinePhaseRef.current;
+    if (room.phase === "victory" && prev && prev !== "victory" && room.finisher) {
+      const outcome: "win" | "loss" | "draw" =
+        room.winnerId === "DRAW" ? "draw" : room.winnerId === myId ? "win" : "loss";
+      runFinisher(room.finisher, outcome);
+    }
+    prevCinePhaseRef.current = room.phase ?? null;
+  }, [room.phase]);
 
   const copyCode = () => {
     navigator.clipboard?.writeText(room.roomId).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); }).catch(() => {});
@@ -294,7 +327,7 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
 
   // === BOARD (playing / victory) ===
   const winner = seats.find(p => p.id === room.winnerId);
-  const recentLog = (room.history || []).slice(-4);
+  const recentLog = (room.history || []).slice(0, 4); // history ist neueste-zuerst
 
   return (
     <div className={`min-h-screen text-mg-frost-text font-body flex flex-col ${targeting.mode !== "none" ? "cursor-crosshair" : ""}`} onClick={cancelTargeting}>
@@ -412,20 +445,31 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
       )}
 
       {/* SIEG */}
-      {room.phase === "victory" && (
+      {room.phase === "victory" && !cinematicActive && (
         <div className="fixed inset-0 bg-mg-void/85 backdrop-blur-md flex flex-col items-center justify-center z-50 p-6 text-center">
           <div className="text-6xl mb-4">{room.winnerId === myId ? "👑" : "☠️"}</div>
           <h2 className="text-3xl font-serif font-black text-white uppercase tracking-wide animate-fade-in">
             {room.winnerId === "DRAW" ? "Unentschieden" : `${winner?.name ?? "?"} gewinnt!`}
           </h2>
           <p className="text-sm text-mg-fog mt-2">{room.winnerId === myId ? "Letzter Überlebender. Marcgard gehört dir." : "Gefallen im Free-for-All."}</p>
-          {/* Letzter Moment: so endete es */}
+          {/* Letzter Moment: so endete es (history ist neueste-zuerst -> slice(0,4)) */}
           <div className="mt-4 max-w-md w-full bg-mg-void/60 border border-mg-stone rounded-xl p-3 text-left">
             <div className="text-[10px] uppercase tracking-widest text-mg-bronze font-mono mb-1">So endete es</div>
-            {(room.history || []).slice(-4).map((l, i) => (
+            {(room.history || []).slice(0, 4).map((l, i) => (
               <div key={i} className="text-[11px] text-mg-fog font-body leading-snug truncate">{l}</div>
             ))}
           </div>
+          {room.finisher && (
+            <button
+              onClick={() => {
+                const outcome: "win" | "loss" | "draw" = room.winnerId === "DRAW" ? "draw" : room.winnerId === myId ? "win" : "loss";
+                runFinisher(room.finisher!, outcome);
+              }}
+              className="mt-4 px-5 py-2.5 rounded-xl bg-mg-slate border border-mg-bronze/60 text-mg-bronze-bright font-bold uppercase tracking-wider text-xs hover:bg-mg-stone"
+            >
+              🎬 Todesstoß in Zeitlupe ansehen
+            </button>
+          )}
           <div className="flex gap-3 mt-6">
             {isCreator && <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-mg-bronze text-mg-void font-bold hover:scale-105">Nochmal</button>}
             <button onClick={onLeave} className="px-5 py-2.5 rounded-xl border border-mg-stone bg-mg-void/60 text-mg-fog font-bold">Zur Lobby</button>

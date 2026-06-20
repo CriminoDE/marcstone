@@ -47,6 +47,21 @@ export interface PlayerState {
 
 export type GameMode = "duel" | "ffa"; // duel = 1v1 (Haupt), ffa = Free-for-All 3-4 Spieler (Spassmodus)
 
+// Der entscheidende Schlag (letzte Aktion, die einen Helden auf 0 brachte).
+// Wird vom Server beim Sieg gesetzt -> Client spielt daraus ein Zeitlupen-Kino ab.
+export interface FinishingBlow {
+  actorName: string; // wer den toedlichen Schlag fuehrte
+  victimId: string; // Held, der fiel (Spieler-Connection-ID)
+  victimName: string;
+  kind: "attack" | "spell" | "power"; // Diener-Angriff / Zauber / Heldenkraft
+  name: string; // angezeigter Name (Karte / Zauber / Heldenkraft)
+  emoji: string; // Emoji der praesentierten Karte
+  damage: number; // Schaden des toedlichen Schlags
+  cardType?: CardType; // bei Karten: minion | spell (Praesentations-Stil)
+  templateId?: string; // Client mappt das auf das Zauber-Element (Farbe)
+  attack?: number; // bei Diener-Angriff: Angriffswert (Badge)
+}
+
 export interface ChatMessage {
   id: string;
   senderName: string;
@@ -73,6 +88,7 @@ export interface RoomState {
   creatorId?: string; // Socket ID of room creator
   createdAt?: number; // Epoch timestamp of room creation
   lastActiveAt?: number; // Epoch timestamp of last active action
+  finisher?: FinishingBlow | null; // entscheidender Schlag fuer das Sieg-Zeitlupen-Kino
 }
 
 export interface OpenRoomInfo {

@@ -2,7 +2,7 @@ import express from "express";
 import { createServer } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import path from "path";
-import { Card, PlayerState, RoomState, ChatMessage, HeroClass, ClientAction, GameEvent } from "./src/types";
+import { Card, PlayerState, RoomState, ChatMessage, HeroClass, ClientAction, GameEvent, FinishingBlow } from "./src/types";
 import { CARD_TEMPLATES, createCardInstance, HERO_POWER_COST, HERO_POWERS, HERO_POWERS_LIST, STANDARD_CLASS_CARDS } from "./src/constants";
 
 // Local practice bot id. No external AI / API is used - the bot plays via simple
@@ -152,6 +152,37 @@ function addLog(room: RoomState, actionText: string) {
   if (room.history.length > 50) {
     room.history.pop();
   }
+}
+
+// --- Finisher-Erfassung fuer das Sieg-Zeitlupen-Kino ---
+// "activeFx" beschreibt die gerade laufende Aktion (welche Karte/Zauber/Heldenkraft,
+// von wem). Jeder Helden-Schaden, der waehrend dieser Aktion faellt, wird damit
+// als moeglicher toedlicher Schlag in room.finisher festgehalten (letzter Treffer
+// gewinnt; beim Sieg liest der Client den finalen Stand). So werden auch AoE- und
+// Battlecry-Kills sauber der ausloesenden Karte zugeordnet.
+type ActiveFx = Pick<FinishingBlow, "actorName" | "kind" | "name" | "emoji" | "cardType" | "templateId" | "attack">;
+let activeFx: ActiveFx | null = null;
+function setActiveFx(fx: ActiveFx | null) { activeFx = fx; }
+function fxFromCard(actorName: string, card: Card): ActiveFx {
+  return {
+    actorName,
+    kind: "spell",
+    name: card.name,
+    emoji: card.emoji,
+    cardType: card.type,
+    templateId: card.templateId,
+    attack: card.attack,
+  };
+}
+// Bei jedem Helden-Treffer aufrufen (vor/nach dem HP-Abzug egal). victim = getroffener Held.
+function recordHeroBlow(room: RoomState, victim: PlayerState, amount: number) {
+  if (!activeFx || amount <= 0) return;
+  room.finisher = {
+    ...activeFx,
+    victimId: victim.id,
+    victimName: victim.name,
+    damage: amount,
+  };
 }
 
 // Goetter-Wuerfel: erzeugt eine ZUFAELLIGE, aber gebalancte Karte - garantiert ~1 Manastufe
@@ -307,6 +338,7 @@ function processEndTurn(room: RoomState, currentTurnConnectionId: string) {
 
 // Simple spell resolution for the practice bot (no targeting AI - sensible defaults).
 function botPlaySpell(room: RoomState, bot: PlayerState, human: PlayerState, card: Card) {
+  setActiveFx(fxFromCard(bot.name, card));
   const dmgFace = (n: number) => resolveDamage(room, bot, human, n, undefined, true, card.name);
   const wipe = (n: number) => {
     human.board.forEach((m) => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= n; });
@@ -341,7 +373,7 @@ function botPlaySpell(room: RoomState, bot: PlayerState, human: PlayerState, car
         const ts = [human, ...human.board];
         if (ts.length === 0) break;
         const tt = ts[Math.floor(Math.random() * ts.length)];
-        if ("heroClass" in tt) tt.health -= 3;
+        if ("heroClass" in tt) { tt.health -= 3; recordHeroBlow(room, tt as PlayerState, 3); }
         else { if (tt.hasDivineShield) tt.hasDivineShield = false; else tt.health -= 3; }
       }
       human.board = human.board.filter(m => m.health > 0);
@@ -371,10 +403,12 @@ function resolveBattlecry(
   targetId?: string,
   isTargetHero?: boolean,
 ) {
+  setActiveFx(fxFromCard(player.name, card));
   if (card.templateId === "m_firelord") {
-    addLog(room, `👑🔥 Marc the Firelord entfesselt ein Inferno!`);
+    addLog(room, `👑🔥 Marc der Feuerlord entfesselt ein Inferno!`);
     const hpBefore = opponent.health;
     opponent.health -= 4;
+    recordHeroBlow(room, opponent, 4);
     addLog(room, `🔥 ${opponent.name}s Held nimmt 4 Schaden (${hpBefore} → ${opponent.health}).`);
     opponent.board.forEach(m => {
       if (m.hasDivineShield) {
@@ -386,7 +420,7 @@ function resolveBattlecry(
     opponent.board = opponent.board.filter(m => m.health > 0);
     triggerRageChat(room, opponent, "high_damage");
   } else if (card.templateId === "dr_boom") {
-    addLog(room, `💣💥 Dr. Marc unleashes chaotic Boom-Bots!`);
+    addLog(room, `💣💥 Dr. Marc entfesselt chaotische Boom-Bots!`);
     for (let k = 0; k < 3; k++) {
       const targets = [opponent, ...opponent.board];
       if (targets.length > 0) {
@@ -394,6 +428,7 @@ function resolveBattlecry(
         if ("heroClass" in randTarget) {
           const hpBefore = randTarget.health;
           randTarget.health -= 2;
+          recordHeroBlow(room, randTarget as PlayerState, 2);
           addLog(room, `💥 Boom-Bot trifft ${randTarget.name}s Held für 2 (${hpBefore} → ${randTarget.health}).`);
         } else {
           if (randTarget.hasDivineShield) {
@@ -417,20 +452,21 @@ function resolveBattlecry(
     addLog(room, `🐉❤️ Marc's Breath: ${targetHero.name}s Held ${verb} 15 (${before} → 15).`);
     if (before > 15) triggerRageChat(room, targetHero, "high_damage");
   } else if (card.templateId === "ragnaros") {
-    addLog(room, `🔥 DIE INSECT! Ragnaros blasts a random enemy for 8 damage!`);
+    addLog(room, `🔥 STIRB, INSEKT! Ragnaros schleudert 8 Schaden auf einen zufälligen Feind!`);
     const targets = [opponent, ...opponent.board];
     if (targets.length > 0) {
         const randTarget = targets[Math.floor(Math.random() * targets.length)];
         if ("heroClass" in randTarget) {
            randTarget.health -= 8;
-           addLog(room, `🔥 Ragnaros hits enemy Hero for 8 damage!`);
+           recordHeroBlow(room, randTarget as PlayerState, 8);
+           addLog(room, `🔥 Ragnaros trifft den gegnerischen Helden für 8 Schaden!`);
         } else {
            if (randTarget.hasDivineShield) {
               randTarget.hasDivineShield = false;
            } else {
               randTarget.health -= 8;
            }
-           addLog(room, `🔥 Ragnaros hits ${randTarget.name} for 8 damage!`);
+           addLog(room, `🔥 Ragnaros trifft ${randTarget.name} für 8 Schaden!`);
         }
     }
     opponent.board = opponent.board.filter(m => m.health > 0);
@@ -440,7 +476,7 @@ function resolveBattlecry(
       const stealIdx = Math.floor(Math.random() * opponent.board.length);
       const stolen = opponent.board.splice(stealIdx, 1)[0];
       player.board.push(stolen);
-      addLog(room, `🏹 Sylvanas stole ${stolen.name} to your side!`);
+      addLog(room, `🏹 Sylvanas reißt ${stolen.name} auf deine Seite!`);
       triggerRageChat(room, opponent, "high_damage");
     }
   }
@@ -530,6 +566,8 @@ async function playAITurn(room: RoomState) {
           human.board = human.board.filter((m) => m.health > 0);
         } else {
           human.health -= attacker.attack;
+          setActiveFx({ actorName: bot.name, kind: "attack", name: attacker.name, emoji: attacker.emoji, cardType: "minion", templateId: attacker.templateId, attack: attacker.attack });
+          recordHeroBlow(room, human, attacker.attack);
           attacker.isReady = false;
           addLog(room, `⚔️ ${attacker.name} trifft ${human.name} fuer ${attacker.attack}.`);
           if (attacker.attack >= 4) triggerRageChat(room, human, "high_damage");
@@ -550,6 +588,10 @@ async function playAITurn(room: RoomState) {
 
 function beginGamePhase(room: RoomState) {
   if (room.phase === "playing") return;
+
+  // Frische Partie: alten Finisher (Sieg-Kino) + Aktions-Kontext loeschen.
+  room.finisher = null;
+  setActiveFx(null);
 
   // FFA: eigener Start (erster Sitz beginnt, Mana-Ramp + 5. Karte via beginFfaTurn).
   if (room.mode === "ffa") {
@@ -576,7 +618,7 @@ function beginGamePhase(room: RoomState) {
   }
 
   const activePlayerName = room.turn === room.player1?.id ? room.player1?.name : room.player2?.name;
-  addLog(room, `⚔️ The Battle Begins! Let the magic flow! ${activePlayerName} is starting!`);
+  addLog(room, `⚔️ Der Kampf beginnt! Lass die Magie fließen! ${activePlayerName} eröffnet!`);
 
   broadcastToRoom(room.roomId, {
     type: "ROOM_STATE_UPDATE",
@@ -627,6 +669,7 @@ function ffaFindMinion(room: RoomState, minionId: string): { owner: PlayerState;
 function ffaHitHero(room: RoomState, target: PlayerState, amount: number, src: string) {
   const before = target.health;
   target.health -= amount;
+  recordHeroBlow(room, target, amount);
   addLog(room, `💥 ${src} trifft ${target.name}s Held für ${amount} (${before} → ${target.health}).`);
   if (amount >= 4) triggerRageChat(room, target, "high_damage");
 }
@@ -762,6 +805,7 @@ function advanceFfaTurn(room: RoomState, fromConnId: string) {
 
 // FFA-Battlecries: AoE trifft ALLE Gegner, Random quer über alle Gegner, alexstrasza zielbar.
 function resolveFfaBattlecry(room: RoomState, actor: PlayerState, card: Card, targetPlayerId?: string, targetId?: string, isTargetHero?: boolean) {
+  setActiveFx(fxFromCard(actor.name, card));
   const opp = ffaOpponents(room, actor);
   if (card.templateId === "m_firelord") {
     addLog(room, `👑🔥 Marc the Firelord entfesselt ein Inferno über ALLE Gegner!`);
@@ -804,6 +848,7 @@ function resolveFfaBattlecry(room: RoomState, actor: PlayerState, card: Card, ta
 }
 
 function resolveFfaSpell(room: RoomState, actor: PlayerState, card: Card, targetPlayerId?: string, targetId?: string, isTargetHero?: boolean) {
+  setActiveFx(fxFromCard(actor.name, card));
   const t = card.templateId;
   const drawN = (n: number) => {
     for (let i = 0; i < n; i++) {
@@ -917,6 +962,8 @@ function handleFfaAttack(room: RoomState, actor: PlayerState, payload: any, ws: 
     if (!target || target.id === actor.id) return;
     if (target.board.some(m => m.hasTaunt)) { ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Dieser Gegner hat Spott - greif zuerst einen Spott-Diener an!" } })); return; }
     target.health -= attacker.attack;
+    setActiveFx({ actorName: actor.name, kind: "attack", name: attacker.name, emoji: attacker.emoji, cardType: "minion", templateId: attacker.templateId, attack: attacker.attack });
+    recordHeroBlow(room, target, attacker.attack);
     attacker.isReady = false;
     addLog(room, `⚔️ ${attacker.name} greift ${target.name}s Held für ${attacker.attack} an.`);
     if (attacker.attack >= 4) triggerRageChat(room, target, "high_damage");
@@ -955,6 +1002,7 @@ function handleFfaHeroPower(room: RoomState, actor: PlayerState, payload: any, w
   const powerIdx = actor.selectedHeroPowerIndex ?? 0;
   const classPowers = HERO_POWERS_LIST[pClass];
   const power = classPowers[powerIdx] || classPowers[0];
+  setActiveFx({ actorName: actor.name, kind: "power", name: power.name, emoji: "✨" });
   addLog(room, `${actor.name} nutzt Heldenkraft: ${power.name}.`);
 
   const summon = (tpl: string, name: string, emoji: string, charge: boolean, desc: string) => {
@@ -1334,6 +1382,7 @@ function handleGameAction(connectionId: string, action: ClientAction) {
       room.heroSelectionEndTime = Date.now() + 10000;
       room.winnerId = null;
       room.history = [];
+      room.finisher = null;
 
       // Generate custom decks (25 cards)
       room.player1.deck = generateClassDeck(room.player1.heroClass);
@@ -1421,6 +1470,9 @@ function handleGameAction(connectionId: string, action: ClientAction) {
         ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Not enough Mana!" } }));
         return;
       }
+
+      // Diese Karte ist ab jetzt die "aktive Aktion" -> jeder Helden-Schaden (Battlecry/Zauber/AoE) wird ihr zugeordnet.
+      setActiveFx(fxFromCard(player.name, card));
 
       if (card.type === "minion") {
         // Board limit validation
@@ -1533,8 +1585,8 @@ function handleGameAction(connectionId: string, action: ClientAction) {
             const targets = [opponent, ...opponent.board];
             if (targets.length === 0) break;
             const t = targets[Math.floor(Math.random() * targets.length)];
-            if ("heroClass" in t) { t.health -= 3; addLog(room, `🎯 Mehrfachschuss trifft ${t.name}s Held fuer 3.`); }
-            else { if (t.hasDivineShield) t.hasDivineShield = false; else t.health -= 3; addLog(room, `🎯 Mehrfachschuss trifft ${t.name} fuer 3.`); }
+            if ("heroClass" in t) { t.health -= 3; recordHeroBlow(room, t as PlayerState, 3); addLog(room, `🎯 Mehrfachschuss trifft ${t.name}s Held für 3.`); }
+            else { if (t.hasDivineShield) t.hasDivineShield = false; else t.health -= 3; addLog(room, `🎯 Mehrfachschuss trifft ${t.name} für 3.`); }
           }
           opponent.board = opponent.board.filter(m => m.health > 0);
         } else if (card.templateId === "divine_storm") {
@@ -1610,14 +1662,16 @@ function handleGameAction(connectionId: string, action: ClientAction) {
       if (isTargetHero) {
         // Attack Enemy Hero directly
         opponent.health -= attacker.attack;
-        addLog(room, `⚔️ ${attacker.name} attacked the enemy Hero for ${attacker.attack} damage.`);
-        
+        setActiveFx({ actorName: player.name, kind: "attack", name: attacker.name, emoji: attacker.emoji, cardType: "minion", templateId: attacker.templateId, attack: attacker.attack });
+        recordHeroBlow(room, opponent, attacker.attack);
+        addLog(room, `⚔️ ${attacker.name} greift den gegnerischen Helden für ${attacker.attack} Schaden an.`);
+
         attacker.isReady = false;
       } else if (targetCardId) {
         const defender = opponent.board.find(c => c.id === targetCardId);
         if (!defender) return;
 
-        addLog(room, `⚔️ ${attacker.name} (${attacker.attack}/${attacker.health}) attacks ${defender.name} (${defender.attack}/${defender.health}).`);
+        addLog(room, `⚔️ ${attacker.name} (${attacker.attack}/${attacker.health}) greift ${defender.name} (${defender.attack}/${defender.health}) an.`);
 
         // Attacker deals damage to defender (checking Divine Shield)
         if (defender.hasDivineShield) {
@@ -1695,7 +1749,8 @@ function handleGameAction(connectionId: string, action: ClientAction) {
       const classPowers = HERO_POWERS_LIST[pClass];
       const activePower = classPowers[powerIdx] || classPowers[0];
 
-      addLog(room, `${player.name} used Hero Power: ${activePower.name}.`);
+      setActiveFx({ actorName: player.name, kind: "power", name: activePower.name, emoji: "✨" });
+      addLog(room, `${player.name} nutzt Heldenkraft: ${activePower.name}.`);
 
       if (pClass === "Mage") {
         if (powerIdx === 0) {
@@ -1727,7 +1782,8 @@ function handleGameAction(connectionId: string, action: ClientAction) {
             opponent.board = opponent.board.filter(m => m.health > 0);
           } else {
             opponent.health -= 1;
-            addLog(room, `🌀 Unstable Magic deals 1 damage directly to ${opponent.name}.`);
+            recordHeroBlow(room, opponent, 1);
+            addLog(room, `🌀 Instabile Magie trifft ${opponent.name}s Held direkt für 1.`);
           }
         }
       } else if (pClass === "Priest") {
@@ -1764,7 +1820,8 @@ function handleGameAction(connectionId: string, action: ClientAction) {
         if (powerIdx === 0) {
           // Steady Shot: deal 2 damage to enemy hero
           opponent.health -= 2;
-          addLog(room, `🏹 Steady Shot dealt 2 damage directly to ${opponent.name}.`);
+          recordHeroBlow(room, opponent, 2);
+          addLog(room, `🏹 Sicherer Schuss trifft ${opponent.name}s Held direkt für 2.`);
           triggerRageChat(room, opponent, "high_damage");
         } else if (powerIdx === 1) {
           // Call Pet: Summon a 1/1 Fast Boar with Charge
@@ -2220,6 +2277,7 @@ function resolveDamage(room: RoomState, player: PlayerState, opponent: PlayerSta
   if (isTargetHero) {
     const hpBefore = opponent.health;
     opponent.health -= amount;
+    recordHeroBlow(room, opponent, amount);
     addLog(room, `💥 ${src} trifft ${opponent.name}s Held für ${amount} (${hpBefore} → ${opponent.health}).`);
     if (amount >= 4) {
       triggerRageChat(room, opponent, "high_damage");
@@ -2278,17 +2336,17 @@ function checkGameVictory(room: RoomState) {
   if (room.player1.health <= 0 && room.player2.health <= 0) {
     room.phase = "victory";
     room.winnerId = "DRAW";
-    addLog(room, `💀 Mutual destruction! The duel ends in a tie!`);
+    addLog(room, `💀 Gegenseitige Auslöschung! Das Duell endet unentschieden!`);
   } else if (room.player1.health <= 0) {
     room.phase = "victory";
     room.winnerId = room.player2.id;
-    addLog(room, `👑 ${room.player2.name} is Victorous! ${room.player1.name}'s hero has fallen!`);
+    addLog(room, `👑 ${room.player2.name} triumphiert! ${room.player1.name}s Held ist gefallen!`);
     recordWin(room.player2.name);
     broadcastLobbyState();
   } else if (room.player2.health <= 0) {
     room.phase = "victory";
     room.winnerId = room.player1.id;
-    addLog(room, `👑 ${room.player1.name} is Victorous! ${room.player2.name}'s hero has fallen!`);
+    addLog(room, `👑 ${room.player1.name} triumphiert! ${room.player2.name}s Held ist gefallen!`);
     recordWin(room.player1.name);
     broadcastLobbyState();
   }

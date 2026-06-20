@@ -29,8 +29,9 @@ export function ChatPanel({ room, connectionId, onSendMessage }: ChatPanelProps)
   }, [room.messages]);
 
   useEffect(() => {
+    // history ist neueste-zuerst (unshift) -> neueste Aktion steht oben, also nach oben scrollen.
     if (logScrollRef.current) {
-      logScrollRef.current.scrollTop = logScrollRef.current.scrollHeight;
+      logScrollRef.current.scrollTop = 0;
     }
   }, [room.history]);
 

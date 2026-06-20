@@ -8,11 +8,19 @@ import { FuseTimer } from "./components/FuseTimer";
 import { Atmosphere } from "./components/Atmosphere";
 import { MusicToggle } from "./components/MusicToggle";
 import { FfaGame } from "./components/FfaGame";
-import { Card, RoomState, HeroClass, ClientAction, GameEvent, OpenRoomInfo, OnlinePlayerInfo, PlayerState } from "./types";
+import { Card, RoomState, HeroClass, ClientAction, GameEvent, OpenRoomInfo, OnlinePlayerInfo, PlayerState, FinishingBlow } from "./types";
 import { HERO_POWER_COST, HERO_POWERS, HERO_POWERS_LIST } from "./constants";
 import { playSound, playRaven } from "./utils/audio";
 import { generateVikingName } from "./utils/names";
-import { flashDamage, deathPoof, screenFlash, lungeAttack, spellCast, castProjectile, roundStartFlare, diceRoll, heroDeathExplosion, type SpellElement } from "./utils/combatFx";
+import { flashDamage, deathPoof, screenFlash, lungeAttack, spellCast, castProjectile, roundStartFlare, diceRoll, heroDeathExplosion, playFinisherCinematic, type SpellElement } from "./utils/combatFx";
+
+// Element/Farbe fuer das Sieg-Kino aus dem Finisher ableiten (templateId -> Element).
+function finisherElement(b: FinishingBlow): SpellElement {
+  if (b.kind === "attack") return "fire"; // physischer Schlag -> brutaler roter Impact
+  if (b.templateId && SPELL_ELEMENT[b.templateId]) return SPELL_ELEMENT[b.templateId];
+  if (b.kind === "power") return "arcane";
+  return "fire";
+}
 
 // Zauber/Heldenkraft -> Element fuer die VFX (Runenkreis + Partikel).
 const SPELL_ELEMENT: Record<string, SpellElement> = {
@@ -66,6 +74,10 @@ export default function App() {
 
   // Karten-Vorschau: Handkarte antippen -> gross lesen -> erst dann spielen.
   const [previewCardId, setPreviewCardId] = useState<string | null>(null);
+
+  // Sieg-Zeitlupen-Kino: solange es laeuft, ist der Sieg-Screen ausgeblendet.
+  const [cinematicActive, setCinematicActive] = useState<boolean>(false);
+  const prevCinePhaseRef = useRef<string | null>(null);
 
   // Alchemy Forge dynamic form states
   const [showAlchemyForge, setShowAlchemyForge] = useState(false);
@@ -189,7 +201,9 @@ export default function App() {
           myHeroHit = true;
         }
         // Entscheidender Schlag: Held faellt auf 0 -> epische Todes-Explosion + Boom.
-        if (isHero && now.hp <= 0 && before.hp > 0) { heroDeathExplosion(document.getElementById(key)); playSound("hero_death"); }
+        // Ausnahme: beim Sieg mit Finisher uebernimmt das Zeitlupen-Kino die Explosion.
+        const cinematicTakesOver = room.phase === "victory" && !!room.finisher;
+        if (isHero && now.hp <= 0 && before.hp > 0 && !cinematicTakesOver) { heroDeathExplosion(document.getElementById(key)); playSound("hero_death"); }
       });
       // Tode (Figur war da, jetzt weg) -> Rauch an letzter Position
       prev.forEach((before, key) => {
@@ -219,6 +233,42 @@ export default function App() {
     }
     prevTurnRef.current = t;
   }, [room?.turn, room?.phase, me?.id, opponent?.name]);
+
+  // Sieg-Zeitlupen-Kino: spielt den entscheidenden Schlag gross + in Slow-Mo nach.
+  // Danach (oder per Button) erscheint der Sieg-Screen. Fanfare kommt nach dem Kino.
+  const runFinisher = (b: FinishingBlow, outcome: "win" | "loss" | "draw") => {
+    setCinematicActive(true);
+    playFinisherCinematic(
+      {
+        actorName: b.actorName,
+        victimName: b.victimName,
+        kind: b.kind,
+        name: b.name,
+        emoji: b.emoji,
+        damage: b.damage,
+        cardType: b.cardType,
+        attack: b.attack,
+        element: finisherElement(b),
+      },
+      { onImpact: () => playSound("hero_death") }
+    ).finally(() => {
+      setCinematicActive(false);
+      if (outcome === "win") playSound("victory");
+      else if (outcome === "loss") playSound("loss");
+    });
+  };
+
+  // Auto-Trigger beim Wechsel in den Sieg-Zustand (nur echte Transition, nicht beim Reconnect).
+  useEffect(() => {
+    if (!room) { prevCinePhaseRef.current = null; return; }
+    const prev = prevCinePhaseRef.current;
+    if (room.phase === "victory" && prev && prev !== "victory" && room.finisher) {
+      const outcome: "win" | "loss" | "draw" =
+        room.winnerId === "DRAW" ? "draw" : room.winnerId === me?.id ? "win" : "loss";
+      runFinisher(room.finisher, outcome);
+    }
+    prevCinePhaseRef.current = room.phase ?? null;
+  }, [room?.phase]);
 
   // Auto save playerName to localStorage + keep ref in sync for the long-lived socket handlers
   useEffect(() => {
@@ -280,10 +330,13 @@ export default function App() {
             setRoom((prev) => {
               if (prev && prev.phase !== updatedRoom.phase && updatedRoom.phase === "victory") {
                 const myId = mine?.id;
-                if (myId && updatedRoom.winnerId === myId) {
-                  playSound("victory");
-                } else if (updatedRoom.winnerId !== "DRAW") {
-                  playSound("loss");
+                // Mit Finisher kommt die Fanfare erst NACH dem Zeitlupen-Kino (siehe runFinisher).
+                if (!updatedRoom.finisher) {
+                  if (myId && updatedRoom.winnerId === myId) {
+                    playSound("victory");
+                  } else if (updatedRoom.winnerId !== "DRAW") {
+                    playSound("loss");
+                  }
                 }
               }
               return updatedRoom;
@@ -1466,7 +1519,7 @@ export default function App() {
       </main>
 
       {/* D. GAME OVER VICTORY / LOSS SCANNABLE MODAL OVERLAY */}
-      {room.phase === "victory" && (
+      {room.phase === "victory" && !cinematicActive && (
         <div className="fixed inset-0 bg-mg-void/95 z-50 flex items-center justify-center p-4">
           <div className="bg-gradient-to-b from-mg-slate to-mg-void border-2 border-mg-bronze rounded-3xl p-8 max-w-lg w-full text-center space-y-6 shadow-2xl sh-glow flex flex-col items-center">
             
@@ -1503,13 +1556,27 @@ export default function App() {
               </>
             )}
 
-            {/* Letzter Moment: so endete es */}
+            {/* Letzter Moment: so endete es (history ist neueste-zuerst -> slice(0,4)) */}
             <div className="w-full bg-mg-void/60 border border-mg-stone rounded-xl p-3 text-left">
               <div className="text-[10px] uppercase tracking-widest text-mg-bronze font-mono mb-1">So endete es</div>
-              {(room.history || []).slice(-4).map((l, i) => (
+              {(room.history || []).slice(0, 4).map((l, i) => (
                 <div key={i} className="text-[11px] text-mg-fog font-body leading-snug truncate">{l}</div>
               ))}
             </div>
+
+            {room.finisher && (
+              <button
+                onClick={() => {
+                  const outcome: "win" | "loss" | "draw" =
+                    room.winnerId === "DRAW" ? "draw" : room.winnerId === me?.id ? "win" : "loss";
+                  runFinisher(room.finisher!, outcome);
+                }}
+                type="button"
+                className="w-full bg-mg-slate hover:bg-mg-stone border border-mg-bronze/60 text-mg-bronze-bright font-bold text-xs py-2.5 rounded-xl shadow-md cursor-pointer transition-all uppercase tracking-wider"
+              >
+                🎬 Todesstoß in Zeitlupe ansehen
+              </button>
+            )}
 
             <div className="flex gap-4 pt-4 w-full">
               <button

@@ -496,6 +496,270 @@ export function diceRoll(): void {
   a.onfinish = () => d.remove();
 }
 
+// ============================================================
+//  SIEG-ZEITLUPEN-KINO (Finisher-Replay)
+// ============================================================
+// Spielt den entscheidenden Schlag gross + in Zeitlupe nach: die Karte praesentiert
+// sich tanzend in der Mitte, holt aus, schlaegt/feuert in Slow-Mo auf das Helden-
+// Wappen des Opfers, riesige Schadenszahl, dann epische Todes-Explosion + Boom.
+// Komplett selbst-aufraeumend, gibt ein Promise zurueck (resolved am Ende).
+
+export interface FinisherCinematicData {
+  actorName: string;
+  victimName: string;
+  kind: "attack" | "spell" | "power";
+  name: string;
+  emoji: string;
+  damage: number;
+  cardType?: "minion" | "spell";
+  attack?: number;
+  element: SpellElement;
+}
+
+function cssFont(weight: number, size: number, serif = true): string {
+  return `font-family:${serif ? "'Cinzel',serif" : "'Spectral',serif"};font-weight:${weight};font-size:${size}px;`;
+}
+
+// Baut die grosse Praesentations-Karte (Diener-Koerper oder Zauber-Sigille).
+function buildFinisherCard(data: FinisherCinematicData): HTMLElement {
+  const def = ELEMENTS[data.element] || ELEMENTS.arcane;
+  const isMinion = data.cardType === "minion" || data.kind === "attack";
+  const accent = data.kind === "attack" ? "#e7c98a" : def.rune;
+  const glow = data.kind === "attack" ? "#c0392b" : def.colors[1];
+
+  const card = document.createElement("div");
+  card.style.cssText =
+    `position:absolute;left:50%;top:38%;width:188px;height:268px;margin:-134px 0 0 -94px;` +
+    `border-radius:16px;border:2px solid ${accent};` +
+    `background:linear-gradient(160deg, rgba(28,24,20,0.97), rgba(10,8,7,0.99));` +
+    `box-shadow:0 0 46px ${glow}, 0 0 90px ${glow}55, inset 0 0 26px rgba(0,0,0,0.7);` +
+    `display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;` +
+    `will-change:transform,opacity;overflow:hidden;`;
+
+  // Aura-Schimmer hinter dem Emoji
+  const aura = document.createElement("div");
+  aura.style.cssText =
+    `position:absolute;left:50%;top:42%;width:150px;height:150px;margin:-75px 0 0 -75px;border-radius:50%;` +
+    `background:radial-gradient(circle, ${glow}66, transparent 68%);filter:blur(4px);`;
+  card.appendChild(aura);
+
+  const icon = document.createElement("div");
+  icon.textContent = data.emoji || (isMinion ? "⚔️" : "✨");
+  icon.style.cssText = `position:relative;font-size:96px;line-height:1;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.8));`;
+  card.appendChild(icon);
+
+  const nameEl = document.createElement("div");
+  nameEl.textContent = data.name;
+  nameEl.style.cssText =
+    `position:relative;${cssFont(900, 17)}color:#f3e9d6;text-align:center;padding:0 10px;` +
+    `text-shadow:0 2px 6px rgba(0,0,0,0.95);letter-spacing:0.04em;line-height:1.1;`;
+  card.appendChild(nameEl);
+
+  const kindLabel = document.createElement("div");
+  kindLabel.textContent = data.kind === "attack" ? "TÖDLICHER ANGRIFF" : data.kind === "power" ? "HELDENKRAFT" : "ZAUBER";
+  kindLabel.style.cssText =
+    `position:relative;${cssFont(700, 10)}color:${accent};letter-spacing:0.22em;text-transform:uppercase;opacity:0.9;`;
+  card.appendChild(kindLabel);
+
+  // Angriffs-Badge nur beim Diener-Angriff
+  if (data.kind === "attack" && typeof data.attack === "number") {
+    const badge = document.createElement("div");
+    badge.textContent = `⚔ ${data.attack}`;
+    badge.style.cssText =
+      `position:absolute;left:10px;bottom:10px;${cssFont(900, 18)}color:#ffd089;` +
+      `text-shadow:0 2px 5px rgba(0,0,0,0.95);`;
+    card.appendChild(badge);
+  }
+
+  // Glanz-Sweep
+  const shine = document.createElement("div");
+  shine.style.cssText =
+    `position:absolute;top:-40%;left:-60%;width:60%;height:180%;transform:rotate(20deg);` +
+    `background:linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent);`;
+  card.appendChild(shine);
+  shine.animate(
+    [{ transform: "translateX(0) rotate(20deg)" }, { transform: "translateX(360%) rotate(20deg)" }],
+    { duration: 900, delay: 650, easing: "ease-in-out" }
+  );
+
+  return card;
+}
+
+export function playFinisherCinematic(
+  data: FinisherCinematicData,
+  opts: { onImpact?: () => void } = {}
+): Promise<void> {
+  return new Promise<void>((resolve) => {
+    const root = getRoot();
+    const wrap = document.createElement("div");
+    wrap.style.cssText = "position:absolute;inset:0;z-index:4;pointer-events:none;";
+    root.appendChild(wrap);
+
+    const timers: number[] = [];
+    const at = (ms: number, fn: () => void) => { timers.push(window.setTimeout(fn, ms)); };
+    const cleanup = () => { timers.forEach(clearTimeout); wrap.remove(); resolve(); };
+
+    // Verdunkelung
+    const veil = document.createElement("div");
+    veil.style.cssText = "position:absolute;inset:0;background:radial-gradient(120% 100% at 50% 45%, rgba(6,5,8,0.78), rgba(0,0,0,0.92));";
+    wrap.appendChild(veil);
+    veil.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 320, easing: "ease-out", fill: "forwards" });
+
+    // Reduced-Motion: Kurzfassung
+    if (reduceMotion()) {
+      const card = buildFinisherCard(data);
+      wrap.appendChild(card);
+      at(700, () => { opts.onImpact?.(); screenFlash(1); });
+      at(1900, cleanup);
+      return;
+    }
+
+    // Opfer-Wappen unten
+    const plate = document.createElement("div");
+    plate.style.cssText =
+      `position:absolute;left:50%;top:80%;transform:translate(-50%,-50%);` +
+      `display:flex;flex-direction:column;align-items:center;gap:4px;opacity:0;`;
+    const plateSkull = document.createElement("div");
+    plateSkull.textContent = "🛡️";
+    plateSkull.style.cssText = "font-size:54px;filter:drop-shadow(0 0 14px rgba(0,0,0,0.8));";
+    const plateName = document.createElement("div");
+    plateName.textContent = data.victimName;
+    plateName.style.cssText = `${cssFont(900, 20)}color:#cdd3da;letter-spacing:0.08em;text-shadow:0 2px 8px rgba(0,0,0,0.9);`;
+    plate.appendChild(plateSkull);
+    plate.appendChild(plateName);
+    wrap.appendChild(plate);
+    plate.animate([{ opacity: 0, transform: "translate(-50%,-30%)" }, { opacity: 1, transform: "translate(-50%,-50%)" }], { duration: 500, delay: 200, easing: "ease-out", fill: "forwards" });
+
+    // Karte herein + praesentieren
+    const card = buildFinisherCard(data);
+    wrap.appendChild(card);
+    card.animate(
+      [
+        { transform: "translateY(120px) scale(0.4) rotate(-14deg)", opacity: 0 },
+        { transform: "translateY(-10px) scale(1.12) rotate(3deg)", opacity: 1, offset: 0.35 },
+        { transform: "translateY(0px) scale(1) rotate(0deg)", opacity: 1, offset: 0.5 },
+        { transform: "translateY(-8px) scale(1.02) rotate(-1.5deg)", opacity: 1, offset: 0.74 }, // sanftes Schweben
+        { transform: "translateY(0px) scale(1) rotate(1deg)", opacity: 1, offset: 1 },
+      ],
+      { duration: 1500, easing: "cubic-bezier(.2,.8,.3,1)", fill: "forwards" }
+    );
+
+    const STRIKE = 1700; // ab hier Slow-Mo-Schlag
+
+    // Ausholen + Stoss/Feuer in Zeitlupe
+    at(STRIKE, () => {
+      const cardRect = card.getBoundingClientRect();
+      const plateRect = plate.getBoundingClientRect();
+      const cx = cardRect.left + cardRect.width / 2;
+      const cy = cardRect.top + cardRect.height / 2;
+      const px = plateRect.left + plateRect.width / 2;
+      const py = plateRect.top + plateRect.height / 2;
+
+      if (data.kind === "attack") {
+        // Diener stoesst in Zeitlupe nach unten zum Wappen
+        const dx = px - cx;
+        const dy = py - cy;
+        card.animate(
+          [
+            { transform: "translate(0,0) scale(1) rotate(1deg)" },
+            { transform: `translate(${-dx * 0.12}px, ${-dy * 0.12}px) scale(1.06) rotate(-6deg)`, offset: 0.34 }, // Ausholen
+            { transform: `translate(${dx * 0.62}px, ${dy * 0.62}px) scale(1.18) rotate(8deg)`, offset: 0.92 }, // langsamer Stoss
+            { transform: `translate(${dx * 0.6}px, ${dy * 0.6}px) scale(1.14) rotate(6deg)`, offset: 1 },
+          ],
+          { duration: 1150, easing: "cubic-bezier(.45,0,.55,1)", fill: "forwards" }
+        );
+      } else {
+        // Zauber/Heldenkraft: grosses Geschoss zieht in Zeitlupe von der Karte zum Wappen
+        const proj = document.createElement("div");
+        const def = ELEMENTS[data.element] || ELEMENTS.arcane;
+        proj.textContent = data.emoji || "✨";
+        proj.style.cssText =
+          `position:absolute;left:${cx}px;top:${cy + 60}px;transform:translate(-50%,-50%);font-size:46px;` +
+          `filter:drop-shadow(0 0 18px ${def.colors[0]});`;
+        wrap.appendChild(proj);
+        const a = proj.animate(
+          [
+            { left: `${cx}px`, top: `${cy + 60}px`, opacity: 0, transform: "translate(-50%,-50%) scale(0.5) rotate(0deg)" },
+            { opacity: 1, offset: 0.2 },
+            { left: `${px}px`, top: `${py}px`, opacity: 1, transform: "translate(-50%,-50%) scale(1.3) rotate(540deg)" },
+          ],
+          { duration: 1050, easing: "cubic-bezier(.5,.1,.6,1)", fill: "forwards" }
+        );
+        a.onfinish = () => proj.remove();
+      }
+    });
+
+    // Aufprall: Burst + Schadenszahl + Boom-Sound
+    const IMPACT = STRIKE + 1080;
+    at(IMPACT, () => {
+      const plateRect = plate.getBoundingClientRect();
+      const px = plateRect.left + plateRect.width / 2;
+      const py = plateRect.top + plateRect.height / 2;
+      spellCast(px, py, data.element);
+      impactBurst(px, py);
+      shakeElement(plate, true);
+      opts.onImpact?.();
+
+      // Riesige Schadenszahl
+      const dmg = document.createElement("div");
+      dmg.textContent = `-${data.damage}`;
+      dmg.style.cssText =
+        `position:absolute;left:${px}px;top:${py - 30}px;transform:translate(-50%,-50%);` +
+        `${cssFont(900, 88)}color:#ff5a4a;text-shadow:0 4px 16px rgba(0,0,0,0.95),0 0 28px rgba(255,40,40,0.9);will-change:transform,opacity;`;
+      wrap.appendChild(dmg);
+      const da = dmg.animate(
+        [
+          { transform: "translate(-50%,-50%) scale(0.3)", opacity: 0 },
+          { transform: "translate(-50%,-70%) scale(1.25)", opacity: 1, offset: 0.3 },
+          { transform: "translate(-50%,-120%) scale(1.05)", opacity: 0 },
+        ],
+        { duration: 1300, easing: "cubic-bezier(.2,.8,.3,1)" }
+      );
+      da.onfinish = () => dmg.remove();
+    });
+
+    // Tod: Wappen zerschellt + epische Explosion + Titel
+    const DEATH = IMPACT + 220;
+    at(DEATH, () => {
+      heroDeathExplosion(plate);
+      plate.animate(
+        [{ transform: "translate(-50%,-50%) scale(1)", opacity: 1 }, { transform: "translate(-50%,-30%) scale(0.6) rotate(12deg)", opacity: 0 }],
+        { duration: 700, easing: "ease-in", fill: "forwards" }
+      );
+      plateSkull.textContent = "💀";
+      // Karte abrauchen
+      card.animate(
+        [{ opacity: 1 }, { opacity: 0, transform: "translateY(-20px) scale(0.92)" }],
+        { duration: 700, easing: "ease-in", fill: "forwards" }
+      );
+
+      const title = document.createElement("div");
+      title.textContent = "VERNICHTET";
+      title.style.cssText =
+        `position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);` +
+        `${cssFont(900, 64)}color:#fff;letter-spacing:0.12em;` +
+        `text-shadow:0 0 24px rgba(255,40,40,0.95),0 4px 18px rgba(0,0,0,0.95);will-change:transform,opacity;`;
+      wrap.appendChild(title);
+      title.animate(
+        [
+          { transform: "translate(-50%,-50%) scale(1.6)", opacity: 0 },
+          { transform: "translate(-50%,-50%) scale(1)", opacity: 1, offset: 0.25 },
+          { transform: "translate(-50%,-50%) scale(1)", opacity: 1, offset: 0.78 },
+          { transform: "translate(-50%,-50%) scale(1.04)", opacity: 0 },
+        ],
+        { duration: 1500, easing: "cubic-bezier(.2,.8,.3,1)" }
+      );
+    });
+
+    // Abblende + Ende
+    const END = DEATH + 1500;
+    at(END - 450, () => {
+      veil.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 450, easing: "ease-in", fill: "forwards" });
+    });
+    at(END, cleanup);
+  });
+}
+
 // Zauber-Aufruf an einer Position: roter Runenkreis + Pentagramm + Element-Partikel.
 export function spellCast(cx: number, cy: number, element: SpellElement): void {
   if (reduceMotion()) return;
