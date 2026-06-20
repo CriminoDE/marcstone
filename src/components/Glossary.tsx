@@ -11,6 +11,7 @@ const KEYWORDS: Entry[] = [
   { emoji: "🌟", title: "Gottesschild", text: "Der erste Schaden, der diesen Diener trifft, wird komplett geschluckt. Danach ist der Schild weg." },
   { emoji: "❤️", title: "Kampfschrei", text: "Ein Effekt, der einmal auslöst, sobald der Diener von der Hand gespielt wird (z.B. Schaden, Klau, Heilung)." },
   { emoji: "❄️", title: "Eingefroren", text: "Der Diener überspringt seinen nächsten Angriff. Danach taut er auf und kann wieder zuschlagen." },
+  { emoji: "💀", title: "Todesröcheln", text: "Ein Effekt, der auslöst, sobald dieser Diener stirbt (z.B. Schaden, Karte ziehen, Welpen beschwören). Wirkt über den Tod hinaus." },
 ];
 
 const FLOW: Entry[] = [

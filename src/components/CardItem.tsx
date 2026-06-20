@@ -69,6 +69,9 @@ export function CardItem({
   if (card.description.toLowerCase().includes("battlecry") || card.description.includes("🔥") || card.description.includes("💣") || card.description.includes("❤️")) {
     tooltips.push("💥 Kampfschrei: Löst direkt beim Ausspielen einen Einmaleffekt aus.");
   }
+  if (card.hasDeathrattle) {
+    tooltips.push("💀 Todesröcheln: Löst einen Effekt aus, wenn dieser Diener stirbt.");
+  }
 
   return (
     <div
@@ -157,6 +160,9 @@ export function CardItem({
           )}
           {isFrozen && (
             <span className="bg-cyan-300/95 text-[8px] md:text-[11px] px-0.5 md:px-1 rounded shadow leading-tight" title="Eingefroren">❄️</span>
+          )}
+          {card.hasDeathrattle && (
+            <span className="bg-mg-void/90 text-[8px] md:text-[11px] px-0.5 md:px-1 rounded shadow leading-tight border border-mg-blood-bright/50" title="Todesröcheln">💀</span>
           )}
         </div>
       </div>

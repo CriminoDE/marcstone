@@ -40,6 +40,19 @@ Waechter = Paladin & Priest. **Sag, wenn du Werte, Klassen-Zuordnung oder Karten
 Offene Frage: 4/2-Ansturm fuer 3 Mana evtl. minimal ueber Kurve - wenn zu stark, 3/2.
 Marksmann 5/1 ist absichtlich fragil (stirbt an jedem Konter/Ping).
 
+## Todesroecheln-Karten (v2.14, DEIN VETO - Werte in src/constants.ts)
+
+Neue Mechanik Todesroecheln (feuert beim Tod). 4 Karten, in allen Modi + Bots, deterministisch getestet. **Werte/Klassen frei aenderbar.**
+
+| Karte | Mana | Werte | Todesroecheln | Klassen | Notiz |
+|---|---|---|---|---|---|
+| Marcs Wiedergaenger (`m_revenant`) | 3 | 3/2 | 3 Schaden an gegn. Held | Mage, Hunter | Garantierter Gesichts-Schaden, egal wie er stirbt. Aggro-Tool. |
+| Marcs Seherin (`m_seeress`) | 2 | 2/2 | Ziehe 1 Karte | Mage, Priest | Karten-Vorteil, der nie verloren geht. Frueh stark. |
+| Fenris-Brut (`fenris_brood`) | 4 | 3/3 | Beschwoere 2x 2/2 Welpe | Hunter, Paladin | 3/3 + 4/4 in Toetchen = viel Wert fuer 4. Evtl. Welpen 1/1 wenn zu stark. |
+| Draugr-Krieger (`draugr`) | 5 | 4/4 Spott | 2 an alle Feind-Diener | Priest, Paladin | Spott + Brett-Kontrolle beim Sterben. Solide. |
+
+Offene Fragen: Fenris-Brut (3/3 + zwei 2/2) ggf. zu wertig fuer 5 Mana Gesamt? Welpen 2/2 oder 1/1?
+
 ## Neue Marc-Legendaere (v2.13, DEIN VETO - Werte in src/constants.ts)
 
 Vier neue Karten, alle nur mit bestehenden Mechaniken gebaut (kein neues Keyword), in allen Modi + beiden Bots verdrahtet und headless getestet. **Sag, wenn du Werte, Klassen-Zuordnung oder Karten ganz raus willst.**

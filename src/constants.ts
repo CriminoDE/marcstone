@@ -483,6 +483,59 @@ export const CARD_TEMPLATES = {
     description: "⚡ Ansturm. Der Wolf, der die Sonne verschlingt - schlägt sofort zu.",
     hasCharge: true,
   },
+
+  // === Todesroecheln-Wave: feuern einen Effekt, wenn der Diener stirbt ===
+  "m_revenant": {
+    name: "Marcs Wiedergänger",
+    type: "minion",
+    cost: 3,
+    attack: 3,
+    health: 2,
+    emoji: "🧟🩸",
+    description: "💀 Todesröcheln: Füge einem gegnerischen Helden 3 Schaden zu. Der Fluch schlägt im Tod zurück.",
+    hasDeathrattle: true,
+  },
+  "m_seeress": {
+    name: "Marcs Seherin",
+    type: "minion",
+    cost: 2,
+    attack: 2,
+    health: 2,
+    emoji: "🔮👁️",
+    description: "💀 Todesröcheln: Ziehe eine Karte. Ihr letzter Blick gilt der Zukunft.",
+    hasDeathrattle: true,
+  },
+  "fenris_brood": {
+    name: "Fenris-Brut",
+    type: "minion",
+    cost: 4,
+    attack: 3,
+    health: 3,
+    emoji: "🐺🐾",
+    description: "💀 Todesröcheln: Beschwöre zwei 2/2 Welpen. Die Brut stirbt nie ganz.",
+    hasDeathrattle: true,
+  },
+  "draugr": {
+    name: "Draugr-Krieger",
+    type: "minion",
+    cost: 5,
+    attack: 4,
+    health: 4,
+    emoji: "💀⚔️",
+    description: "🛡️ Spott. 💀 Todesröcheln: Füge allen gegnerischen Dienern 2 Schaden zu.",
+    hasTaunt: true,
+    hasDeathrattle: true,
+  },
+  // Nur per Todesroecheln beschworen (nicht im Deck):
+  "wolf_token": {
+    name: "Fenris-Welpe",
+    type: "minion",
+    cost: 2,
+    attack: 2,
+    health: 2,
+    emoji: "🐺",
+    description: "Ein Welpe aus Fenris-Brut.",
+  },
 } as const;
 
 export function createCardInstance(templateId: string, instanceId: string): Card {
@@ -504,6 +557,7 @@ export function createCardInstance(templateId: string, instanceId: string): Card
     hasTaunt: "hasTaunt" in template ? (template as any).hasTaunt : false,
     hasCharge: "hasCharge" in template ? (template as any).hasCharge : false,
     hasDivineShield: "hasDivineShield" in template ? (template as any).hasDivineShield : false,
+    hasDeathrattle: "hasDeathrattle" in template ? (template as any).hasDeathrattle : false,
     battlecryNeedsTarget: "battlecryNeedsTarget" in template ? (template as any).battlecryNeedsTarget : false,
     isReady: false,
   };
@@ -600,7 +654,8 @@ export const STANDARD_CLASS_CARDS: Record<string, string[]> = {
     "ragnaros", "dr_boom", "m_firelord", "deathwing",
     "m_squire", "pot_greed", "m_champion", "lich_king",
     "m_ravens", "m_marksman",
-    "m_wrath", "m_curse", "m_seer"
+    "m_wrath", "m_curse", "m_seer",
+    "m_revenant", "m_seeress"
   ],
   // HEILUNG & SCHATTEN: Heilige Nova + Tempelwaechter exklusiv, Gedankenkontrolle + Sylvanas, zaehe Koerper.
   Priest: [
@@ -609,7 +664,8 @@ export const STANDARD_CLASS_CARDS: Record<string, string[]> = {
     "alexstrasza", "lich_king", "deathwing", "m_firelord",
     "m_squire", "pot_greed", "m_champion", "arc_shot", "g_footman",
     "m_warden",
-    "m_seer", "m_wrath"
+    "m_seer", "m_wrath",
+    "m_seeress", "draugr"
   ],
   // BESTIEN & AGGRO: Mehrfachschuss + Schreckenswolf exklusiv, viel Ansturm, schnelle Bedrohungen.
   Hunter: [
@@ -618,7 +674,8 @@ export const STANDARD_CLASS_CARDS: Record<string, string[]> = {
     "ragnaros", "dr_boom", "m_firelord",
     "m_squire", "pot_greed", "m_champion", "s_belcher", "annoy_tron", "meteor",
     "m_ravens", "m_marksman",
-    "m_curse", "fenrir"
+    "m_curse", "fenrir",
+    "fenris_brood", "m_revenant"
   ],
   // LICHT & BREITE: Goettlicher Sturm + Silberhand-Ritter exklusiv, Gottesschilde + Spott + Weihe, go-wide.
   Paladin: [
@@ -626,6 +683,7 @@ export const STANDARD_CLASS_CARDS: Record<string, string[]> = {
     "lich_king", "alexstrasza", "s_shieldmasta", "s_belcher", "c_yeti", "crocolisk", "s_slime", "heal_touch",
     "m_firelord", "m_squire", "pot_greed", "m_champion", "b_ogre", "s_tank", "w_rider",
     "m_warden",
-    "fenrir", "m_curse"
+    "fenrir", "m_curse",
+    "draugr", "fenris_brood"
   ]
 };

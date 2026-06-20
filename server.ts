@@ -78,7 +78,7 @@ function shuffleDeck(deck: Card[]): Card[] {
 function generateClassDeck(heroClass: HeroClass): Card[] {
   const list = STANDARD_CLASS_CARDS[heroClass] || STANDARD_CLASS_CARDS["Mage"];
   const deck: Card[] = [];
-  
+
   // Choose up to 25 cards
   for (let i = 0; i < 25; i++) {
     const templateId = list[i % list.length];
@@ -183,6 +183,67 @@ function recordHeroBlow(room: RoomState, victim: PlayerState, amount: number) {
     victimName: victim.name,
     damage: amount,
   };
+}
+
+// --- Todesroecheln (Deathrattle) ---
+// Zentrale Diener-Tod-Behandlung. Ersetzt ueberall die verstreuten `board.filter(health>0)`:
+// sammelt tote Diener (health<=0) auf ALLEN Brettern, feuert ihr Todesroecheln, entfernt sie,
+// und wiederholt das, weil ein Todesroecheln weitere Diener toeten kann (z.B. Draugr-AoE).
+// Idempotent: ohne tote Diener tut die Funktion nichts. Wird nach jeder Schadensquelle aufgerufen.
+function deathrattleEnemies(room: RoomState, owner: PlayerState): PlayerState[] {
+  if (isFfaLike(room)) return ffaOpponents(room, owner);
+  const opp = owner === room.player1 ? room.player2 : room.player1;
+  return opp ? [opp] : [];
+}
+
+function fireDeathrattle(room: RoomState, owner: PlayerState, card: Card) {
+  if (!card.hasDeathrattle) return;
+  // Diese Todesroecheln-Quelle wird zur aktiven Aktion -> Helden-Kills korrekt zugeordnet (Sieg-Kino).
+  setActiveFx({ actorName: owner.name, kind: "spell", name: card.name, emoji: card.emoji, cardType: "minion", templateId: card.templateId });
+  const enemies = deathrattleEnemies(room, owner);
+  switch (card.templateId) {
+    case "m_revenant": {
+      const tgt = enemies[Math.floor(Math.random() * enemies.length)];
+      if (tgt) { const hp = tgt.health; tgt.health -= 3; recordHeroBlow(room, tgt, 3); addLog(room, `💀 Todesröcheln: Marcs Wiedergänger schlägt ${tgt.name}s Held für 3 (${hp} → ${tgt.health}).`); triggerRageChat(room, tgt, "high_damage"); }
+      break;
+    }
+    case "draugr": {
+      enemies.forEach(e => e.board.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 2; }));
+      addLog(room, `💀 Todesröcheln: Draugr-Krieger fügt allen gegnerischen Dienern 2 Schaden zu.`);
+      break;
+    }
+    case "m_seeress": {
+      if (owner.deck.length > 0) { const d = owner.deck.pop()!; if (owner.hand.length < 10) owner.hand.push(d); else addLog(room, `Hand voll! Verbrannt: ${d.name}.`); }
+      addLog(room, `💀 Todesröcheln: Marcs Seherin zieht eine Karte.`);
+      break;
+    }
+    case "fenris_brood": {
+      let summoned = 0;
+      for (let k = 0; k < 2 && owner.board.length < 7; k++) {
+        owner.board.push(createCardInstance("wolf_token", `wolf-${Math.random().toString(36).substring(2, 7)}`));
+        summoned++;
+      }
+      addLog(room, `💀 Todesröcheln: Fenris-Brut beschwört ${summoned} Welpe(n).`);
+      break;
+    }
+  }
+}
+
+function reap(room: RoomState) {
+  const boards = (): PlayerState[] => isFfaLike(room)
+    ? ffaSeats(room)
+    : [room.player1, room.player2].filter(Boolean) as PlayerState[];
+  for (let pass = 0; pass < 8; pass++) {
+    let any = false;
+    for (const owner of boards()) {
+      if (!owner.board.some(c => c.health <= 0)) continue;
+      const dead = owner.board.filter(c => c.health <= 0);
+      owner.board = owner.board.filter(c => c.health > 0);
+      any = true;
+      for (const d of dead) fireDeathrattle(room, owner, d);
+    }
+    if (!any) break;
+  }
 }
 
 // Goetter-Wuerfel: erzeugt eine ZUFAELLIGE, aber gebalancte Karte - garantiert ~1 Manastufe
@@ -355,7 +416,7 @@ function botPlaySpell(room: RoomState, bot: PlayerState, human: PlayerState, car
   const dmgFace = (n: number) => resolveDamage(room, bot, human, n, undefined, true, card.name);
   const wipe = (n: number) => {
     human.board.forEach((m) => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= n; });
-    human.board = human.board.filter((m) => m.health > 0);
+    reap(room);
   };
   const draw = (n: number) => {
     for (let i = 0; i < n; i++) { if (bot.deck.length > 0) { const d = bot.deck.pop()!; if (bot.hand.length < 10) bot.hand.push(d); } }
@@ -374,7 +435,7 @@ function botPlaySpell(room: RoomState, bot: PlayerState, human: PlayerState, car
       break;
     case "blizzard":
       human.board.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 2; m.frozen = true; m.isReady = false; });
-      human.board = human.board.filter(m => m.health > 0);
+      reap(room);
       break;
     case "holy_nova":
       wipe(2);
@@ -389,15 +450,15 @@ function botPlaySpell(room: RoomState, bot: PlayerState, human: PlayerState, car
         if ("heroClass" in tt) { tt.health -= 3; recordHeroBlow(room, tt as PlayerState, 3); }
         else { if (tt.hasDivineShield) tt.hasDivineShield = false; else tt.health -= 3; }
       }
-      human.board = human.board.filter(m => m.health > 0);
+      reap(room);
       break;
     case "divine_storm":
       bot.board.forEach(m => { m.attack += 1; m.health += 1; m.maxHealth += 1; });
       break;
     case "m_wrath":
       [bot.board, human.board].forEach(bd => bd.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 4; }));
-      bot.board = bot.board.filter(m => m.health > 0);
-      human.board = human.board.filter(m => m.health > 0);
+      reap(room);
+      reap(room);
       break;
     case "m_curse":
       dmgFace(Math.max(3, Math.floor(human.health / 2)));
@@ -438,7 +499,7 @@ function resolveBattlecry(
         m.health -= 4;
       }
     });
-    opponent.board = opponent.board.filter(m => m.health > 0);
+    reap(room);
     triggerRageChat(room, opponent, "high_damage");
   } else if (card.templateId === "dr_boom") {
     addLog(room, `💣💥 Dr. Marc entfesselt chaotische Boom-Bots!`);
@@ -461,7 +522,7 @@ function resolveBattlecry(
         }
       }
     }
-    opponent.board = opponent.board.filter(m => m.health > 0);
+    reap(room);
   } else if (card.templateId === "alexstrasza") {
     // Marc's Breath: setzt das Leben EINES beliebigen Helden auf 15 (Ziel waehlt der Spieler).
     const targetHero = isTargetHero
@@ -490,7 +551,7 @@ function resolveBattlecry(
            addLog(room, `🔥 Ragnaros trifft ${randTarget.name} für 8 Schaden!`);
         }
     }
-    opponent.board = opponent.board.filter(m => m.health > 0);
+    reap(room);
     triggerRageChat(room, opponent, "high_damage");
   } else if (card.templateId === "sylvanas") {
     if (opponent.board.length > 0 && player.board.length < 7) {
@@ -596,8 +657,8 @@ async function playAITurn(room: RoomState) {
           attacker.isReady = false;
           addLog(room, `⚔️ ${attacker.name} prallt auf ${target.name}.`);
           if (target.health <= 0) triggerRageChat(room, human, "minion_died");
-          bot.board = bot.board.filter((m) => m.health > 0);
-          human.board = human.board.filter((m) => m.health > 0);
+          reap(room);
+          reap(room);
         } else {
           human.health -= attacker.attack;
           setActiveFx({ actorName: bot.name, kind: "attack", name: attacker.name, emoji: attacker.emoji, cardType: "minion", templateId: attacker.templateId, attack: attacker.attack });
@@ -738,7 +799,7 @@ function ffaHitMinion(room: RoomState, owner: PlayerState, minion: Card, amount:
     addLog(room, `💥 ${src} trifft ${minion.name} für ${amount} (${before} → ${Math.max(0, minion.health)}).`);
     if (minion.health <= 0) triggerRageChat(room, owner, "minion_died");
   }
-  owner.board = owner.board.filter(m => m.health > 0);
+  reap(room);
 }
 // Einzelziel-Schaden (Zauber/Heldenkräfte): Held via targetPlayerId, Diener via Besitzer-Suche.
 // caster (optional): im 2v2 wird Schaden auf Verbuendete/sich selbst blockiert (Friendly Fire aus).
@@ -975,8 +1036,8 @@ async function playFfaBotTurn(room: RoomState, bot: PlayerState) {
           attacker.isReady = false;
           addLog(room, `⚔️ ${attacker.name} prallt auf ${defender.name}.`);
           if (defender.health <= 0) triggerRageChat(room, tgt.owner, "minion_died");
-          bot.board = bot.board.filter((m) => m.health > 0);
-          tgt.owner.board = tgt.owner.board.filter((m) => m.health > 0);
+          reap(room);
+          reap(room);
         } else {
           const tgtHero = enemies.slice().sort((a, b) => a.health - b.health)[0];
           tgtHero.health -= attacker.attack;
@@ -1007,7 +1068,7 @@ function resolveFfaBattlecry(room: RoomState, actor: PlayerState, card: Card, ta
     opp.forEach(o => {
       ffaHitHero(room, o, 4, "Inferno");
       o.board.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 4; });
-      o.board = o.board.filter(m => m.health > 0);
+      reap(room);
     });
   } else if (card.templateId === "dr_boom") {
     addLog(room, `💣💥 Dr. Marc entfesselt 3 Boom-Bots auf zufällige Feinde!`);
@@ -1067,7 +1128,7 @@ function resolveFfaSpell(room: RoomState, actor: PlayerState, card: Card, target
   const aoe = (dmg: number) => {
     ffaOpponents(room, actor).forEach(o => {
       o.board.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= dmg; });
-      o.board = o.board.filter(m => m.health > 0);
+      reap(room);
     });
     addLog(room, `${card.name} trifft alle gegnerischen Diener für ${dmg}.`);
   };
@@ -1082,14 +1143,14 @@ function resolveFfaSpell(room: RoomState, actor: PlayerState, card: Card, target
   else if (t === "blizzard") {
     ffaOpponents(room, actor).forEach(o => {
       o.board.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 2; m.frozen = true; m.isReady = false; });
-      o.board = o.board.filter(m => m.health > 0);
+      reap(room);
     });
     addLog(room, `🌨️ Blizzard: 2 Schaden an allen Gegner-Dienern + eingefroren.`);
   }
   else if (t === "holy_nova") {
     ffaOpponents(room, actor).forEach(o => {
       o.board.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 2; });
-      o.board = o.board.filter(m => m.health > 0);
+      reap(room);
     });
     const friends = [actor, ...ffaAllies(room, actor)];
     friends.forEach(fr => {
@@ -1114,7 +1175,7 @@ function resolveFfaSpell(room: RoomState, actor: PlayerState, card: Card, target
     // Symmetrisch: 4 Schaden an ALLEN Dienern im Spiel (jeder Sitz, Freund wie Feind).
     ffaSeats(room).forEach(p => {
       p.board.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 4; });
-      p.board = p.board.filter(m => m.health > 0);
+      reap(room);
     });
     addLog(room, `🩸⚡ Zorn des Marc: 4 Schaden an ALLEN Dienern im Spiel!`);
   }
@@ -1208,8 +1269,8 @@ function handleFfaAttack(room: RoomState, actor: PlayerState, payload: any, ws: 
 
     if (defender.health <= 0) triggerRageChat(room, owner, "minion_died");
     if (attacker.health <= 0) triggerRageChat(room, actor, "minion_died");
-    actor.board = actor.board.filter(m => m.health > 0);
-    owner.board = owner.board.filter(m => m.health > 0);
+    reap(room);
+    reap(room);
   }
 
   checkFfaVictory(room);
@@ -1259,7 +1320,7 @@ function handleFfaHeroPower(room: RoomState, actor: PlayerState, payload: any, w
   } else if (pClass === "Hunter") {
     if (powerIdx === 0) { const t = ffaHeroById(room, targetPlayerId); if (t && t.id !== actor.id) { ffaHitHero(room, t, 2, power.name); } else { ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Wähle einen gegnerischen Helden!" } })); actor.heroPowerUsed = false; actor.mana += HERO_POWER_COST; return; } }
     else if (powerIdx === 1) summon("fast_boar", "Fast Boar", "🐗", true, "🐗 Ansturm. Schnelles Tier.");
-    else { ffaOpponents(room, actor).forEach(o => { o.board.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 1; }); o.board = o.board.filter(m => m.health > 0); }); addLog(room, `💣 Sprengfalle trifft alle gegnerischen Diener für 1.`); }
+    else { ffaOpponents(room, actor).forEach(o => { o.board.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 1; }); reap(room); }); addLog(room, `💣 Sprengfalle trifft alle gegnerischen Diener für 1.`); }
   } else if (pClass === "Paladin") {
     if (powerIdx === 0) summon("sh_recruit", "Silver Hand Recruit", "🫡", false, "Von der Heldenkraft beschworen.");
     else if (powerIdx === 1) { if (targetId) { const m = actor.board.find(x => x.id === targetId); if (m) { m.hasDivineShield = true; addLog(room, `🛡️ ${m.name} erhält Gottesschild.`); } } else ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Ziel für Aegis nötig!" } })); }
@@ -1803,7 +1864,7 @@ function handleGameAction(connectionId: string, action: ClientAction) {
               m.health -= 2;
             }
           });
-          opponent.board = opponent.board.filter(m => m.health > 0);
+          reap(room);
           addLog(room, `Consecration deals 2 damage to ALL enemy minions!`);
         } else if (card.templateId === "flamestrike") {
           // deal 4 damage to all enemy board minions
@@ -1814,7 +1875,7 @@ function handleGameAction(connectionId: string, action: ClientAction) {
               m.health -= 4;
             }
           });
-          opponent.board = opponent.board.filter(m => m.health > 0);
+          reap(room);
           addLog(room, `Flamestrike deals 4 damage to ALL enemy minions!`);
         } else if (card.templateId === "pot_greed") {
           // Draw 2 cards
@@ -1835,12 +1896,12 @@ function handleGameAction(connectionId: string, action: ClientAction) {
             if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 2;
             m.frozen = true; m.isReady = false;
           });
-          opponent.board = opponent.board.filter(m => m.health > 0);
+          reap(room);
           addLog(room, `🌨️ Blizzard: 2 Schaden an allen gegnerischen Dienern - und eingefroren!`);
         } else if (card.templateId === "holy_nova") {
           // Priest-Signatur: 2 an Gegner-Dienern, +2 Leben fuer eigene Seite.
           opponent.board.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 2; });
-          opponent.board = opponent.board.filter(m => m.health > 0);
+          reap(room);
           player.health = Math.min(30, player.health + 2);
           player.board.forEach(m => m.health = Math.min(m.maxHealth, m.health + 2));
           addLog(room, `🌟 Heilige Nova: 2 Schaden an Feinden, +2 Leben fuer dich und deine Diener.`);
@@ -1853,7 +1914,7 @@ function handleGameAction(connectionId: string, action: ClientAction) {
             if ("heroClass" in t) { t.health -= 3; recordHeroBlow(room, t as PlayerState, 3); addLog(room, `🎯 Mehrfachschuss trifft ${t.name}s Held für 3.`); }
             else { if (t.hasDivineShield) t.hasDivineShield = false; else t.health -= 3; addLog(room, `🎯 Mehrfachschuss trifft ${t.name} für 3.`); }
           }
-          opponent.board = opponent.board.filter(m => m.health > 0);
+          reap(room);
         } else if (card.templateId === "divine_storm") {
           // Paladin-Signatur: alle eigenen Diener +1/+1.
           player.board.forEach(m => { m.attack += 1; m.health += 1; m.maxHealth += 1; });
@@ -1863,8 +1924,8 @@ function handleGameAction(connectionId: string, action: ClientAction) {
           [player.board, opponent.board].forEach(bd => {
             bd.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 4; });
           });
-          player.board = player.board.filter(m => m.health > 0);
-          opponent.board = opponent.board.filter(m => m.health > 0);
+          reap(room);
+          reap(room);
           addLog(room, `🩸⚡ Zorn des Marc: 4 Schaden an ALLEN Dienern - keine Gnade!`);
         } else if (card.templateId === "m_curse") {
           // Marc-Legendaer: halbiert das Leben eines beliebigen Ziels (mind. 3 Schaden).
@@ -1987,8 +2048,8 @@ function handleGameAction(connectionId: string, action: ClientAction) {
         }
 
         // Clean dead minions
-        player.board = player.board.filter(m => m.health > 0);
-        opponent.board = opponent.board.filter(m => m.health > 0);
+        reap(room);
+        reap(room);
       }
 
       checkGameVictory(room);
@@ -2063,7 +2124,7 @@ function handleGameAction(connectionId: string, action: ClientAction) {
               randomMinion.health -= randDmg;
             }
             addLog(room, `🌀 Unstable Magic deals ${randDmg} damage to ${randomMinion.name}.`);
-            opponent.board = opponent.board.filter(m => m.health > 0);
+            reap(room);
           } else {
             opponent.health -= 1;
             recordHeroBlow(room, opponent, 1);
@@ -2139,7 +2200,7 @@ function handleGameAction(connectionId: string, action: ClientAction) {
               m.health -= 1;
             }
           });
-          opponent.board = opponent.board.filter(m => m.health > 0);
+          reap(room);
           addLog(room, `💣 Explosive Trap deals 1 damage to all enemy minions.`);
         }
       } else if (pClass === "Paladin") {
@@ -2186,7 +2247,7 @@ function handleGameAction(connectionId: string, action: ClientAction) {
               } else {
                 minion.health -= 2;
               }
-              opponent.board = opponent.board.filter(m => m.health > 0);
+              reap(room);
               player.health = Math.min(30, player.health + 2);
               addLog(room, `☀️ Holy Light: 2 Schaden an ${minion.name} und +2 Leben für deinen Helden.`);
             }
@@ -2646,8 +2707,8 @@ function resolveDamage(room: RoomState, player: PlayerState, opponent: PlayerSta
       }
 
       // Filter out dead minions
-      player.board = player.board.filter(m => m.health > 0);
-      opponent.board = opponent.board.filter(m => m.health > 0);
+      reap(room);
+      reap(room);
     }
   }
 }

@@ -24,7 +24,13 @@ Marcgard = Browser-Kartenduell (Hearthstone-artig), 1v1 online ueber Link, fuer 
 ## Testen ohne zweiten Spieler
 Raum erstellen -> Warteraum -> "Uebungsgegner hinzufuegen" -> lokaler Bot "Holgar" (kein Gemini, kostenlos). WS-Testskripte: `/tmp/wstest.mjs` (Reconnect), `/tmp/bottest.mjs` (Bot) - bei Bedarf neu schreiben.
 
-## STAND (Stand: 2026-06-20, **v2.13 LIVE auf https://marcgard.onrender.com** - Commit b876817, deployed (dep-d8rbii6) + verifiziert: health 200, Live-JS-Bundle sha256-identisch mit lokalem Build + enthaelt v2.13, WS erstellt Raum. Vorher v2.12 = 0318c45.)
+## STAND (Stand: 2026-06-20, **v2.14 (Todesroecheln) gebaut + getestet** - Deploy-Status siehe unten. Vorher v2.13 LIVE Commit b876817.)
+
+### v2.14 - Todesroecheln (Deathrattle)
+- **Neue Mechanik:** `hasDeathrattle`-Diener feuern beim Tod einen Effekt. Server-zentral: **eine** `reap(room)`-Funktion (in server.ts bei den Finisher-Helfern) ersetzt die ~35 verstreuten `board.filter(health>0)` - sammelt tote Diener auf allen Brettern, feuert `fireDeathrattle`, wiederholt fuer Kettentode. `fireDeathrattle` mutiert direkt (keine Rekursion). Wirkt in Duell + FFA + 2v2 + beide Bots (alle Schadenspfade laufen durch reap).
+- **4 Karten:** m_revenant (Tod: 3 an Feind-Held), m_seeress (Tod: Karte ziehen), fenris_brood (Tod: 2x wolf_token 2/2), draugr (Spott, Tod: 2 an alle Feind-Diener). Client: 💀-Chip + Tooltip + Glossar.
+- **Verifiziert:** deterministischer Headless-Test (MG_TEST_DR-Hook, danach entfernt) - alle 4 feuern, Welpen erscheinen, Ketten loesen aus, **0 liegende tote Diener**, 0 Crashes. Normal-Mode sauber. lint+build gruen.
+- ⚠️ Wenn du am reap-Refactor zweifelst: Test-Hook war `MG_TEST_DR=1` in generateClassDeck (front-laedt DR-Karten) - wurde nach dem Test wieder entfernt, ist NICHT mehr im Code.
 
 ### v2.13 (lokal, ungepusht) - Marcs Macht + hellere Handkarten
 - **4 neue Marc-Legendaere** (nur bestehende Frameworks, KEIN neues Keyword): `m_wrath` Zorn des Marc (4M Zauber, 4 Schaden an ALLEN Dienern symmetrisch), `m_curse` Marcs Fluch (3M zielbar, halbiert Leben min 3), `m_seer` Marc der Seher (4M 3/4 Kampfschrei: zieh 2, zahl 2 Leben min 1), `fenrir` Fenrir der Endwolf (7M 6/6 Ansturm). In `src/constants.ts` + ALLEN Modi verdrahtet (Duell PLAY_CARD/resolveBattlecry/botPlaySpell, FFA resolveFfaSpell/resolveFfaBattlecry/FFA-Bot-targetedDmg, Client targetSpells+FFA_TARGETED_SPELLS+SPELL_ELEMENT). Headless 16 Spiele vs Bot: 0 Crashes, alle 4 Karten feuern, server-stdout 0 Errors.
@@ -32,9 +38,9 @@ Raum erstellen -> Warteraum -> "Uebungsgegner hinzufuegen" -> lokaler Bot "Holga
 - Patch-Notes v2.13 in Lobby + CHANGELOG + BALANCE-CHANGES (Veto-Tabelle). lint+build gruen.
 - **OFFEN: Henry-Spieltest, dann committen + pushen + Render-Deploy.** Danach: Klassensystem-Weiche (siehe unten) + naechste Mechaniken-Wave.
 
-### 🎯 NAECHSTE SESSION: TODESROECHELN-MECHANIK + krasse Karten-Wave (Henry-Entscheidungen 2026-06-20 stehen)
+### 🎯 NAECHSTE SESSION: krasse Karten-Wave (Henry-Entscheidungen 2026-06-20 stehen)
 **Design-Weichen sind GESTELLT (Henry hat entschieden, nicht mehr neu fragen):**
-- **Mechanik als Naechstes = Todesroecheln (Deathrattle)** und NUR die (Lifesteal/Zauberschaden/Windfury bewusst NICHT jetzt). Effekt beim Tod eines Dieners - passt zu Marcs Fluch-Thema. ⚠️ Braucht einen ZENTRALEN "Diener-stirbt"-Hook ueber ALLE Entfern-Pfade (Kampf, AoE-Zauber, gezielte Zauber, Sylvanas/Mind Control, FFA-Pendants). Aktuell wird `board = board.filter(health>0)` an vielen Stellen gemacht -> erst eine einzige `onMinionDeath`/`removeMinion`-Funktion bauen, dann Deathrattle darauf. RISKANT/breit -> mit Review-Agent absichern. Erst auf SAUBERE committete Basis (nach v2.13-Push).
+- ✅ **Todesroecheln (Deathrattle) = GEBAUT in v2.14** (zentrale `reap`-Funktion + 4 Karten, siehe v2.14-Block oben). Lifesteal/Zauberschaden/Windfury bewusst NICHT jetzt - die kommen evtl. in spaeteren Wellen, wenn Henry sie will. Fuer neue Deathrattle-Karten: nur Karte in constants + Branch in `fireDeathrattle` (Duell+FFA teilen sich die Funktion) + Klassen-Liste. Kein Kern-Refactor mehr noetig.
 - **Universal-Karten-Pool = ERST mit dem Deckbau (Phase C), NICHT jetzt.** Begruendung Henry/Claude: ohne Deckbau macht ein Universal-Pool alle Klassen wieder ~gleich = undo von v2.9. Kuratierte `STANDARD_CLASS_CARDS` bleiben bis Deckbau existiert. Voll-Hearthstone verworfen.
 - **Dann krasse Karten-Wave:** mehr Marc-Legendaere mit Deathrattle (Marcs Bann, Zorn-Reihe, Heldenkraft-Wechsel-Karte). Jede neue Karte = Wiring in Duell (PLAY_CARD/resolveBattlecry/botPlaySpell) + FFA (resolveFfaSpell/resolveFfaBattlecry/FFA-Bot) + Client (targetSpells/FFA_TARGETED_SPELLS/SPELL_ELEMENT) + Glossar bei neuem Keyword, sonst tote Karte (meteor/mind_control-Falle).
 - **Account-Setup (Phase C):** Google-OAuth + Profil + Sammlung + Deckbau via EIGENES Supabase-Projekt. **HENRY macht das selbst, Claude fasst Supabase NICHT an.**

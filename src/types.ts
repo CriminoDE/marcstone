@@ -14,6 +14,7 @@ export interface Card {
   hasTaunt?: boolean;
   hasCharge?: boolean;
   hasDivineShield?: boolean;
+  hasDeathrattle?: boolean; // Todesroecheln: feuert einen Effekt, wenn dieser Diener stirbt
   battlecryNeedsTarget?: boolean; // Diener-Battlecry braucht ein Ziel (z.B. Marc's Breath -> Held)
   frozen?: boolean; // eingefroren: ueberspringt das naechste Bereitmachen (taut dann auf)
   tempAttackDebuff?: number; // temporaer gesenkter Angriff, wird beim naechsten Bereitmachen zurueckgegeben

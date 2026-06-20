@@ -7,6 +7,16 @@ Format: `## [Version] - Datum` mit Kategorien Hinzugefuegt / Geaendert / Behoben
 
 ---
 
+## [2.14.0] - Todesroecheln (Deathrattle)
+
+### Hinzugefuegt
+- **Neue Mechanik Todesroecheln** (`hasDeathrattle`): Diener loesen beim Sterben einen Effekt aus. Server-zentral umgesetzt - **eine** `reap(room)`-Funktion ersetzt jetzt die ~35 verstreuten `board.filter(health>0)`-Stellen: sie sammelt tote Diener auf allen Brettern, feuert ihr Todesroecheln und wiederholt das (Kettentode, z.B. Draugr-AoE). `fireDeathrattle` mutiert direkt (keine Rekursion). Greift in Duell + FFA + 2v2 + bei beiden Bots, weil alle Schadenspfade durch `reap` laufen.
+- **4 Todesroecheln-Karten** (`src/constants.ts`): Marcs Wiedergaenger (3M 3/2, Tod: 3 an gegnerischen Helden), Marcs Seherin (2M 2/2, Tod: zieh eine Karte), Fenris-Brut (4M 3/3, Tod: beschwoere zwei 2/2 Fenris-Welpen), Draugr-Krieger (5M 4/4 Spott, Tod: 2 an alle Feind-Diener). Plus Token `wolf_token` (nur beschworen).
+- **Client:** 💀-Keyword-Chip auf der Karte + Tooltip + Glossar-Eintrag "Todesroecheln".
+
+### Verifikation
+- Headless deterministisch (Deck mit allen 4 DR-Karten front-geladen, aggressives Traden): alle 4 Effekte feuern (Helden-Schaden + Karte-ziehen + Welpen-Beschwoeren + AoE), Welpen erscheinen, Kettentode loesen aus. **0 liegengebliebene tote Diener** ueber alle Spiele (beweist: reap laeuft nach jedem Schadenspfad), **0 Crashes**. Normal-Modus unveraendert. lint + build gruen.
+
 ## [2.13.0] - Marcs Macht + hellere Handkarten
 
 ### Hinzugefuegt
