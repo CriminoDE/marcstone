@@ -244,7 +244,14 @@ function triggerRageChat(room: RoomState, offendingPlayer: PlayerState, triggerT
       "Du schlachtest meine Männer wie ein Bauer die Schweine. Thor sieht dich, Made. ⚡",
       "Heul nur. Ich nähre Fenrir mit deinen Knochen! 🐺",
       "Ein guter Mann gefallen, und du grinst? Dein Grab ist schon geschaufelt. 💀",
-      "Beim Met meiner Ahnen, dafür blutest du bis Ragnarök! 🩸"
+      "Beim Met meiner Ahnen, dafür blutest du bis Ragnarök! 🩸",
+      "Du nimmst mir einen Mann, ich nehm dir die Sippe. So rechnet der Norden. 🪓",
+      "Hel öffnet schon das Tor - aber nicht für meinen Krieger, für DICH. 🔥",
+      "Lach nur, Schlangenzunge. Dein Lachen erstickt im eigenen Blut. 🐍",
+      "Jeder Gefallene schärft meine Klinge. Du machst mich nur gefährlicher, Narr. ⚔️",
+      "Meine Männer sterben singend. Du wirst winselnd verrecken. 🍺",
+      "Odin zählt mit. Für jeden Toten reiß ich dir eine Rippe raus. 💀",
+      "Das war ein Bruder. Walhall merkt sich Namen - und deinen besonders. 🛡️"
     ],
     high_damage: [
       "Das kitzelt, du milchgesichtiger Wicht! Schlag fester oder geh heim zu Mutter! 😤",
@@ -253,7 +260,13 @@ function triggerRageChat(room: RoomState, offendingPlayer: PlayerState, triggerT
       "Spar dir die Tricks, Zauberbeutel. Stahl gewinnt, nicht dein Gewinsel. 🗡️",
       "Brüll ruhig, kleiner Skalde. Walhall lacht über dich. 🍺",
       "Du blutest mich, ich blute dich doppelt. So ist das Gesetz des Nordens. ❄️",
-      "Glückstreffer, Bauer. Beim nächsten Mal hack ich dir den Bart ab! 🪓"
+      "Glückstreffer, Bauer. Beim nächsten Mal hack ich dir den Bart ab! 🪓",
+      "Härter, Memme! Davon kriegt nicht mal mein Pferd Schluckauf. 🐎",
+      "Ich hab Splitter im Schild, die mehr wehtun als du. 🪵",
+      "Schlag zu wie ein Mann oder kriech zurück unter deinen Stein, Wicht. 🪨",
+      "Thor gähnt. Streng dich an, sonst verschläfst du dein eigenes Begräbnis. ⚡",
+      "Ist das alles? Der Wind von der Nordsee beißt schärfer als deine Klinge. ❄️",
+      "Du weckst nur meinen Zorn, Made. Und mein Zorn kennt kein Erbarmen. 🔥"
     ]
   };
 

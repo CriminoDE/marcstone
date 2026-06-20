@@ -25,6 +25,21 @@ Werte stehen in `src/constants.ts` (Karten/Kraefte) bzw. `server.ts` (Effekt-Zah
 | Goettlicher Sturm | Paladin | 5 | alle eigenen Diener +1/+1 |
 | Silberhand-Ritter | Paladin | 4 | 4/4 Gottesschild |
 
+## Neue Marc-Themen-Karten (v2.11+, NUR bestehende Keywords - DEIN VETO)
+
+Bewusst balance-arm gehalten (kein neuer Mechanik-Code, nur Spott/Ansturm-Koerper).
+Stats leicht aenderbar in `src/constants.ts`. Drin in: Raben+Marksmann = Hunter & Mage,
+Waechter = Paladin & Priest. **Sag, wenn du Werte, Klassen-Zuordnung oder Karten ganz raus willst.**
+
+| Karte | Mana | Werte | Keyword | Idee |
+|---|---|---|---|---|
+| Marcs Raben (`m_ravens`) | 3 | 4/2 | ⚡ Ansturm | Odins Raben Hugin & Munin stuerzen sofort herab (Tempo). |
+| Marksmann des Marc (`m_marksman`) | 4 | 5/1 | ⚡ Ansturm | Glaskanone: harter Sofort-Schlag, faellt aber leicht. |
+| Waechter des Nordens (`m_warden`) | 4 | 4/4 | 🛡️ Spott | Solide Spott-Mauer fuers Team/Kontrolle. |
+
+Offene Frage: 4/2-Ansturm fuer 3 Mana evtl. minimal ueber Kurve - wenn zu stark, 3/2.
+Marksmann 5/1 ist absichtlich fragil (stirbt an jedem Konter/Ping).
+
 ## Noch offen / moegliche naechste Balance-Calls (mit dir)
 - Sind die neuen Zauber-Manakosten passend? (Blizzard 5, Heilige Nova 5, Goettlicher Sturm 5 - evtl. 4?)
 - m_champion 6 Mana ok, oder lieber 5 Mana / 3-4 Werte?

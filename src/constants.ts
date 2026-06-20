@@ -412,6 +412,38 @@ export const CARD_TEMPLATES = {
     description: "🌟 Gottesschild. Streiter des Lichts.",
     hasDivineShield: true,
   },
+
+  // === Marc-Themen-Karten (nur bestehende Keywords - balance-arm, leicht tunebar) ===
+  "m_ravens": {
+    name: "Marcs Raben",
+    type: "minion",
+    cost: 3,
+    attack: 4,
+    health: 2,
+    emoji: "🐦‍⬛",
+    description: "⚡ Ansturm. Hugin & Munin stürzen sofort herab.",
+    hasCharge: true,
+  },
+  "m_marksman": {
+    name: "Marksmann des Marc",
+    type: "minion",
+    cost: 4,
+    attack: 5,
+    health: 1,
+    emoji: "🎯",
+    description: "⚡ Ansturm. Trifft präzise, fällt aber leicht. Glaskanone.",
+    hasCharge: true,
+  },
+  "m_warden": {
+    name: "Wächter des Nordens",
+    type: "minion",
+    cost: 4,
+    attack: 4,
+    health: 4,
+    emoji: "🐻",
+    description: "🛡️ Spott. Hält die Schildwand für Marc.",
+    hasTaunt: true,
+  },
 } as const;
 
 export function createCardInstance(templateId: string, instanceId: string): Card {
@@ -527,26 +559,30 @@ export const STANDARD_CLASS_CARDS: Record<string, string[]> = {
     "arc_shot", "fireball", "meteor", "pyroblast", "blizzard", "flamestrike",
     "frost_ele", "c_yeti", "s_tank", "crocolisk", "s_slime", "s_belcher", "b_ogre", "annoy_tron",
     "ragnaros", "dr_boom", "m_firelord", "deathwing",
-    "m_squire", "pot_greed", "m_champion", "lich_king"
+    "m_squire", "pot_greed", "m_champion", "lich_king",
+    "m_ravens", "m_marksman"
   ],
   // HEILUNG & SCHATTEN: Heilige Nova + Tempelwaechter exklusiv, Gedankenkontrolle + Sylvanas, zaehe Koerper.
   Priest: [
     "holy_nova", "heal_touch", "temple_guard", "mind_control", "sylvanas",
     "s_slime", "crocolisk", "annoy_tron", "s_shieldmasta", "s_belcher", "sunwalker", "b_ogre", "c_yeti",
     "alexstrasza", "lich_king", "deathwing", "m_firelord",
-    "m_squire", "pot_greed", "m_champion", "arc_shot", "g_footman"
+    "m_squire", "pot_greed", "m_champion", "arc_shot", "g_footman",
+    "m_warden"
   ],
   // BESTIEN & AGGRO: Mehrfachschuss + Schreckenswolf exklusiv, viel Ansturm, schnelle Bedrohungen.
   Hunter: [
     "multi_shot", "dire_wolf", "b_murloc", "b_warrior", "w_rider", "arc_shot", "fireball",
     "crocolisk", "s_tank", "c_yeti", "s_crusader", "s_shieldmasta", "b_ogre",
     "ragnaros", "dr_boom", "m_firelord",
-    "m_squire", "pot_greed", "m_champion", "s_belcher", "annoy_tron", "meteor"
+    "m_squire", "pot_greed", "m_champion", "s_belcher", "annoy_tron", "meteor",
+    "m_ravens", "m_marksman"
   ],
   // LICHT & BREITE: Goettlicher Sturm + Silberhand-Ritter exklusiv, Gottesschilde + Spott + Weihe, go-wide.
   Paladin: [
     "divine_storm", "silver_knight", "consecration", "s_crusader", "sunwalker", "annoy_tron", "g_footman",
     "lich_king", "alexstrasza", "s_shieldmasta", "s_belcher", "c_yeti", "crocolisk", "s_slime", "heal_touch",
-    "m_firelord", "m_squire", "pot_greed", "m_champion", "b_ogre", "s_tank", "w_rider"
+    "m_firelord", "m_squire", "pot_greed", "m_champion", "b_ogre", "s_tank", "w_rider",
+    "m_warden"
   ]
 };
