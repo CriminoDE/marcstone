@@ -1,12 +1,21 @@
 name: Keep-Alive Ping
 
-# Pingt den Render-Gratis-Server regelmaessig an, damit er nicht nach ~15 Min Inaktivitaet
-# einschlaeft (was laufende Spiele killen wuerde). Die Server-URL steckt in der Repo-Variable
-# RENDER_URL (Settings -> Secrets and variables -> Actions -> Variables).
+# Pingt den Render-Gratis-Server an, damit er nicht nach ~15 Min Inaktivitaet einschlaeft
+# (was laufende Spiele killen wuerde). Server-URL steckt in der Repo-Variable RENDER_URL
+# (Settings -> Secrets and variables -> Actions -> Variables).
+#
+# Strategie: tagsueber alle 5 Min wachhalten, nachts schlafen lassen.
+#   - Schont Renders 750 Gratis-Stunden/Monat (24/7 waeren ~744h = zu knapp; so bleibt Puffer).
+#   - GitHub-Cron ist gratis nur "best effort" (laeuft mal verspaetet/uebersprungen) -> 5 Min
+#     gibt genug Spielraum, dass meist ein Ping in die 15-Min-Schlaf-Luecke faellt.
+#   - Zeiten sind UTC. Fenster 05-23 UTC = ca. 07:00-01:59 Berlin (Sommer/CEST);
+#     nachts 02:00-06:59 Berlin darf er pennen (im Winter alles 1h frueher).
+#   - Wenn er trotzdem mal nappt: einmalig externen Pinger (UptimeRobot / cron-job.org, gratis)
+#     auf .../api/health alle 5 Min setzen - die feuern zuverlaessiger als GitHub-Cron.
 
 on:
   schedule:
-    - cron: "*/10 * * * *" # alle 10 Minuten
+    - cron: "*/5 5-23 * * *" # alle 5 Min, ca. 07:00-02:00 Berlin (nachts aus)
   workflow_dispatch: {} # manuell ausloesbar
 
 jobs:
