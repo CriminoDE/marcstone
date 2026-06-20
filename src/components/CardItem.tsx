@@ -11,6 +11,7 @@ interface CardItemProps {
   onClick?: () => void;
   className?: string;
   isFaceDown?: boolean;
+  inHand?: boolean; // Handkarte: dauerhaft markieren ob spielbar (Mana ok) oder nicht
 }
 
 export function CardItem({
@@ -22,6 +23,7 @@ export function CardItem({
   onClick,
   className = "",
   isFaceDown = false,
+  inHand = false,
 }: CardItemProps) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -46,6 +48,11 @@ export function CardItem({
   const isExhausted = card.type === "minion" && !card.isReady;
   // Marc-forged cards (the dark seer's work) glow blood-red and feel "wrongly powerful".
   const isMarc = card.templateId === "custom_magic";
+
+  // Handkarten: dauerhaft sichtbar machen ob spielbar (genug Mana + dein Zug) oder nicht.
+  // Aktualisiert sich automatisch mit dem Mana, weil canBePlayed dynamisch berechnet wird.
+  const playableNow = inHand && isOwner && canBePlayed;
+  const unplayableNow = inHand && isOwner && !canBePlayed;
 
   // Build Explanations List for the Custom Tooltip
   const tooltips: string[] = [];
@@ -89,6 +96,8 @@ export function CardItem({
         ${canBePlayed && isOwner ? "hover:-translate-y-2 hover:border-mg-poison cursor-pointer hover:z-20 md:hover:-translate-y-3" : ""}
         ${canAttack && isOwner ? "hover:-translate-y-2 hover:border-emerald-400 cursor-pointer glow-attackable hover:z-20 md:hover:-translate-y-3" : ""}
         ${(!canBePlayed && !canAttack) && onClick ? "cursor-pointer hover:z-20" : ""}
+        ${playableNow ? "ring-2 ring-emerald-400 shadow-[0_0_16px_rgba(52,211,153,0.6)] -translate-y-1 md:-translate-y-1.5 cursor-pointer" : ""}
+        ${unplayableNow ? "opacity-45 saturate-50" : ""}
         ${isHovered ? "z-40 scale-110 md:scale-110" : "z-10"}
         ${isExhausted && card.type === "minion" && isOwner ? "minion-exhausted" : ""}
         ${className}
