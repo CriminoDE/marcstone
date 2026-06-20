@@ -38,6 +38,8 @@ const SPELL_ELEMENT: Record<string, SpellElement> = {
   holy_nova: "holy",
   multi_shot: "arcane",
   divine_storm: "holy",
+  m_wrath: "shadow",
+  m_curse: "shadow",
 };
 const HERO_POWER_ELEMENT: Record<HeroClass, SpellElement[]> = {
   Mage: ["fire", "frost", "arcane"],
@@ -657,7 +659,7 @@ export default function App() {
       });
     } else {
       // Spell cards - diese brauchen ein Ziel (inkl. meteor + mind_control, vorher vergessen!)
-      const targetSpells = ["arc_shot", "heal_touch", "fireball", "pyroblast", "meteor", "mind_control"];
+      const targetSpells = ["arc_shot", "heal_touch", "fireball", "pyroblast", "meteor", "mind_control", "m_curse"];
       if (targetSpells.includes(card.templateId)) {
         // Toggle/Establish targeting mode for spell
         setSelectedCardId(card.id);

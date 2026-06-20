@@ -394,6 +394,14 @@ function botPlaySpell(room: RoomState, bot: PlayerState, human: PlayerState, car
     case "divine_storm":
       bot.board.forEach(m => { m.attack += 1; m.health += 1; m.maxHealth += 1; });
       break;
+    case "m_wrath":
+      [bot.board, human.board].forEach(bd => bd.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 4; }));
+      bot.board = bot.board.filter(m => m.health > 0);
+      human.board = human.board.filter(m => m.health > 0);
+      break;
+    case "m_curse":
+      dmgFace(Math.max(3, Math.floor(human.health / 2)));
+      break;
     case "custom_magic":
       if (card.spellEffect === "heal") resolveHeal(room, bot, human, card.spellValue || 1, undefined, true);
       else if (card.spellEffect === "draw") draw(card.spellValue || 1);
@@ -492,6 +500,19 @@ function resolveBattlecry(
       addLog(room, `🏹 Sylvanas reißt ${stolen.name} auf deine Seite!`);
       triggerRageChat(room, opponent, "high_damage");
     }
+  } else if (card.templateId === "m_seer") {
+    // Marc der Seher: ziehe 2 Karten, zahle 2 Leben (nie unter 1).
+    addLog(room, `🔮 Marc der Seher blickt in den Abgrund.`);
+    for (let k = 0; k < 2; k++) {
+      if (player.deck.length > 0) {
+        const d = player.deck.pop()!;
+        if (player.hand.length < 10) player.hand.push(d);
+        else addLog(room, `Hand voll! Verbrannt: ${d.name}.`);
+      }
+    }
+    const hpBefore = player.health;
+    player.health = Math.max(1, player.health - 2);
+    addLog(room, `👁️ Der Blick kostet Leben (${hpBefore} → ${player.health}).`);
   }
 }
 
@@ -907,7 +928,7 @@ async function playFfaBotTurn(room: RoomState, bot: PlayerState) {
       } else {
         const enemy = weakestEnemyHero();
         const tpl = pick.templateId;
-        const targetedDmg = ["arc_shot", "fireball", "meteor", "pyroblast"].includes(tpl) || (tpl === "custom_magic" && pick.spellEffect === "damage");
+        const targetedDmg = ["arc_shot", "fireball", "meteor", "pyroblast", "m_curse"].includes(tpl) || (tpl === "custom_magic" && pick.spellEffect === "damage");
         const healing = tpl === "heal_touch" || (tpl === "custom_magic" && pick.spellEffect === "heal");
         if (targetedDmg && enemy) resolveFfaSpell(room, bot, pick, enemy.id, undefined, true);
         else if (healing) resolveFfaSpell(room, bot, pick, bot.id, undefined, true);
@@ -1018,6 +1039,16 @@ function resolveFfaBattlecry(room: RoomState, actor: PlayerState, card: Card, ta
     const verb = before > 15 ? "fällt auf" : before < 15 ? "steigt auf" : "bleibt bei";
     addLog(room, `🐉❤️ Marc's Breath: ${targetHero.name}s Held ${verb} 15 (${before} → 15).`);
     if (before > 15) triggerRageChat(room, targetHero, "high_damage");
+  } else if (card.templateId === "m_seer") {
+    for (let k = 0; k < 2; k++) {
+      if (actor.deck.length > 0) {
+        const d = actor.deck.pop()!;
+        if (actor.hand.length < 10) actor.hand.push(d);
+        else addLog(room, `Hand voll! Verbrannt: ${d.name}.`);
+      }
+    }
+    actor.health = Math.max(1, actor.health - 2);
+    addLog(room, `🔮 Marc der Seher: 2 Karten gezogen, 2 Leben gezahlt.`);
   }
 }
 
@@ -1078,6 +1109,22 @@ function resolveFfaSpell(room: RoomState, actor: PlayerState, card: Card, target
   else if (t === "divine_storm") {
     actor.board.forEach(m => { m.attack += 1; m.health += 1; m.maxHealth += 1; });
     addLog(room, `✨ Goettlicher Sturm: deine Diener +1/+1.`);
+  }
+  else if (t === "m_wrath") {
+    // Symmetrisch: 4 Schaden an ALLEN Dienern im Spiel (jeder Sitz, Freund wie Feind).
+    ffaSeats(room).forEach(p => {
+      p.board.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 4; });
+      p.board = p.board.filter(m => m.health > 0);
+    });
+    addLog(room, `🩸⚡ Zorn des Marc: 4 Schaden an ALLEN Dienern im Spiel!`);
+  }
+  else if (t === "m_curse") {
+    let curHp = 0;
+    if (isTargetHero) { const th = ffaHeroById(room, targetPlayerId); curHp = th ? th.health : 0; }
+    else if (targetId) { const fm = ffaFindMinion(room, targetId); curHp = fm ? fm.minion.health : 0; }
+    const amt = Math.max(3, Math.floor(curHp / 2));
+    ffaDamageTarget(room, amt, card.name, targetPlayerId, targetId, isTargetHero, actor);
+    addLog(room, `🩸 Marcs Fluch zehrt: ${amt} Schaden.`);
   }
   else if (t === "pot_greed") { addLog(room, `📖 Tome of Marc: 2 Karten gezogen.`); drawN(2); }
   else if (t === "mind_control") {
@@ -1811,6 +1858,25 @@ function handleGameAction(connectionId: string, action: ClientAction) {
           // Paladin-Signatur: alle eigenen Diener +1/+1.
           player.board.forEach(m => { m.attack += 1; m.health += 1; m.maxHealth += 1; });
           addLog(room, `✨ Goettlicher Sturm: alle befreundeten Diener +1/+1.`);
+        } else if (card.templateId === "m_wrath") {
+          // Marc-Legendaer: 4 Schaden an ALLEN Dienern (eigene + gegnerische).
+          [player.board, opponent.board].forEach(bd => {
+            bd.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 4; });
+          });
+          player.board = player.board.filter(m => m.health > 0);
+          opponent.board = opponent.board.filter(m => m.health > 0);
+          addLog(room, `🩸⚡ Zorn des Marc: 4 Schaden an ALLEN Dienern - keine Gnade!`);
+        } else if (card.templateId === "m_curse") {
+          // Marc-Legendaer: halbiert das Leben eines beliebigen Ziels (mind. 3 Schaden).
+          let curHp = 0;
+          if (isTargetHero) curHp = opponent.health;
+          else if (targetId) {
+            const tm = player.board.find(m => m.id === targetId) || opponent.board.find(m => m.id === targetId);
+            curHp = tm ? tm.health : 0;
+          }
+          const amt = Math.max(3, Math.floor(curHp / 2));
+          resolveDamage(room, player, opponent, amt, targetId, isTargetHero, card.name);
+          addLog(room, `🩸 Marcs Fluch zehrt: ${amt} Schaden.`);
         } else if (card.templateId === "custom_magic") {
           addLog(room, `✨ Alchemie-Zauber gewirkt! Effekt: ${card.spellEffect}`);
           if (card.spellEffect === "damage") {

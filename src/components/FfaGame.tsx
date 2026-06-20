@@ -15,6 +15,7 @@ const SPELL_ELEMENT: Record<string, SpellElement> = {
   arc_shot: "arcane", heal_touch: "heal", fireball: "fire", consecration: "holy",
   meteor: "fire", flamestrike: "fire", pyroblast: "fire", mind_control: "shadow", pot_greed: "arcane",
   blizzard: "frost", holy_nova: "holy", multi_shot: "arcane", divine_storm: "holy",
+  m_wrath: "shadow", m_curse: "shadow",
 };
 
 // Element/Farbe fuer das Sieg-Kino aus dem Finisher ableiten.
@@ -45,7 +46,7 @@ interface FfaGameProps {
 type TargetMode = "none" | "spell" | "attack" | "heropower" | "battlecry";
 interface Targeting { mode: TargetMode; sourceId?: string }
 
-const FFA_TARGETED_SPELLS = new Set(["arc_shot", "fireball", "meteor", "pyroblast", "heal_touch", "mind_control"]);
+const FFA_TARGETED_SPELLS = new Set(["arc_shot", "fireball", "meteor", "pyroblast", "heal_touch", "mind_control", "m_curse"]);
 
 function spellNeedsTarget(card: Card): boolean {
   if (card.type !== "spell") return false;

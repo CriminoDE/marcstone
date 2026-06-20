@@ -40,6 +40,19 @@ Waechter = Paladin & Priest. **Sag, wenn du Werte, Klassen-Zuordnung oder Karten
 Offene Frage: 4/2-Ansturm fuer 3 Mana evtl. minimal ueber Kurve - wenn zu stark, 3/2.
 Marksmann 5/1 ist absichtlich fragil (stirbt an jedem Konter/Ping).
 
+## Neue Marc-Legendaere (v2.13, DEIN VETO - Werte in src/constants.ts)
+
+Vier neue Karten, alle nur mit bestehenden Mechaniken gebaut (kein neues Keyword), in allen Modi + beiden Bots verdrahtet und headless getestet. **Sag, wenn du Werte, Klassen-Zuordnung oder Karten ganz raus willst.**
+
+| Karte | Mana | Typ | Effekt | Klassen | Balance-Notiz |
+|---|---|---|---|---|---|
+| Zorn des Marc (`m_wrath`) | 4 | Zauber | 4 Schaden an ALLEN Dienern (auch deinen) | Mage, Priest | Symmetrischer Wipe = trifft dich auch, daher fair. Evtl. 5 Mana wenn zu stark. |
+| Marcs Fluch (`m_curse`) | 3 | Zauber (zielbar) | Halbiert das Leben eines Ziels, mind. 3 | Mage, Hunter, Paladin | Kann nie allein toeten (nur halbieren). Stark als Burst-Vorbereitung. Mind-Wert 3 tunebar. |
+| Marc der Seher (`m_seer`) | 4 | 3/4 Diener, Kampfschrei | Ziehe 2 Karten, zahle 2 Leben (nie unter 1) | Mage, Priest | Wie HS "Life Tap" als Body. 3/4 fuer 4 ist unter Kurve - das Karten-Plus gleicht es aus. |
+| Fenrir der Endwolf (`fenrir`) | 7 | 6/6 Ansturm | reine Werte + Ansturm | Hunter, Paladin | 6 Ansturm-Schaden ins Gesicht ist viel. Wenn zu stark: 7 Mana 5/6 oder 5/5. |
+
+Offene Fragen an dich: Fenrir 6/6-Ansturm ok oder zu heftig? m_curse "halbes Leben" cool oder zu swingy? m_seer Selbstschaden (2) passend?
+
 ## Noch offen / moegliche naechste Balance-Calls (mit dir)
 - Sind die neuen Zauber-Manakosten passend? (Blizzard 5, Heilige Nova 5, Goettlicher Sturm 5 - evtl. 4?)
 - m_champion 6 Mana ok, oder lieber 5 Mana / 3-4 Werte?

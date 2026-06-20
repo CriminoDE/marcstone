@@ -290,7 +290,14 @@ export function Lobby({
           </h3>
           <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
             <div>
-              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.12 · Glossar, Eis & frisches Blut 📖</div>
+              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.13 · Marcs Macht & hellere Hand 🩸</div>
+              <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
+                <li><b>4 neue Marc-Legendäre:</b> <b>Zorn des Marc</b> (4 Schaden an ALLEN Dienern, Freund wie Feind), <b>Marcs Fluch</b> (halbiert das Leben eines Ziels), <b>Marc der Seher</b> (zieh 2 Karten, zahl 2 Leben) und <b>Fenrir der Endwolf</b> (6/6 Ansturm).</li>
+                <li><b>Handkarten heller:</b> spielbare Karten leuchten jetzt deutlich kräftiger, schwer lesbare dunkle Karten sind aufgehellt.</li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-[11px] font-display font-bold text-mg-fog">v2.12 · Glossar, Eis & frisches Blut 📖</div>
               <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
                 <li><b>Glossar</b> (📖 oben rechts): erklärt alle Schlüsselwörter, den Spielablauf und die Modi.</li>
                 <li><b>Eis-Optik aufgehübscht:</b> eingefrorene Karten glitzern jetzt richtig, und Blizzard lässt einen Frost-Schwall über den Bildschirm ziehen.</li>

@@ -444,6 +444,45 @@ export const CARD_TEMPLATES = {
     description: "🛡️ Spott. Hält die Schildwand für Marc.",
     hasTaunt: true,
   },
+
+  // === Marc-Legendäre (Wave "Marcs Macht") - nutzen nur bestehende Frameworks (Zauber + Kampfschrei) ===
+  "m_wrath": {
+    name: "Zorn des Marc",
+    type: "spell",
+    cost: 4,
+    attack: 0,
+    health: 0,
+    emoji: "🩸⚡",
+    description: "⚡ Füge ALLEN Dienern 4 Schaden zu - Freund wie Feind. Marcs Zorn kennt keine Gnade.",
+  },
+  "m_curse": {
+    name: "Marcs Fluch",
+    type: "spell",
+    cost: 3,
+    attack: 0,
+    health: 0,
+    emoji: "🩸",
+    description: "🩸 Halbiere das Leben eines beliebigen Ziels (mindestens 3 Schaden). Der Fluch zehrt an allem.",
+  },
+  "m_seer": {
+    name: "Marc der Seher",
+    type: "minion",
+    cost: 4,
+    attack: 3,
+    health: 4,
+    emoji: "🔮👁️",
+    description: "🔮 Kampfschrei: Blick in den Abgrund - ziehe 2 Karten, verliere aber 2 Leben.",
+  },
+  "fenrir": {
+    name: "Fenrir der Endwolf",
+    type: "minion",
+    cost: 7,
+    attack: 6,
+    health: 6,
+    emoji: "🐺🌑",
+    description: "⚡ Ansturm. Der Wolf, der die Sonne verschlingt - schlägt sofort zu.",
+    hasCharge: true,
+  },
 } as const;
 
 export function createCardInstance(templateId: string, instanceId: string): Card {
@@ -560,7 +599,8 @@ export const STANDARD_CLASS_CARDS: Record<string, string[]> = {
     "frost_ele", "c_yeti", "s_tank", "crocolisk", "s_slime", "s_belcher", "b_ogre", "annoy_tron",
     "ragnaros", "dr_boom", "m_firelord", "deathwing",
     "m_squire", "pot_greed", "m_champion", "lich_king",
-    "m_ravens", "m_marksman"
+    "m_ravens", "m_marksman",
+    "m_wrath", "m_curse", "m_seer"
   ],
   // HEILUNG & SCHATTEN: Heilige Nova + Tempelwaechter exklusiv, Gedankenkontrolle + Sylvanas, zaehe Koerper.
   Priest: [
@@ -568,7 +608,8 @@ export const STANDARD_CLASS_CARDS: Record<string, string[]> = {
     "s_slime", "crocolisk", "annoy_tron", "s_shieldmasta", "s_belcher", "sunwalker", "b_ogre", "c_yeti",
     "alexstrasza", "lich_king", "deathwing", "m_firelord",
     "m_squire", "pot_greed", "m_champion", "arc_shot", "g_footman",
-    "m_warden"
+    "m_warden",
+    "m_seer", "m_wrath"
   ],
   // BESTIEN & AGGRO: Mehrfachschuss + Schreckenswolf exklusiv, viel Ansturm, schnelle Bedrohungen.
   Hunter: [
@@ -576,13 +617,15 @@ export const STANDARD_CLASS_CARDS: Record<string, string[]> = {
     "crocolisk", "s_tank", "c_yeti", "s_crusader", "s_shieldmasta", "b_ogre",
     "ragnaros", "dr_boom", "m_firelord",
     "m_squire", "pot_greed", "m_champion", "s_belcher", "annoy_tron", "meteor",
-    "m_ravens", "m_marksman"
+    "m_ravens", "m_marksman",
+    "m_curse", "fenrir"
   ],
   // LICHT & BREITE: Goettlicher Sturm + Silberhand-Ritter exklusiv, Gottesschilde + Spott + Weihe, go-wide.
   Paladin: [
     "divine_storm", "silver_knight", "consecration", "s_crusader", "sunwalker", "annoy_tron", "g_footman",
     "lich_king", "alexstrasza", "s_shieldmasta", "s_belcher", "c_yeti", "crocolisk", "s_slime", "heal_touch",
     "m_firelord", "m_squire", "pot_greed", "m_champion", "b_ogre", "s_tank", "w_rider",
-    "m_warden"
+    "m_warden",
+    "fenrir", "m_curse"
   ]
 };

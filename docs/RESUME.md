@@ -24,14 +24,19 @@ Marcgard = Browser-Kartenduell (Hearthstone-artig), 1v1 online ueber Link, fuer 
 ## Testen ohne zweiten Spieler
 Raum erstellen -> Warteraum -> "Uebungsgegner hinzufuegen" -> lokaler Bot "Holgar" (kein Gemini, kostenlos). WS-Testskripte: `/tmp/wstest.mjs` (Reconnect), `/tmp/bottest.mjs` (Bot) - bei Bedarf neu schreiben.
 
-## STAND (Stand: 2026-06-20, **v2.12 LIVE auf https://marcgard.onrender.com** - Commit 0318c45, deployed + live verifiziert: Bundle enthaelt Glossar/frostShimmer/Marksmann)
+## STAND (Stand: 2026-06-20, **v2.13 gepusht auf main, Render-Deploy + Live-Verifikation laeuft** - vorher v2.12 LIVE Commit 0318c45 auf https://marcgard.onrender.com)
 
-### 🎯 NAECHSTE SESSION (Henry will hier weiter, neues Fenster): KLASSENSYSTEM-WEICHE + neue Karten + Account
-Henrys offene Design-Frage (zu klaeren, BEVOR viele neue Karten designt werden):
-**"Machen wir es wie Hearthstone (jede Klasse hat exklusive Karten) ODER universeller Karten-Pool, Klasse = nur Heldenkraft (+ evtl. Signatur-Karten), leichter zu balancen?"**
-- **Aktueller Code = Hybrid:** `STANDARD_CLASS_CARDS` gibt jeder Klasse einen eigenen Pool + 2 exklusive Signatur-Karten; Heldenkraft (3 Wahlmoeglichkeiten) ist der Haupt-Unterschied. KEINE Waffen (alte Designer-Entscheidung).
-- **Claude-Empfehlung (Henry tendierte selbst dahin):** **Universeller Karten-Pool** + Klasse = Heldenkraft + eine Handvoll Signatur-Karten pro Klasse. Gruende: viel leichter zu balancen (1 Karte = 1 Statblock, einmal balanciert statt pro Klasse), schneller neue Karten designen, Klassen-Identitaet trotzdem ueber Heldenkraft + Signaturen. "Special Source"/Signatur-Mechanik spaeter als Wuerze oben drauf. Voll-Hearthstone (alles klassen-gelockt) = mehr Balance-Aufwand, lohnt fuer ein 2-Mann-Spass-Spiel nicht.
-- **Dann:** mehr/krassere Karten designen (Marc-Legendaere: Marcs Fluch, Zorn des Marc, Heldenkraft-Wechsel-Karte - brauchen neue Mechaniken + Server-Wiring in Duell UND FFA/2v2 + Stats-Call mit Henry).
+### v2.13 (lokal, ungepusht) - Marcs Macht + hellere Handkarten
+- **4 neue Marc-Legendaere** (nur bestehende Frameworks, KEIN neues Keyword): `m_wrath` Zorn des Marc (4M Zauber, 4 Schaden an ALLEN Dienern symmetrisch), `m_curse` Marcs Fluch (3M zielbar, halbiert Leben min 3), `m_seer` Marc der Seher (4M 3/4 Kampfschrei: zieh 2, zahl 2 Leben min 1), `fenrir` Fenrir der Endwolf (7M 6/6 Ansturm). In `src/constants.ts` + ALLEN Modi verdrahtet (Duell PLAY_CARD/resolveBattlecry/botPlaySpell, FFA resolveFfaSpell/resolveFfaBattlecry/FFA-Bot-targetedDmg, Client targetSpells+FFA_TARGETED_SPELLS+SPELL_ELEMENT). Headless 16 Spiele vs Bot: 0 Crashes, alle 4 Karten feuern, server-stdout 0 Errors.
+- **Handkarten heller (Henry-Wunsch):** `CardItem.tsx` - spielbar `brightness 1.4/saturate 1.4` (war 1.15/1.25), unspielbar `opacity 0.65/brightness 0.82` (war 0.4/0.6), Zauber-Grundflaeche `to-mg-slate` statt `to-mg-void`.
+- Patch-Notes v2.13 in Lobby + CHANGELOG + BALANCE-CHANGES (Veto-Tabelle). lint+build gruen.
+- **OFFEN: Henry-Spieltest, dann committen + pushen + Render-Deploy.** Danach: Klassensystem-Weiche (siehe unten) + naechste Mechaniken-Wave.
+
+### 🎯 NAECHSTE SESSION: TODESROECHELN-MECHANIK + krasse Karten-Wave (Henry-Entscheidungen 2026-06-20 stehen)
+**Design-Weichen sind GESTELLT (Henry hat entschieden, nicht mehr neu fragen):**
+- **Mechanik als Naechstes = Todesroecheln (Deathrattle)** und NUR die (Lifesteal/Zauberschaden/Windfury bewusst NICHT jetzt). Effekt beim Tod eines Dieners - passt zu Marcs Fluch-Thema. ⚠️ Braucht einen ZENTRALEN "Diener-stirbt"-Hook ueber ALLE Entfern-Pfade (Kampf, AoE-Zauber, gezielte Zauber, Sylvanas/Mind Control, FFA-Pendants). Aktuell wird `board = board.filter(health>0)` an vielen Stellen gemacht -> erst eine einzige `onMinionDeath`/`removeMinion`-Funktion bauen, dann Deathrattle darauf. RISKANT/breit -> mit Review-Agent absichern. Erst auf SAUBERE committete Basis (nach v2.13-Push).
+- **Universal-Karten-Pool = ERST mit dem Deckbau (Phase C), NICHT jetzt.** Begruendung Henry/Claude: ohne Deckbau macht ein Universal-Pool alle Klassen wieder ~gleich = undo von v2.9. Kuratierte `STANDARD_CLASS_CARDS` bleiben bis Deckbau existiert. Voll-Hearthstone verworfen.
+- **Dann krasse Karten-Wave:** mehr Marc-Legendaere mit Deathrattle (Marcs Bann, Zorn-Reihe, Heldenkraft-Wechsel-Karte). Jede neue Karte = Wiring in Duell (PLAY_CARD/resolveBattlecry/botPlaySpell) + FFA (resolveFfaSpell/resolveFfaBattlecry/FFA-Bot) + Client (targetSpells/FFA_TARGETED_SPELLS/SPELL_ELEMENT) + Glossar bei neuem Keyword, sonst tote Karte (meteor/mind_control-Falle).
 - **Account-Setup (Phase C):** Google-OAuth + Profil + Sammlung + Deckbau via EIGENES Supabase-Projekt. **HENRY macht das selbst, Claude fasst Supabase NICHT an.**
 
 ### v2.12 LIVE (Commit 0318c45)

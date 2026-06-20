@@ -85,7 +85,7 @@ export function CardItem({
           ? "bg-gradient-to-b from-[#2A0E0E] to-mg-void"
           : card.type === "minion"
             ? "bg-gradient-to-b from-mg-slate-raised to-mg-slate"
-            : "bg-gradient-to-b from-mg-frost-deep/30 to-mg-void"}
+            : "bg-gradient-to-b from-mg-frost-deep/55 to-mg-slate"}
         ${isSelected
           ? "border-mg-bronze-bright scale-105 md:scale-110 glow-selected z-30"
           : card.hasTaunt
@@ -97,8 +97,8 @@ export function CardItem({
         ${canBePlayed && isOwner ? "hover:-translate-y-2 hover:border-mg-poison cursor-pointer hover:z-20 md:hover:-translate-y-3" : ""}
         ${canAttack && isOwner ? "hover:-translate-y-2 hover:border-emerald-400 cursor-pointer glow-attackable hover:z-20 md:hover:-translate-y-3" : ""}
         ${(!canBePlayed && !canAttack) && onClick ? "cursor-pointer hover:z-20" : ""}
-        ${playableNow ? "ring-[3px] ring-emerald-300 shadow-[0_0_26px_7px_rgba(74,222,128,0.7)] brightness-115 saturate-125 -translate-y-1.5 md:-translate-y-2 cursor-pointer mg-playable-pulse" : ""}
-        ${unplayableNow ? "opacity-40 grayscale-[0.45] brightness-[0.6]" : ""}
+        ${playableNow ? "ring-[3px] ring-emerald-300 shadow-[0_0_26px_7px_rgba(74,222,128,0.7)] brightness-[1.4] saturate-[1.4] -translate-y-1.5 md:-translate-y-2 cursor-pointer mg-playable-pulse" : ""}
+        ${unplayableNow ? "opacity-65 grayscale-[0.35] brightness-[0.82]" : ""}
         ${isFrozen ? "ring-2 ring-cyan-300 shadow-[0_0_16px_rgba(103,232,249,0.75)] !border-cyan-300/80" : ""}
         ${isHovered ? "z-40 scale-110 md:scale-110" : "z-10"}
         ${isExhausted && card.type === "minion" && isOwner ? "minion-exhausted" : ""}

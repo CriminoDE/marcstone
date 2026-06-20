@@ -7,6 +7,19 @@ Format: `## [Version] - Datum` mit Kategorien Hinzugefuegt / Geaendert / Behoben
 
 ---
 
+## [2.13.0] - Marcs Macht + hellere Handkarten
+
+### Hinzugefuegt
+- **4 neue Marc-Legendaere** (`src/constants.ts`), in allen Modi verdrahtet (Duell + FFA + 2v2 + beide Bots), keine neuen Keywords - nur die bestehenden Zauber-/Kampfschrei-Frameworks:
+  - **Zorn des Marc** (`m_wrath`, 4 Mana Zauber): 4 Schaden an ALLEN Dienern im Spiel, Freund wie Feind (symmetrischer Brett-Reiniger). Mage + Priest.
+  - **Marcs Fluch** (`m_curse`, 3 Mana Zauber, zielbar): halbiert das aktuelle Leben eines beliebigen Ziels (mind. 3 Schaden). Mage + Hunter + Paladin.
+  - **Marc der Seher** (`m_seer`, 4 Mana 3/4, Kampfschrei): ziehe 2 Karten, zahle 2 Leben (nie unter 1). Mage + Priest.
+  - **Fenrir der Endwolf** (`fenrir`, 7 Mana 6/6, Ansturm): reine Werte + Ansturm, splashy Legendaerer. Hunter + Paladin.
+- Beide Marc-Zauber bekommen Schatten-VFX (Element `shadow`); `m_curse` ist im Duell- und FFA-Targeting + bei beiden Bots als Ziel-Zauber registriert.
+
+### Geaendert
+- **Handkarten deutlich heller (Henry-Wunsch):** spielbare Karten leuchten kraeftiger (`brightness 1.4 / saturate 1.4` statt 1.15/1.25), nicht spielbare sind weniger stark abgedunkelt (`opacity 0.65 / brightness 0.82` statt 0.4/0.6). Zauberkarten-Grundflaeche von fast-schwarz (`to-mg-void`) auf Schiefer (`to-mg-slate`) aufgehellt.
+
 ## [2.12.0] - Glossar, Eis-Optik, Inhalt (lokal gebaut, noch nicht gepusht)
 
 ### Hinzugefuegt
