@@ -7,6 +7,16 @@ Format: `## [Version] - Datum` mit Kategorien Hinzugefuegt / Geaendert / Behoben
 
 ---
 
+## [2.6.0] - Karten-/Logik-Fixes (aus Balance-Review-Agent)
+
+### Behoben
+- **`meteor` (6 Mana, 8 Schaden) + `mind_control` (10 Mana) waren tote Karten** - fehlten in der Client-Ziel-Zauber-Liste (`App.tsx`), wurden ohne Ziel gesendet -> Server tat nichts, Mana verpufft. Jetzt zielbar; mind_control nur auf gegnerische Diener (Server-Handler-Anforderung).
+- **Doppel-`processEndTurn`-Race** (Timer-Ablauf + manuelles END_TURN fast gleichzeitig konnten den Zug zweimal weiterschalten -> doppelter Kartenzug/Mana). Reentrancy-Guard `if (room.turn !== currentTurnConnectionId) return;`.
+- **Leaderboard:** Bot "Holgar" wurde eingetragen, und `startsWith("ai")` filterte echte Namen (z.B. "Aiko") faelschlich raus. Filter praezisiert (`recordWin`).
+
+### Hinweis
+- Vollstaendiger Review-Report inkl. offener Balance-Punkte fuer die naechste Session: `docs/BALANCE-REVIEW.md`.
+
 ## [2.5.0] - Komplett Deutsch + Angriff-UX-Fixes (Handy)
 
 ### Geaendert

@@ -22,7 +22,9 @@ const globalLeaderboard = new Map<string, number>(); // lowercase name -> score
 
 function recordWin(winnerName: string) {
     const norm = winnerName.trim().toLowerCase();
-    if (norm === "ai_gemini_opponent" || norm.startsWith("ai")) return;
+    // Bot nicht ins Leaderboard (Holgar = Uebungsgegner). Kein startsWith("ai") mehr,
+    // das filterte faelschlich echte Namen wie "Aiko".
+    if (norm === "ai_gemini_opponent" || norm.includes("übungsgegner")) return;
     const current = globalLeaderboard.get(norm) || 0;
     globalLeaderboard.set(norm, current + 1);
 }
@@ -218,6 +220,10 @@ function processEndTurn(room: RoomState, currentTurnConnectionId: string) {
   const player = room.player1?.id === currentTurnConnectionId ? room.player1 : room.player2;
   const opponent = player === room.player1 ? room.player2 : room.player1;
   if (!player || !opponent) return;
+
+  // Reentrancy-Schutz: wenn der Zug bereits gewechselt wurde (Timer-Ablauf + manuelles
+  // END_TURN feuern fast gleichzeitig), nicht ein zweites Mal weiterschalten.
+  if (room.turn !== currentTurnConnectionId) return;
 
   // Swap turn
   room.turn = opponent.id;

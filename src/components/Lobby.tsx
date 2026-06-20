@@ -228,7 +228,15 @@ export function Lobby({
           </h3>
           <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
             <div>
-              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.5 · Alles Deutsch + sauberes Angreifen</div>
+              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.6 · Karten-Fixes</div>
+              <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
+                <li>Meteor & Gedankenkontrolle funktionieren jetzt - waren vorher tote Karten (Mana verpufft).</li>
+                <li>Zugwechsel-Bug behoben (kein doppeltes Weiterschalten mehr bei knapper Zeit).</li>
+                <li>Übungsgegner verschmutzt nicht mehr die Ruhmeshalle.</li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-[11px] font-display font-bold text-mg-fog">v2.5 · Alles Deutsch + sauberes Angreifen</div>
               <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
                 <li>Komplett auf Deutsch (Karten, Texte, Menüs, Kampf-Emotes).</li>
                 <li>Angreifen am Handy gefixt: der Hinweis blockiert nicht mehr, du triffst den Helden sauber.</li>

@@ -578,14 +578,18 @@ export default function App() {
         payload: { roomId: room.roomId, cardId: card.id },
       });
     } else {
-      // Spell cards
-      const targetSpells = ["arc_shot", "heal_touch", "fireball", "pyroblast"];
+      // Spell cards - diese brauchen ein Ziel (inkl. meteor + mind_control, vorher vergessen!)
+      const targetSpells = ["arc_shot", "heal_touch", "fireball", "pyroblast", "meteor", "mind_control"];
       if (targetSpells.includes(card.templateId)) {
         // Toggle/Establish targeting mode for spell
         setSelectedCardId(card.id);
         setSelectedAttackerId(null);
         setTargetingMode("spell_target");
-        showToast(`${card.name} wird gewirkt! Wähle einen aktiven Diener oder einen der beiden Helden als Ziel!`, "info");
+        if (card.templateId === "mind_control") {
+          showToast(`${card.name}: Wähle einen GEGNERISCHEN Diener zum Übernehmen!`, "info");
+        } else {
+          showToast(`${card.name} wird gewirkt! Wähle einen aktiven Diener oder einen der beiden Helden als Ziel!`, "info");
+        }
       } else {
         // Spells like Consecration, Flamestrike (AOE, no targets) -> Zauber-Flare sofort
         const el = spellElementOf(card);
@@ -681,6 +685,14 @@ export default function App() {
 
     if (targetingMode === "spell_target" && selectedCardId) {
       const sc = me.hand.find((c) => c.id === selectedCardId);
+      // Mind Control kann NUR einen gegnerischen Diener uebernehmen (kein Held, kein eigener Diener).
+      if (sc?.templateId === "mind_control") {
+        const validEnemyMinion = !isTargetHero && !!opponent?.board.some((m) => m.id === targetId);
+        if (!validEnemyMinion) {
+          showToast("Mind Control: nur ein gegnerischer Diener!", "warning");
+          return;
+        }
+      }
       if (sc) {
         castProjectile(
           document.getElementById(`hero-${me.id}`),
