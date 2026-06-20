@@ -1,11 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { RoomState, PlayerState, Card, ClientAction, HeroClass } from "../types";
 import { HeroState } from "./HeroState";
 import { CardItem } from "./CardItem";
 import { Atmosphere } from "./Atmosphere";
 import { MusicToggle } from "./MusicToggle";
 import { HERO_POWER_COST, HERO_POWERS_LIST } from "../constants";
-import { playRaven } from "../utils/audio";
+import { playRaven, playSound } from "../utils/audio";
+import { flashDamage, deathPoof, screenFlash, lungeAttack, spellCast, castProjectile, roundStartFlare, type SpellElement } from "../utils/combatFx";
+
+// Zauber/Heldenkraft -> Element fuer die Projektil-/Cast-VFX (gespiegelt aus App.tsx).
+const SPELL_ELEMENT: Record<string, SpellElement> = {
+  arc_shot: "arcane", heal_touch: "heal", fireball: "fire", consecration: "holy",
+  meteor: "fire", flamestrike: "fire", pyroblast: "fire", mind_control: "shadow", pot_greed: "arcane",
+};
+const HERO_POWER_ELEMENT: Record<HeroClass, SpellElement[]> = {
+  Mage: ["fire", "frost", "arcane"], Priest: ["heal", "holy", "arcane"],
+  Hunter: ["arcane", "arcane", "fire"], Paladin: ["holy", "holy", "holy"],
+};
 
 type ToastFn = (m: string, t?: "info" | "warning" | "success") => void;
 
@@ -52,6 +63,57 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
   const isMyTurn = room.phase === "playing" && !!me && !me.isEliminated && room.turn === myId;
   const power = me ? (HERO_POWERS_LIST[me.heroClass]?.[me.selectedHeroPowerIndex ?? 0]) : undefined;
 
+  // --- Kampf-FX (gleiche Engine wie das Duell, von React entkoppelt) ---
+  const prevHpRef = useRef<Map<string, { hp: number; rect: DOMRect | null }>>(new Map());
+  const prevPhaseRef = useRef<string | null>(null);
+  const prevTurnRef = useRef<string | null>(null);
+
+  // Treffer/Tode quer ueber ALLE Sitze erkennen: HP-Diff -> Flash + Zahl + Rauch + Sound.
+  useEffect(() => {
+    const cur = new Map<string, { hp: number; rect: DOMRect | null }>();
+    for (const s of seats) {
+      const hkey = `hero-${s.id}`;
+      cur.set(hkey, { hp: s.health, rect: document.getElementById(hkey)?.getBoundingClientRect() ?? null });
+      for (const m of s.board) {
+        const ckey = `card-${m.id}`;
+        cur.set(ckey, { hp: m.health, rect: document.getElementById(ckey)?.getBoundingClientRect() ?? null });
+      }
+    }
+    const prev = prevHpRef.current;
+    const canAnimate = room.phase === "playing" && prevPhaseRef.current === "playing";
+    if (canAnimate) {
+      const myHeroKey = myId ? `hero-${myId}` : "";
+      let myHit = false, anyHit = false;
+      cur.forEach((now, key) => {
+        const before = prev.get(key);
+        if (!before || now.hp >= before.hp) return;
+        const dmg = before.hp - now.hp;
+        const isHero = key.startsWith("hero-");
+        flashDamage(document.getElementById(key), dmg, { big: isHero || dmg >= 5 });
+        anyHit = true;
+        if (isHero && key === myHeroKey) { screenFlash(0.5 + dmg / 14); myHit = true; }
+      });
+      prev.forEach((before, key) => {
+        if (cur.has(key) || !key.startsWith("card-") || !before.rect) return;
+        deathPoof(before.rect.left + before.rect.width / 2, before.rect.top + before.rect.height / 2);
+      });
+      if (myHit) playSound("hurt"); else if (anyHit) playSound("hit");
+    }
+    prevPhaseRef.current = room.phase;
+    prevHpRef.current = cur;
+  }, [room, myId]);
+
+  // Rundenstart-Schwerter beim Zugwechsel (Gold = ich, Rot = ein Gegner).
+  useEffect(() => {
+    if (room.phase !== "playing" || !room.turn) return;
+    if (room.turn !== prevTurnRef.current) {
+      const mine = room.turn === myId;
+      const actor = seats.find(p => p.id === room.turn);
+      roundStartFlare(mine ? "Dein Zug" : `${actor?.name ?? ""} am Zug`, mine);
+      prevTurnRef.current = room.turn;
+    }
+  }, [room.turn, room.phase, myId]);
+
   const copyCode = () => {
     navigator.clipboard?.writeText(room.roomId).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); }).catch(() => {});
   };
@@ -68,6 +130,9 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
       sendAction({ type: "PLAY_CARD", payload: { roomId: room.roomId, cardId: card.id } });
     } else {
       if (spellNeedsTarget(card)) { setTargeting({ mode: "spell", sourceId: card.id }); showToast("Wähle ein Ziel für den Zauber.", "info"); return; }
+      // Zielfreier Zauber (Flächenzauber/Ziehen): Cast-Funken am eigenen Helden.
+      const myHeroEl = document.getElementById(`hero-${myId}`);
+      if (myHeroEl) { const r = myHeroEl.getBoundingClientRect(); spellCast(r.left + r.width / 2, r.top + r.height / 2, SPELL_ELEMENT[card.templateId] ?? "arcane"); }
       sendAction({ type: "PLAY_CARD", payload: { roomId: room.roomId, cardId: card.id } });
     }
   };
@@ -91,6 +156,20 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
   const sendAtTarget = (ownerId: string, isTargetHero: boolean, targetId?: string) => {
     const { mode, sourceId } = targeting;
     const roomId = room.roomId;
+    // Kampf-FX VOR dem Senden, damit es sofort losgeht (Treffer-/Tod-FX kommen per Diff danach).
+    const targetEl = document.getElementById(isTargetHero ? `hero-${ownerId}` : `card-${targetId}`);
+    const myHeroEl = document.getElementById(`hero-${myId}`);
+    if (mode === "attack") {
+      lungeAttack(document.getElementById(`card-${sourceId}`), targetEl);
+    } else if (mode === "spell") {
+      const card = me?.hand.find(c => c.id === sourceId);
+      castProjectile(myHeroEl, targetEl, SPELL_ELEMENT[card?.templateId ?? ""] ?? "arcane");
+    } else if (mode === "heropower" && me) {
+      castProjectile(myHeroEl, targetEl, HERO_POWER_ELEMENT[me.heroClass]?.[me.selectedHeroPowerIndex ?? 0] ?? "arcane");
+    } else if (mode === "battlecry" && targetEl) {
+      const r = targetEl.getBoundingClientRect();
+      spellCast(r.left + r.width / 2, r.top + r.height / 2, "holy");
+    }
     if (mode === "spell") sendAction({ type: "PLAY_CARD", payload: { roomId, cardId: sourceId!, targetPlayerId: ownerId, isTargetHero, targetId } });
     else if (mode === "battlecry") sendAction({ type: "PLAY_CARD", payload: { roomId, cardId: sourceId!, targetPlayerId: ownerId, isTargetHero: true } });
     else if (mode === "attack") sendAction({ type: "ATTACK", payload: { roomId, attackerCardId: sourceId!, targetPlayerId: ownerId, isTargetHero, targetCardId: targetId } });

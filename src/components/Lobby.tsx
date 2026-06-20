@@ -270,6 +270,7 @@ export function Lobby({
                 <li>Neuer Spassmodus: <b>Dreieck (3 Spieler)</b> und <b>Chaos (4 Spieler)</b>, jeder gegen jeden. Letzter Überlebender gewinnt.</li>
                 <li>Gegner oben im Dreieck angeordnet, du wählst bei Zaubern/Angriffen genau welchen Gegner du triffst.</li>
                 <li>Flächenzauber treffen alle Gegner, Ragnaros & Dr. Marc streuen über alle. Beitritt per Raum-Code, Start ab 3 Spielern.</li>
+                <li>Volle Kampf-Animationen auch im Free-for-All: Treffer, Schadenszahlen, Tod-Rauch, Lunge, Zauber-Projektile, Rundenstart-Schwerter.</li>
               </ul>
             </div>
             <div>

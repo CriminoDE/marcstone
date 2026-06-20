@@ -14,11 +14,13 @@ Format: `## [Version] - Datum` mit Kategorien Hinzugefuegt / Geaendert / Behoben
 - **Eigener Render-Pfad (`FfaGame.tsx`):** Gegner oben im Dreieck/Kreuz angeordnet, du unten. Ziel-Wahl pro Gegner: Zauber/Angriff/Heldenkraft fragen "welchen Gegner?" und treffen genau den (Held oder Diener antippen). AoE (Flammenwoge/Weihe/Sprengfalle) trifft ALLE Gegner, Random-Effekte (Ragnaros, Dr. Marc) streuen ueber alle Gegner, Marc's Breath zielbar.
 - **Architektur:** komplett paralleler Pfad gated auf `room.mode==="ffa"` (`room.players[]`). Das 1v1-Duell (player1/player2) bleibt byte-fuer-byte unangetastet.
 
+- **Kampf-Animationen auch in FFA:** dieselbe FX-Engine wie im Duell - Treffer-Wackeln + Schadenszahlen + Funken, Tod-Rauch, roter Bildschirm-Flash wenn dein Held getroffen wird, Angreifer-Lunge, Projektile/Runenkreis bei Zaubern & Heldenkräften, Rundenstart-Schwerter beim Zugwechsel.
+
 ### Technik / getestet
 - Server-Engine headless geprueft: 3er + 4er Vollspiel (Zug-Rotation ueberspringt Tote/Offline, Eliminationen, last-standing-Sieg, 0 Crashes).
 - Browser-E2E mit 3 echten Clients: erstellen/joinen/starten/Heldenkraft/Board-Render/Zugwechsel, keine Laufzeitfehler.
 - 1v1-Regression intakt (Forge-Trust + Bot-Battlecry weiter gruen).
-- Bekannte Grenze v1: in FFA noch keine Alchemie-Schmiede + keine Kampf-Animationen (kommt spaeter). Reconnect ist Best-Effort (Sitz per Name).
+- Bekannte Grenze v1: in FFA noch keine Alchemie-Schmiede (kommt spaeter). Reconnect ist Best-Effort (Sitz per Name).
 
 ## [2.7.0] - Fairer Bot + Schmiede server-autoritativ (aus Balance-Review-Agent)
 
