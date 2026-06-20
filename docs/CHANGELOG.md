@@ -15,12 +15,14 @@ Format: `## [Version] - Datum` mit Kategorien Hinzugefuegt / Geaendert / Behoben
 - **Architektur:** komplett paralleler Pfad gated auf `room.mode==="ffa"` (`room.players[]`). Das 1v1-Duell (player1/player2) bleibt byte-fuer-byte unangetastet.
 
 - **Kampf-Animationen auch in FFA:** dieselbe FX-Engine wie im Duell - Treffer-Wackeln + Schadenszahlen + Funken, Tod-Rauch, roter Bildschirm-Flash wenn dein Held getroffen wird, Angreifer-Lunge, Projektile/Runenkreis bei Zaubern & Heldenkräften, Rundenstart-Schwerter beim Zugwechsel.
+- **Alchemie-Schmiede auch in FFA:** Götter-Würfel + Selber-Bauen (eigene Komponente `FfaForge.tsx`). Server-Handler (CREATE_CUSTOM_CARD / ROLL_FORGE_DICE) jetzt FFA-tauglich, Kosten weiter server-autoritativ. Schmiede-Button neben "Zug beenden".
+- **Lobby-Tagline gekürzt** (nur noch "Ein dunkles Kartenspiel aus Eis und Blut." + Game-Design-Credit).
 
 ### Technik / getestet
 - Server-Engine headless geprueft: 3er + 4er Vollspiel (Zug-Rotation ueberspringt Tote/Offline, Eliminationen, last-standing-Sieg, 0 Crashes).
 - Browser-E2E mit 3 echten Clients: erstellen/joinen/starten/Heldenkraft/Board-Render/Zugwechsel, keine Laufzeitfehler.
 - 1v1-Regression intakt (Forge-Trust + Bot-Battlecry weiter gruen).
-- Bekannte Grenze v1: in FFA noch keine Alchemie-Schmiede (kommt spaeter). Reconnect ist Best-Effort (Sitz per Name).
+- Reconnect ist Best-Effort (Sitz per Name). 2v2 bewusst (noch) weggelassen.
 
 ## [2.7.0] - Fairer Bot + Schmiede server-autoritativ (aus Balance-Review-Agent)
 

@@ -957,6 +957,8 @@ function setupFfaGame(room: RoomState) {
     p.isEliminated = false;
     p.isReady = false;
     p.selectedHeroPowerIndex = undefined;
+    p.hasForgedThisGame = false;
+    p.forgeDiceCount = 0;
     p.seat = i;
     for (let k = 0; k < 4; k++) { if (p.deck.length > 0) p.hand.push(p.deck.pop()!); }
   });
@@ -1805,7 +1807,9 @@ function handleGameAction(connectionId: string, action: ClientAction) {
       const room = rooms.get(roomId);
       if (!room) return;
 
-      const player = room.player1?.id === connectionId ? room.player1 : room.player2;
+      const player = room.mode === "ffa"
+        ? ffaActor(room, connectionId)
+        : (room.player1?.id === connectionId ? room.player1 : room.player2);
       if (!player) return;
 
       if (player.hasForgedThisGame) {
@@ -1870,7 +1874,9 @@ function handleGameAction(connectionId: string, action: ClientAction) {
       const room = rooms.get(roomId);
       if (!room || room.phase !== "playing" || room.turn !== connectionId) return;
 
-      const player = room.player1?.id === connectionId ? room.player1 : room.player2;
+      const player = room.mode === "ffa"
+        ? ffaActor(room, connectionId)
+        : (room.player1?.id === connectionId ? room.player1 : room.player2);
       if (!player) return;
 
       const diceManaCost = (player.forgeDiceCount ?? 0) + 1;

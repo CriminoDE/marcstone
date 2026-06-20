@@ -55,7 +55,7 @@ export function Lobby({
           Marc<span className="text-mg-bronze drop-shadow-[0_2px_20px_rgba(176,132,59,0.55)]">gard</span>
         </h1>
         <p className="text-mg-fog mt-3 text-sm md:text-base max-w-md mx-auto leading-relaxed font-body italic">
-          Ein dunkles Kartenspiel aus Eis und Blut. Der dunkle Seher Marc hat den Untergang geweissagt, stell dich ihm, oder geh mit der Welt unter.
+          Ein dunkles Kartenspiel aus Eis und Blut.
         </p>
         <p className="font-display text-mg-bronze/60 mt-3 text-[11px] md:text-xs tracking-[0.25em] uppercase">
           Game Design: Marc Haevernick
@@ -271,6 +271,7 @@ export function Lobby({
                 <li>Gegner oben im Dreieck angeordnet, du wählst bei Zaubern/Angriffen genau welchen Gegner du triffst.</li>
                 <li>Flächenzauber treffen alle Gegner, Ragnaros & Dr. Marc streuen über alle. Beitritt per Raum-Code, Start ab 3 Spielern.</li>
                 <li>Volle Kampf-Animationen auch im Free-for-All: Treffer, Schadenszahlen, Tod-Rauch, Lunge, Zauber-Projektile, Rundenstart-Schwerter.</li>
+                <li>Alchemie-Schmiede (Götter-Würfel + Selber-Bauen) jetzt auch im Free-for-All.</li>
               </ul>
             </div>
             <div>

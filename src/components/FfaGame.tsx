@@ -4,6 +4,7 @@ import { HeroState } from "./HeroState";
 import { CardItem } from "./CardItem";
 import { Atmosphere } from "./Atmosphere";
 import { MusicToggle } from "./MusicToggle";
+import { FfaForge } from "./FfaForge";
 import { HERO_POWER_COST, HERO_POWERS_LIST } from "../constants";
 import { playRaven, playSound } from "../utils/audio";
 import { flashDamage, deathPoof, screenFlash, lungeAttack, spellCast, castProjectile, roundStartFlare, type SpellElement } from "../utils/combatFx";
@@ -54,6 +55,7 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
   const [targeting, setTargeting] = useState<Targeting>({ mode: "none" });
   const [previewCardId, setPreviewCardId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [showForge, setShowForge] = useState(false);
 
   const seats = room.players ?? [];
   const me = seats.find(p => p.id === connectionId) || seats.find(p => p.name === myName);
@@ -365,8 +367,13 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
             })}
           </div>
 
-          {/* End-Turn */}
-          <div className="flex justify-center mt-3" onClick={(e) => e.stopPropagation()}>
+          {/* Schmiede + End-Turn */}
+          <div className="flex justify-center items-center gap-2 mt-3" onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setShowForge(true)}
+              className="px-4 py-2.5 rounded-xl font-bold uppercase tracking-wide text-sm border border-mg-bronze/50 bg-mg-void/60 text-mg-bronze-bright hover:border-mg-bronze hover:bg-mg-slate/60 transition-all"
+              title="Götter-Würfel + eigene Karte schmieden">
+              🧪 Schmiede
+            </button>
             <button onClick={endTurn} disabled={!isMyTurn}
               className={`px-6 py-2.5 rounded-xl font-bold uppercase tracking-wide text-sm transition-all ${isMyTurn ? "bg-mg-bronze text-mg-void hover:scale-105 shadow-lg" : "bg-mg-slate/40 text-mg-fog cursor-not-allowed border border-mg-stone"}`}>
               {isMyTurn ? "Zug beenden" : "Nicht dein Zug"}
@@ -395,6 +402,11 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
           </div>
         );
       })()}
+
+      {/* SCHMIEDE */}
+      {showForge && (
+        <FfaForge me={me} isMyTurn={isMyTurn} roomId={room.roomId} sendAction={sendAction} showToast={showToast} onClose={() => setShowForge(false)} />
+      )}
 
       {/* SIEG */}
       {room.phase === "victory" && (
