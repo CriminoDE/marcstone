@@ -8,7 +8,7 @@ import { FfaForge } from "./FfaForge";
 import { Glossary } from "./Glossary";
 import { HERO_POWER_COST, HERO_POWERS_LIST } from "../constants";
 import { playRaven, playSound } from "../utils/audio";
-import { flashDamage, deathPoof, screenFlash, lungeAttack, spellCast, castProjectile, roundStartFlare, heroDeathExplosion, playFinisherCinematic, type SpellElement } from "../utils/combatFx";
+import { flashDamage, deathPoof, screenFlash, lungeAttack, spellCast, castProjectile, roundStartFlare, heroDeathExplosion, playFinisherCinematic, frostNova, type SpellElement } from "../utils/combatFx";
 
 // Zauber/Heldenkraft -> Element fuer die Projektil-/Cast-VFX (gespiegelt aus App.tsx).
 const SPELL_ELEMENT: Record<string, SpellElement> = {
@@ -180,7 +180,9 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
       if (spellNeedsTarget(card)) { setTargeting({ mode: "spell", sourceId: card.id }); showToast("Wähle ein Ziel für den Zauber.", "info"); return; }
       // Zielfreier Zauber (Flächenzauber/Ziehen): Cast-Funken am eigenen Helden.
       const myHeroEl = document.getElementById(`hero-${myId}`);
-      if (myHeroEl) { const r = myHeroEl.getBoundingClientRect(); spellCast(r.left + r.width / 2, r.top + r.height / 2, SPELL_ELEMENT[card.templateId] ?? "arcane"); }
+      const el = SPELL_ELEMENT[card.templateId] ?? "arcane";
+      if (myHeroEl) { const r = myHeroEl.getBoundingClientRect(); spellCast(r.left + r.width / 2, r.top + r.height / 2, el); }
+      if (el === "frost") frostNova();
       sendAction({ type: "PLAY_CARD", payload: { roomId: room.roomId, cardId: card.id } });
     }
   };

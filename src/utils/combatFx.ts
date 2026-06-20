@@ -183,6 +183,46 @@ export function screenFlash(strength = 1): void {
   a.onfinish = () => d.remove();
 }
 
+// Frost-Nova: kurzer eisiger Bildschirm-Schimmer + Schneeflocken (fuer Blizzard & Co.).
+export function frostNova(): void {
+  if (reduceMotion()) return;
+  const root = getRoot();
+
+  // eisiger Schleier
+  const veil = document.createElement("div");
+  veil.style.cssText =
+    "position:absolute;inset:0;background:radial-gradient(120% 100% at 50% 40%, rgba(180,240,255,0), rgba(120,200,240,0.26) 68%, rgba(60,140,200,0.4));";
+  root.appendChild(veil);
+  veil.animate([{ opacity: 0 }, { opacity: 1, offset: 0.2 }, { opacity: 0 }], { duration: 950, easing: "ease-out" }).onfinish = () => veil.remove();
+
+  // Frost kriecht von den Raendern rein
+  const frame = document.createElement("div");
+  frame.style.cssText = "position:absolute;inset:0;box-shadow:inset 0 0 90px rgba(200,245,255,0.7), inset 0 0 28px rgba(255,255,255,0.5);";
+  root.appendChild(frame);
+  frame.animate([{ opacity: 0 }, { opacity: 1, offset: 0.25 }, { opacity: 0 }], { duration: 1050, easing: "ease-out" }).onfinish = () => frame.remove();
+
+  // Schneeflocken rieseln durch
+  const N = 26;
+  for (let i = 0; i < N; i++) {
+    const s = document.createElement("div");
+    const x = Math.random() * window.innerWidth;
+    const sz = 2 + Math.random() * 4;
+    s.style.cssText =
+      `position:absolute;left:${x}px;top:-12px;width:${sz}px;height:${sz}px;border-radius:50%;` +
+      `background:rgba(230,250,255,0.95);box-shadow:0 0 6px rgba(180,240,255,0.9);`;
+    root.appendChild(s);
+    const dx = (Math.random() * 2 - 1) * 40;
+    s.animate(
+      [
+        { transform: "translate(0px,0px)", opacity: 0 },
+        { opacity: 1, offset: 0.2 },
+        { transform: `translate(${dx}px, ${window.innerHeight + 24}px)`, opacity: 0.3 },
+      ],
+      { duration: 1100 + Math.random() * 700, easing: "ease-in" }
+    ).onfinish = () => s.remove();
+  }
+}
+
 // EPISCHER Helden-Tod: dunkler Bildschirm-Puls + Schockwelle + Splitter + grosser Totenkopf.
 // Wird ausgeloest, wenn ein Held auf 0 faellt (der entscheidende Schlag).
 export function heroDeathExplosion(el: HTMLElement | null): void {

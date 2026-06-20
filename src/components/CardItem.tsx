@@ -115,12 +115,19 @@ export function CardItem({
         <div className="absolute -inset-px rounded-xl border-2 border-amber-300 shadow-[0_0_12px_rgba(252,211,77,0.85),inset_0_0_10px_rgba(252,211,77,0.45)] pointer-events-none animate-pulse" />
       )}
 
-      {/* Frozen-Overlay: eisiger blauer Schleier ueber der ganzen Karte */}
+      {/* Frozen-Overlay: die Karte ist in glitzerndes Eis gehuellt */}
       {isFrozen && (
         <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-20">
-          <div className="absolute inset-0 bg-gradient-to-b from-cyan-200/35 via-cyan-300/15 to-blue-400/25 mix-blend-screen" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.5),transparent_45%)]" />
-          <span className="absolute top-0.5 right-0.5 text-[10px] md:text-sm drop-shadow-[0_0_4px_rgba(103,232,249,0.9)]">❄️</span>
+          {/* eisige Fuellung */}
+          <div className="absolute inset-0 bg-gradient-to-b from-cyan-100/45 via-cyan-300/18 to-blue-500/30 mix-blend-screen" />
+          {/* pochender Eis-Rand */}
+          <div className="mg-frost-pulse absolute inset-0 rounded-xl" />
+          {/* wandernder Glitzer-Streif */}
+          <div className="mg-frost-shimmer absolute -inset-y-3 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+          {/* gefrorener Glanz oben + Eiskristalle */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_15%,rgba(255,255,255,0.55),transparent_45%)]" />
+          <span className="absolute top-0.5 right-0.5 text-[10px] md:text-sm drop-shadow-[0_0_5px_rgba(103,232,249,0.95)]">❄️</span>
+          <span className="absolute bottom-0.5 left-0.5 text-[8px] md:text-xs opacity-80 drop-shadow-[0_0_4px_rgba(103,232,249,0.9)]">❄️</span>
         </div>
       )}
 

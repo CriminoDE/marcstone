@@ -13,7 +13,7 @@ import { Card, RoomState, HeroClass, ClientAction, GameEvent, OpenRoomInfo, Onli
 import { HERO_POWER_COST, HERO_POWERS, HERO_POWERS_LIST } from "./constants";
 import { playSound, playRaven } from "./utils/audio";
 import { generateVikingName } from "./utils/names";
-import { flashDamage, deathPoof, screenFlash, lungeAttack, spellCast, castProjectile, roundStartFlare, diceRoll, heroDeathExplosion, playFinisherCinematic, type SpellElement } from "./utils/combatFx";
+import { flashDamage, deathPoof, screenFlash, lungeAttack, spellCast, castProjectile, roundStartFlare, diceRoll, heroDeathExplosion, playFinisherCinematic, frostNova, type SpellElement } from "./utils/combatFx";
 
 // Element/Farbe fuer das Sieg-Kino aus dem Finisher ableiten (templateId -> Element).
 function finisherElement(b: FinishingBlow): SpellElement {
@@ -676,6 +676,7 @@ export default function App() {
           ? centerOf(`hero-${me.id}`)
           : centerOf(opponent ? `hero-${opponent.id}` : `hero-${me.id}`);
         if (c) spellCast(c.x, c.y, el);
+        if (el === "frost") frostNova(); // Blizzard: eisiger Bildschirm-Schimmer
         sendAction({
           type: "PLAY_CARD",
           payload: { roomId: room.roomId, cardId: card.id },
