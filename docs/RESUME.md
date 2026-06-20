@@ -24,16 +24,18 @@ Marcgard = Browser-Kartenduell (Hearthstone-artig), 1v1 online ueber Link, fuer 
 ## Testen ohne zweiten Spieler
 Raum erstellen -> Warteraum -> "Uebungsgegner hinzufuegen" -> lokaler Bot "Holgar" (kein Gemini, kostenlos). WS-Testskripte: `/tmp/wstest.mjs` (Reconnect), `/tmp/bottest.mjs` (Bot) - bei Bedarf neu schreiben.
 
-## STAND (Stand: 2026-06-20, **v2.11 LIVE auf https://marcgard.onrender.com** - Commit 290fe76. ⚠️ v2.12 LOKAL GEBAUT + committed, aber NOCH NICHT GEPUSHT/DEPLOYED - wartet auf Henry-Review + "push")
+## STAND (Stand: 2026-06-20, **v2.12 LIVE auf https://marcgard.onrender.com** - Commit 0318c45, deployed + live verifiziert: Bundle enthaelt Glossar/frostShimmer/Marksmann)
 
-### ⏳ v2.12 lokal fertig, wartet auf Push (Henry spielt gerade Live-v2.11)
-Lokal auf main committed (nicht gepusht). Wenn Henry "push marcgard" sagt: `git push origin main` + Render-Deploy (Key holen) wie im Deploy-Workflow.
-- **Glossar** (📖 Button Lobby/Duell/FFA) - Keywords/Ablauf/Modi. `src/components/Glossary.tsx`.
-- **Eis-Optik fancy** - Glitzer-Eis auf eingefrorenen Karten (`mg-frost-shimmer`/`mg-frost-pulse` in index.css + CardItem) + `frostNova`-Bildschirmeffekt bei Blizzard (combatFx, getriggert in App + FfaGame).
-- **Mehr Wikinger-Beleidigungen** (triggerRageChat-Pools erweitert).
-- **3 Marc-Themen-Karten** (keyword-only, balance-arm): m_ravens 3M 4/2 Ansturm, m_marksman 4M 5/1 Ansturm, m_warden 4M 4/4 Spott. In Hunter/Mage bzw. Paladin/Priest. **Henry darf vetoen** - docs/BALANCE-CHANGES.md.
-- Patch-Notes (Lobby v2.12) + CHANGELOG v2.12 schon geschrieben. tsc+build gruen, Duell-Sanity gruen.
-- **Noch offen (Henry-Input/Design):** Heldenkraft-Wechsel-Karte + Marc-Fluch/Zorn-Zauber (neue Mechaniken, brauchen Server-Wiring in Duell+FFA + Stats-Call), Balance nach Playtest.
+### 🎯 NAECHSTE SESSION (Henry will hier weiter, neues Fenster): KLASSENSYSTEM-WEICHE + neue Karten + Account
+Henrys offene Design-Frage (zu klaeren, BEVOR viele neue Karten designt werden):
+**"Machen wir es wie Hearthstone (jede Klasse hat exklusive Karten) ODER universeller Karten-Pool, Klasse = nur Heldenkraft (+ evtl. Signatur-Karten), leichter zu balancen?"**
+- **Aktueller Code = Hybrid:** `STANDARD_CLASS_CARDS` gibt jeder Klasse einen eigenen Pool + 2 exklusive Signatur-Karten; Heldenkraft (3 Wahlmoeglichkeiten) ist der Haupt-Unterschied. KEINE Waffen (alte Designer-Entscheidung).
+- **Claude-Empfehlung (Henry tendierte selbst dahin):** **Universeller Karten-Pool** + Klasse = Heldenkraft + eine Handvoll Signatur-Karten pro Klasse. Gruende: viel leichter zu balancen (1 Karte = 1 Statblock, einmal balanciert statt pro Klasse), schneller neue Karten designen, Klassen-Identitaet trotzdem ueber Heldenkraft + Signaturen. "Special Source"/Signatur-Mechanik spaeter als Wuerze oben drauf. Voll-Hearthstone (alles klassen-gelockt) = mehr Balance-Aufwand, lohnt fuer ein 2-Mann-Spass-Spiel nicht.
+- **Dann:** mehr/krassere Karten designen (Marc-Legendaere: Marcs Fluch, Zorn des Marc, Heldenkraft-Wechsel-Karte - brauchen neue Mechaniken + Server-Wiring in Duell UND FFA/2v2 + Stats-Call mit Henry).
+- **Account-Setup (Phase C):** Google-OAuth + Profil + Sammlung + Deckbau via EIGENES Supabase-Projekt. **HENRY macht das selbst, Claude fasst Supabase NICHT an.**
+
+### v2.12 LIVE (Commit 0318c45)
+- **Glossar** (📖 Button Lobby/Duell/FFA) - `src/components/Glossary.tsx`. **Eis-Optik fancy** (`mg-frost-shimmer`/`mg-frost-pulse` + `frostNova` in combatFx). **Mehr Wikinger-Beleidigungen**. **3 Marc-Karten** (keyword-only, vetobar in docs/BALANCE-CHANGES.md): m_ravens 3M 4/2 Ansturm, m_marksman 4M 5/1 Ansturm, m_warden 4M 4/4 Spott.
 
 ### ⭐ OFFENE HENRY-WUENSCHE / BACKLOG (fuer naechste Session - WICHTIG zuerst lesen)
 Aus den Live-Playtests gesammelt, nach Prio:
