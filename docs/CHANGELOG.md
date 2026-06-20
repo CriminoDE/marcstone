@@ -7,6 +7,27 @@ Format: `## [Version] - Datum` mit Kategorien Hinzugefuegt / Geaendert / Behoben
 
 ---
 
+## [2.9.0] - Klassen-Identitaet, echtes Einfrieren, Sichtbarkeit + Balance
+
+### Hinzugefuegt
+- **Klassen-Identitaet (endlich eigene Decks):** Jede Klasse hat jetzt einen eigenen Themen-Stapel + 2 exklusive Signaturkarten. Mage = Frost/Feuer (**Blizzard** + Wasserelementar), Priest = Heilung/Schatten (**Heilige Nova** + Tempelwaechter), Hunter = Bestien/Aggro (**Mehrfachschuss** + Schreckenswolf), Paladin = Licht/breit (**Goettlicher Sturm** + Silberhand-Ritter). Die Legendaeren sind nicht mehr in jedem Deck gleich.
+- **Spielbar-Anzeige:** Handkarten, die du dir leisten kannst, leuchten gruen + heben sich an; nicht spielbare sind abgedunkelt. Aktualisiert sich live mit dem Mana (Duell + FFA).
+- **Eis-Optik:** Eingefrorene Diener bekommen einen blauen Eis-Schleier + ❄️-Marke + cyanfarbenen Rand.
+- **Keywords immer sichtbar:** Spott 🛡️, Ansturm ⚡, Gottesschild ✨ und Eingefroren ❄️ als deutliche Emoji-Chips direkt auf der Karte (auch am Handy ohne Hover) - besonders bei geschmiedeten Karten. Gottesschild hat zusaetzlich einen goldenen Schimmer-Ring.
+
+### Behoben
+- **Einfrieren wirkt jetzt wirklich:** Mage "Chilled Arcana" + Blizzard frieren Diener echt ein - sie ueberspringen ihren naechsten Angriff (vorher rein kosmetisch, der Diener konnte trotzdem angreifen).
+- **Mind Spike nur noch temporaer:** Der Angriffs-Malus (-1) wird beim naechsten Zug des Dieners zurueckgegeben (vorher dauerhaft).
+
+### Geaendert (Balance - alles dokumentiert in docs/BALANCE-CHANGES.md, leicht aenderbar)
+- **Marc's Champion** 5 -> 6 Mana (war als 5-Mana-Sofortschlag zu stark).
+- **Dr. Marc** Boom-Bots 1 -> 2 Schaden je Treffer (war zu schwach fuer 7 Mana).
+- **Paladin "Holy Light"** 1/1 -> 2/2 (Schaden + Heilung), Klasse aufgewertet. Plus neuer Goettlicher Sturm staerkt Paladin-Breite.
+- **Goetter-Wuerfel** Stat-Budget leicht gesenkt (tier*2 statt tier*2+1).
+
+### Technik / getestet
+- FFA-Vollspiel mit allen 4 Klassen-Decks + neuen Zaubern: sauber durchgelaufen, 0 Crashes. 1v1-Duell + FFA-Pfade beide intakt.
+
 ## [2.8.0] - Free-for-All: Dreieck (3) + Chaos (4) Spieler
 
 ### Hinzugefuegt

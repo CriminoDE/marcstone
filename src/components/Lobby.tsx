@@ -265,7 +265,16 @@ export function Lobby({
           </h3>
           <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
             <div>
-              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.8 · Free-for-All 🔺</div>
+              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.9 · Klassen & Eis ❄️</div>
+              <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
+                <li><b>Eigene Klassen-Decks:</b> Mage = Frost/Feuer (Blizzard), Priest = Heilung/Schatten (Heilige Nova), Hunter = Bestien (Mehrfachschuss), Paladin = Licht (Göttlicher Sturm). 8 neue Karten.</li>
+                <li><b>Einfrieren wirkt jetzt wirklich</b> - eingefrorene Diener überspringen ihren Angriff, mit blauer Eis-Optik ❄️.</li>
+                <li><b>Spielbare Karten leuchten</b> (genug Mana) statt alles grau. Keywords (Spott/Ansturm/Gottesschild) jetzt deutlich auf der Karte.</li>
+                <li>Balance: Marc's Champion 6 Mana, Dr. Marc stärker, Paladin aufgewertet.</li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-[11px] font-display font-bold text-mg-fog">v2.8 · Free-for-All 🔺</div>
               <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
                 <li>Neuer Spassmodus: <b>Dreieck (3 Spieler)</b> und <b>Chaos (4 Spieler)</b>, jeder gegen jeden. Letzter Überlebender gewinnt.</li>
                 <li>Gegner oben im Dreieck angeordnet, du wählst bei Zaubern/Angriffen genau welchen Gegner du triffst.</li>

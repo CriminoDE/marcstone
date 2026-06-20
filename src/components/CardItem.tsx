@@ -46,6 +46,7 @@ export function CardItem({
   // Is minion dead or wounded?
   const isWounded = card.type === "minion" && card.health < card.maxHealth;
   const isExhausted = card.type === "minion" && !card.isReady;
+  const isFrozen = card.type === "minion" && !!card.frozen;
   // Marc-forged cards (the dark seer's work) glow blood-red and feel "wrongly powerful".
   const isMarc = card.templateId === "custom_magic";
 
@@ -98,6 +99,7 @@ export function CardItem({
         ${(!canBePlayed && !canAttack) && onClick ? "cursor-pointer hover:z-20" : ""}
         ${playableNow ? "ring-2 ring-emerald-400 shadow-[0_0_16px_rgba(52,211,153,0.6)] -translate-y-1 md:-translate-y-1.5 cursor-pointer" : ""}
         ${unplayableNow ? "opacity-45 saturate-50" : ""}
+        ${isFrozen ? "ring-2 ring-cyan-300 shadow-[0_0_16px_rgba(103,232,249,0.75)] !border-cyan-300/80" : ""}
         ${isHovered ? "z-40 scale-110 md:scale-110" : "z-10"}
         ${isExhausted && card.type === "minion" && isOwner ? "minion-exhausted" : ""}
         ${className}
@@ -108,9 +110,18 @@ export function CardItem({
         {card.cost}
       </div>
 
-      {/* Divine Shield Overlay Indicator */}
+      {/* Divine Shield Overlay Indicator - deutlicher goldener Schimmer-Ring */}
       {card.hasDivineShield && (
-        <div className="absolute inset-0.5 rounded-lg border-2 border-dashed border-mg-bronze-bright/80 pointer-events-none animate-spin-slow" />
+        <div className="absolute -inset-px rounded-xl border-2 border-amber-300 shadow-[0_0_12px_rgba(252,211,77,0.85),inset_0_0_10px_rgba(252,211,77,0.45)] pointer-events-none animate-pulse" />
+      )}
+
+      {/* Frozen-Overlay: eisiger blauer Schleier ueber der ganzen Karte */}
+      {isFrozen && (
+        <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden z-20">
+          <div className="absolute inset-0 bg-gradient-to-b from-cyan-200/35 via-cyan-300/15 to-blue-400/25 mix-blend-screen" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.5),transparent_45%)]" />
+          <span className="absolute top-0.5 right-0.5 text-[10px] md:text-sm drop-shadow-[0_0_4px_rgba(103,232,249,0.9)]">❄️</span>
+        </div>
       )}
 
       {/* Card Header & Type Icon */}
@@ -126,16 +137,19 @@ export function CardItem({
         ${card.type === "minion" ? "bg-mg-void" : "bg-mg-frost-deep/20"}`}
       >
         <span>{card.emoji}</span>
-        {/* Keyword Quick Badges */}
-        <div className="absolute bottom-0 left-0 flex gap-0.5 pointer-events-none">
+        {/* Keyword Quick Badges - immer sichtbare Emoji-Chips (auch am Handy, ohne Hover) */}
+        <div className="absolute bottom-0 left-0 flex gap-0.5 pointer-events-none z-30">
           {card.hasTaunt && (
-            <span className="bg-mg-blood-bright text-mg-frost-text text-[5px] md:text-[7px] font-bold px-0.5 md:px-1 rounded shadow">T</span>
+            <span className="bg-mg-blood-bright/90 text-[8px] md:text-[11px] px-0.5 md:px-1 rounded shadow leading-tight" title="Spott">🛡️</span>
           )}
           {card.hasCharge && (
-            <span className="bg-mg-bronze text-mg-void text-[5px] md:text-[7px] font-bold px-0.5 md:px-1 rounded shadow">C</span>
+            <span className="bg-mg-bronze/90 text-[8px] md:text-[11px] px-0.5 md:px-1 rounded shadow leading-tight" title="Ansturm">⚡</span>
           )}
           {card.hasDivineShield && (
-            <span className="bg-mg-frost text-mg-void text-[5px] md:text-[7px] font-bold px-0.5 md:px-1 rounded shadow">S</span>
+            <span className="bg-amber-300/95 text-[8px] md:text-[11px] px-0.5 md:px-1 rounded shadow leading-tight" title="Gottesschild">✨</span>
+          )}
+          {isFrozen && (
+            <span className="bg-cyan-300/95 text-[8px] md:text-[11px] px-0.5 md:px-1 rounded shadow leading-tight" title="Eingefroren">❄️</span>
           )}
         </div>
       </div>

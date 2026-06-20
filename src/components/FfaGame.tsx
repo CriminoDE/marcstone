@@ -13,6 +13,7 @@ import { flashDamage, deathPoof, screenFlash, lungeAttack, spellCast, castProjec
 const SPELL_ELEMENT: Record<string, SpellElement> = {
   arc_shot: "arcane", heal_touch: "heal", fireball: "fire", consecration: "holy",
   meteor: "fire", flamestrike: "fire", pyroblast: "fire", mind_control: "shadow", pot_greed: "arcane",
+  blizzard: "frost", holy_nova: "holy", multi_shot: "arcane", divine_storm: "holy",
 };
 const HERO_POWER_ELEMENT: Record<HeroClass, SpellElement[]> = {
   Mage: ["fire", "frost", "arcane"], Priest: ["heal", "holy", "arcane"],

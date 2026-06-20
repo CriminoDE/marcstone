@@ -183,8 +183,8 @@ function rollForgedCard(diceManaCost: number): Card {
     };
   }
 
-  // Diener: Stat-Budget tier*2+1, evtl. 1 Keyword (Tier-Gates + Punktkosten), Rest auf Attack/Health.
-  let statPoints = tier * 2 + 1;
+  // Diener: Stat-Budget tier*2 (war tier*2+1, leicht entschaerft), evtl. 1 Keyword (Tier-Gates + Punktkosten).
+  let statPoints = tier * 2;
   let hasTaunt = false, hasCharge = false, hasDivineShield = false;
   const kw = Math.random();
   if (kw < 0.18 && tier >= 3 && statPoints > 5) { hasDivineShield = true; statPoints -= 3; }
@@ -327,6 +327,28 @@ function botPlaySpell(room: RoomState, bot: PlayerState, human: PlayerState, car
     case "mind_control":
       if (human.board.length > 0 && bot.board.length < 7) bot.board.push(human.board.splice(Math.floor(Math.random() * human.board.length), 1)[0]);
       break;
+    case "blizzard":
+      human.board.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 2; m.frozen = true; m.isReady = false; });
+      human.board = human.board.filter(m => m.health > 0);
+      break;
+    case "holy_nova":
+      wipe(2);
+      bot.health = Math.min(30, bot.health + 2);
+      bot.board.forEach(m => m.health = Math.min(m.maxHealth, m.health + 2));
+      break;
+    case "multi_shot":
+      for (let k = 0; k < 2; k++) {
+        const ts = [human, ...human.board];
+        if (ts.length === 0) break;
+        const tt = ts[Math.floor(Math.random() * ts.length)];
+        if ("heroClass" in tt) tt.health -= 3;
+        else { if (tt.hasDivineShield) tt.hasDivineShield = false; else tt.health -= 3; }
+      }
+      human.board = human.board.filter(m => m.health > 0);
+      break;
+    case "divine_storm":
+      bot.board.forEach(m => { m.attack += 1; m.health += 1; m.maxHealth += 1; });
+      break;
     case "custom_magic":
       if (card.spellEffect === "heal") resolveHeal(room, bot, human, card.spellValue || 1, undefined, true);
       else if (card.spellEffect === "draw") draw(card.spellValue || 1);
@@ -371,15 +393,15 @@ function resolveBattlecry(
         const randTarget = targets[Math.floor(Math.random() * targets.length)];
         if ("heroClass" in randTarget) {
           const hpBefore = randTarget.health;
-          randTarget.health -= 1;
-          addLog(room, `💥 Boom-Bot trifft ${randTarget.name}s Held für 1 (${hpBefore} → ${randTarget.health}).`);
+          randTarget.health -= 2;
+          addLog(room, `💥 Boom-Bot trifft ${randTarget.name}s Held für 2 (${hpBefore} → ${randTarget.health}).`);
         } else {
           if (randTarget.hasDivineShield) {
             randTarget.hasDivineShield = false;
           } else {
-            randTarget.health -= 1;
+            randTarget.health -= 2;
           }
-          addLog(room, `💥 Boom-Bot hits ${randTarget.name}!`);
+          addLog(room, `💥 Boom-Bot trifft ${randTarget.name} für 2!`);
         }
       }
     }
@@ -753,8 +775,8 @@ function resolveFfaBattlecry(room: RoomState, actor: PlayerState, card: Card, ta
     for (let k = 0; k < 3; k++) {
       const t = ffaRandomEnemyTarget(room, actor);
       if (!t) break;
-      if (t.hero) ffaHitHero(room, t.hero, 1, "Boom-Bot");
-      else if (t.owner && t.minion) ffaHitMinion(room, t.owner, t.minion, 1, "Boom-Bot");
+      if (t.hero) ffaHitHero(room, t.hero, 2, "Boom-Bot");
+      else if (t.owner && t.minion) ffaHitMinion(room, t.owner, t.minion, 2, "Boom-Bot");
     }
   } else if (card.templateId === "ragnaros") {
     const t = ffaRandomEnemyTarget(room, actor);
@@ -807,6 +829,34 @@ function resolveFfaSpell(room: RoomState, actor: PlayerState, card: Card, target
   else if (t === "heal_touch") ffaHealTarget(room, actor, 6, targetPlayerId, targetId, isTargetHero);
   else if (t === "consecration") aoe(2);
   else if (t === "flamestrike") aoe(4);
+  else if (t === "blizzard") {
+    ffaOpponents(room, actor).forEach(o => {
+      o.board.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 2; m.frozen = true; m.isReady = false; });
+      o.board = o.board.filter(m => m.health > 0);
+    });
+    addLog(room, `🌨️ Blizzard: 2 Schaden an allen Gegner-Dienern + eingefroren.`);
+  }
+  else if (t === "holy_nova") {
+    ffaOpponents(room, actor).forEach(o => {
+      o.board.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 2; });
+      o.board = o.board.filter(m => m.health > 0);
+    });
+    actor.health = Math.min(actor.maxHealth || 30, actor.health + 2);
+    actor.board.forEach(m => m.health = Math.min(m.maxHealth, m.health + 2));
+    addLog(room, `🌟 Heilige Nova: 2 an Feinden, +2 fuer deine Seite.`);
+  }
+  else if (t === "multi_shot") {
+    for (let k = 0; k < 2; k++) {
+      const rt = ffaRandomEnemyTarget(room, actor);
+      if (!rt) break;
+      if (rt.hero) ffaHitHero(room, rt.hero, 3, card.name);
+      else if (rt.owner && rt.minion) ffaHitMinion(room, rt.owner, rt.minion, 3, card.name);
+    }
+  }
+  else if (t === "divine_storm") {
+    actor.board.forEach(m => { m.attack += 1; m.health += 1; m.maxHealth += 1; });
+    addLog(room, `✨ Goettlicher Sturm: deine Diener +1/+1.`);
+  }
   else if (t === "pot_greed") { addLog(room, `📖 Tome of Marc: 2 Karten gezogen.`); drawN(2); }
   else if (t === "mind_control") {
     if (!isTargetHero && targetId) {
@@ -940,8 +990,8 @@ function handleFfaHeroPower(room: RoomState, actor: PlayerState, payload: any, w
     if (powerIdx === 0) summon("sh_recruit", "Silver Hand Recruit", "🫡", false, "Von der Heldenkraft beschworen.");
     else if (powerIdx === 1) { if (targetId) { const m = actor.board.find(x => x.id === targetId); if (m) { m.hasDivineShield = true; addLog(room, `🛡️ ${m.name} erhält Gottesschild.`); } } else ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Ziel für Aegis nötig!" } })); }
     else {
-      if (targetId && !isTargetHero) { const f = ffaFindMinion(room, targetId); if (f && f.owner.id !== actor.id) { ffaHitMinion(room, f.owner, f.minion, 1, power.name); actor.health = Math.min(30, actor.health + 1); addLog(room, `☀️ Holy Light: 1 Schaden + 1 Heilung.`); } }
-      else { actor.health = Math.min(30, actor.health + 1); addLog(room, `☀️ Holy Light heilt deinen Helden um 1.`); }
+      if (targetId && !isTargetHero) { const f = ffaFindMinion(room, targetId); if (f && f.owner.id !== actor.id) { ffaHitMinion(room, f.owner, f.minion, 2, power.name); actor.health = Math.min(30, actor.health + 2); addLog(room, `☀️ Holy Light: 2 Schaden + 2 Heilung.`); } }
+      else { actor.health = Math.min(30, actor.health + 2); addLog(room, `☀️ Holy Light heilt deinen Helden um 2.`); }
     }
   }
 
@@ -1462,6 +1512,35 @@ function handleGameAction(connectionId: string, action: ClientAction) {
               }
             }
           }
+        } else if (card.templateId === "blizzard") {
+          // Mage-Signatur: 2 Schaden an allen Gegner-Dienern + einfrieren.
+          opponent.board.forEach(m => {
+            if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 2;
+            m.frozen = true; m.isReady = false;
+          });
+          opponent.board = opponent.board.filter(m => m.health > 0);
+          addLog(room, `🌨️ Blizzard: 2 Schaden an allen gegnerischen Dienern - und eingefroren!`);
+        } else if (card.templateId === "holy_nova") {
+          // Priest-Signatur: 2 an Gegner-Dienern, +2 Leben fuer eigene Seite.
+          opponent.board.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 2; });
+          opponent.board = opponent.board.filter(m => m.health > 0);
+          player.health = Math.min(30, player.health + 2);
+          player.board.forEach(m => m.health = Math.min(m.maxHealth, m.health + 2));
+          addLog(room, `🌟 Heilige Nova: 2 Schaden an Feinden, +2 Leben fuer dich und deine Diener.`);
+        } else if (card.templateId === "multi_shot") {
+          // Hunter-Signatur: 2 zufaellige gegnerische Ziele, je 3 Schaden.
+          for (let k = 0; k < 2; k++) {
+            const targets = [opponent, ...opponent.board];
+            if (targets.length === 0) break;
+            const t = targets[Math.floor(Math.random() * targets.length)];
+            if ("heroClass" in t) { t.health -= 3; addLog(room, `🎯 Mehrfachschuss trifft ${t.name}s Held fuer 3.`); }
+            else { if (t.hasDivineShield) t.hasDivineShield = false; else t.health -= 3; addLog(room, `🎯 Mehrfachschuss trifft ${t.name} fuer 3.`); }
+          }
+          opponent.board = opponent.board.filter(m => m.health > 0);
+        } else if (card.templateId === "divine_storm") {
+          // Paladin-Signatur: alle eigenen Diener +1/+1.
+          player.board.forEach(m => { m.attack += 1; m.health += 1; m.maxHealth += 1; });
+          addLog(room, `✨ Goettlicher Sturm: alle befreundeten Diener +1/+1.`);
         } else if (card.templateId === "custom_magic") {
           addLog(room, `✨ Alchemie-Zauber gewirkt! Effekt: ${card.spellEffect}`);
           if (card.spellEffect === "damage") {
@@ -1757,22 +1836,22 @@ function handleGameAction(connectionId: string, action: ClientAction) {
             ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Target required for Aegis Armor!" } }));
           }
         } else {
-          // Holy Light: Deals 1 damage to an enemy minion and restores 1 health to your hero
+          // Holy Light: 2 Schaden an einem Gegner-Diener + 2 Leben fuer deinen Helden (Paladin-Buff)
           if (targetId && !isTargetHero) {
             const minion = opponent.board.find(m => m.id === targetId);
             if (minion) {
               if (minion.hasDivineShield) {
                 minion.hasDivineShield = false;
               } else {
-                minion.health -= 1;
+                minion.health -= 2;
               }
               opponent.board = opponent.board.filter(m => m.health > 0);
-              player.health = Math.min(30, player.health + 1);
-              addLog(room, `☀️ Holy Light dealt 1 damage to ${minion.name} and healed your hero by 1.`);
+              player.health = Math.min(30, player.health + 2);
+              addLog(room, `☀️ Holy Light: 2 Schaden an ${minion.name} und +2 Leben für deinen Helden.`);
             }
           } else {
-            player.health = Math.min(30, player.health + 1);
-            addLog(room, `☀️ Holy Light healed your hero by 1.`);
+            player.health = Math.min(30, player.health + 2);
+            addLog(room, `☀️ Holy Light heilt deinen Helden um 2.`);
           }
         }
       }

@@ -299,7 +299,7 @@ export const CARD_TEMPLATES = {
     attack: 7,
     health: 7,
     emoji: "💣💥",
-    description: "💣 Kampfschrei: Füge 3 zufälligen Zielen je 1 Schaden zu!",
+    description: "💣 Kampfschrei: Füge 3 zufälligen Zielen je 2 Schaden zu!",
   },
   "pot_greed": {
     name: "Tome of Marc",
@@ -323,7 +323,7 @@ export const CARD_TEMPLATES = {
   "m_champion": {
     name: "Marc's Champion",
     type: "minion",
-    cost: 5,
+    cost: 6,
     attack: 4,
     health: 5,
     emoji: "🏇🛡️",
@@ -505,7 +505,7 @@ export const HERO_POWERS_LIST = {
     },
     {
       name: "Holy Light",
-      description: "Füge einem gegnerischen Diener 1 Schaden zu und heile deinen Helden um 1 Leben.",
+      description: "Füge einem gegnerischen Diener 2 Schaden zu und heile deinen Helden um 2 Leben.",
       emoji: "☀️",
     }
   ]
