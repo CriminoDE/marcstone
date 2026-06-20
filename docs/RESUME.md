@@ -6,16 +6,17 @@
 Marcgard = Browser-Kartenduell (Hearthstone-artig), 1v1 online ueber Link, fuer Henry + Bruder Marc. Spass-Projekt, nicht kommerziell. Dunkel-nordisches Setting (Wikinger/Hexen/Seher, GoT-Ton, nicht kindisch).
 
 ## Wo es laeuft
-- **Live:** https://marcstone.onrender.com (Subdomain fix; Domain marcgard.de/.com ist frei, spaeter draufsetzen)
-- **Repo:** GitHub `CriminoDE/marcstone` (public), lokal `/Users/hhaev/Krimi/marcstone`. Arbeit direkt auf `main`.
-- **Hosting:** Render, Service `srv-d8qt0gho3t8c73ad3uig`, Team `tea-d8qsj3ernols73ejngkg`, Gratis-Plan.
+- **Live:** https://marcgard.onrender.com (umgezogen 2026-06-20; alter Service marcstone geloescht. Domain marcgard.de/.com ist frei, spaeter draufsetzen.)
+- **Repo:** GitHub `CriminoDE/marcstone` (public, Name bleibt marcstone), lokal `/Users/hhaev/Krimi/marcstone`. Arbeit direkt auf `main`.
+- **Hosting:** Render, Service `srv-d8qu8s6rnols73ellus0`, Team `tea-d8qsj3ernols73ejngkg`, Gratis-Plan.
+- **WICHTIG Free-Tier:** Nur EINE aktive Free-Web-Instanz pro Account. Kein zweiter Render-Service parallel, sonst bekommt einer `no-server`. Deshalb wurde der alte Service geloescht statt behalten.
 - **Stack:** React 19 + Vite + TS + Tailwind 4 Frontend, Node + Express + WebSocket (`ws`) Backend (`server.ts`). State im RAM (keine DB bis Phase 4).
 
 ## Deploy-Workflow (WICHTIG)
 1. Aendern, dann `npm run lint` + `npm run build` (muss gruen sein).
 2. `git add -A && git commit && git push origin main`.
 3. Deploy ausloesen per Render-API:
-   `curl -sS -X POST "https://api.render.com/v1/services/srv-d8qt0gho3t8c73ad3uig/deploys" -H "Authorization: Bearer <RENDER_KEY>" -H "Content-Type: application/json" -d '{"clearCache":"do_not_clear"}'`
+   `curl -sS -X POST "https://api.render.com/v1/services/srv-d8qu8s6rnols73ellus0/deploys" -H "Authorization: Bearer <RENDER_KEY>" -H "Content-Type: application/json" -d '{"clearCache":"do_not_clear"}'`
 4. Status pollen bis "live", dann live verifizieren (Titel/health/ws-Test).
 - **RENDER_KEY:** Henry hat ihn (Key-Name "marcgard"). Wird NICHT gespeichert -> in neuer Session Henry danach fragen, wenn ein Deploy ansteht.
 - Wach-Ping laeuft als GitHub-Action (`.github/workflows/keepalive.yml`), RENDER_URL als gh-Repo-Variable.
