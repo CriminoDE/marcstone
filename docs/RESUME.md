@@ -24,7 +24,15 @@ Marcgard = Browser-Kartenduell (Hearthstone-artig), 1v1 online ueber Link, fuer 
 ## Testen ohne zweiten Spieler
 Raum erstellen -> Warteraum -> "Uebungsgegner hinzufuegen" -> lokaler Bot "Holgar" (kein Gemini, kostenlos). WS-Testskripte: `/tmp/wstest.mjs` (Reconnect), `/tmp/bottest.mjs` (Bot) - bei Bedarf neu schreiben.
 
-## STAND (Stand: 2026-06-20, **v2.6 live**)
+## STAND (Stand: 2026-06-20, **Code = v2.8 auf main, LIVE noch v2.6 — Deploy steht aus**)
+
+### ⚠️ OFFEN: DEPLOY v2.7 + v2.8 (braucht RENDER_KEY von Henry)
+Auf `main` committed + gepusht, aber NOCH NICHT live (Render autoDeploy=false):
+- **v2.7:** Bot loest Battlecries aus (resolveBattlecry geteilt) + Schmiede server-autoritativ (computeForgeCost, kein 0-Mana-10/10-Cheat) + Lobby-Tagline (Seher-Lore + "Game Design: Marc Haevernick").
+- **v2.8:** Free-for-All-Modus (Dreieck 3 / Chaos 4 Spieler), jeder gegen jeden, last-standing. Eigener Pfad `room.mode==="ffa"` + `FfaGame.tsx`, Duell unangetastet. Headless 3er/4er + Browser-E2E (3 Clients) gruen, 1v1-Regression intakt.
+- **Zum Deployen:** Henry nach RENDER_KEY ("marcgard") fragen, dann Deploy-Workflow oben Schritt 3 (curl POST). ODER Henry triggert selbst im Render-Dashboard.
+
+### Stand vor diesen Wellen (v2.6 noch live):
 
 ### FERTIG + LIVE
 - **Phase 1 Fundament:** Auto-Reconnect+Rejoin, Server-Heartbeat, Endzug-Halten, lautes Timer-Ticken, KI-aus, Render-Hosting, Wach-Ping.
