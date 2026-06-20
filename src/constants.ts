@@ -317,7 +317,8 @@ export const CARD_TEMPLATES = {
     attack: 8,
     health: 8,
     emoji: "🐉❤️",
-    description: "❤️ Battlecry: Set any Hero's remaining health to 15.",
+    description: "❤️ Kampfschrei: Setze das Leben eines beliebigen Helden auf 15.",
+    battlecryNeedsTarget: true,
   },
   "m_champion": {
     name: "Marc's Champion",
@@ -351,6 +352,7 @@ export function createCardInstance(templateId: string, instanceId: string): Card
     hasTaunt: "hasTaunt" in template ? (template as any).hasTaunt : false,
     hasCharge: "hasCharge" in template ? (template as any).hasCharge : false,
     hasDivineShield: "hasDivineShield" in template ? (template as any).hasDivineShield : false,
+    battlecryNeedsTarget: "battlecryNeedsTarget" in template ? (template as any).battlecryNeedsTarget : false,
     isReady: false,
   };
 }

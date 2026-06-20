@@ -7,6 +7,15 @@ Format: `## [Version] - Datum` mit Kategorien Hinzugefuegt / Geaendert / Behoben
 
 ---
 
+## [2.4.0] - Goetter-Wuerfel + Marc's Breath zielbar
+
+### Hinzugefuegt
+- **Goetter-Wuerfel** (Schmiede, neben dem manuellen Bauen): Action `ROLL_FORGE_DICE`, `rollForgedCard(diceManaCost)` im Server erzeugt eine gebalancte Zufallskarte - garantiert ~1 Manastufe ueber dem Einsatz (Stat-Budget tier*2+1, 25% Zauber/75% Diener, max 1 Keyword mit Tier-Gates: Gottesschild ab Tier 3, Ansturm ab Tier 2). **Mehrfach pro Spiel**, Kosten steigen pro Wurf (1,2,3...) ueber `forgeDiceCount`. Sichtbare Wuerfel-Animation (`diceRoll` in combatFx). Manuelles Bauen bleibt 1x/Spiel (kein Cherry-Picking, weil Wuerfel = Zufall).
+- **Marc's Breath (alexstrasza) zielbar**: neuer Client-Targeting-Modus `battlecry_target` - Diener mit `battlecryNeedsTarget` lassen dich erst einen Helden waehlen (eigenen oder gegnerischen) und setzen DESSEN Leben auf 15 (vorher hart auf den Gegner + ohne sichtbaren Effekt). Klarer Log mit HP-Differenz + Holy-Cast-FX.
+
+### Technik
+- Server bleibt autoritativ; Battlecry-Ziel kommt client-getrieben ueber PLAY_CARD (targetId/isTargetHero), kein riskanter Pending-State. `forgeDiceCount` resettet automatisch (frische Spieler-Objekte pro Spiel).
+
 ## [2.3.0] - Karten-Vorschau (Tap-to-read) + Handy-Tooltips
 
 ### Hinzugefuegt

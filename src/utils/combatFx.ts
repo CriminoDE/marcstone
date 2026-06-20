@@ -406,6 +406,28 @@ function emitParticles(cx: number, cy: number, def: ElementDef): void {
   }
 }
 
+// Goetter-Wuerfel: ein Wuerfel taumelt in der Mitte und ploppt weg (rein kosmetisch).
+export function diceRoll(): void {
+  if (reduceMotion()) return;
+  const root = getRoot();
+  const d = document.createElement("div");
+  d.textContent = "🎲";
+  d.style.cssText =
+    "position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);" +
+    "font-size:80px;filter:drop-shadow(0 0 22px rgba(230,179,88,0.95));";
+  root.appendChild(d);
+  const a = d.animate(
+    [
+      { transform: "translate(-50%,-50%) scale(0.2) rotate(0deg)", opacity: 0 },
+      { transform: "translate(-50%,-50%) scale(1.35) rotate(360deg)", opacity: 1, offset: 0.4 },
+      { transform: "translate(-50%,-50%) scale(1) rotate(680deg)", opacity: 1, offset: 0.72 },
+      { transform: "translate(-50%,-50%) scale(0.85) rotate(720deg)", opacity: 0 },
+    ],
+    { duration: 900, easing: "cubic-bezier(.3,.8,.3,1)" }
+  );
+  a.onfinish = () => d.remove();
+}
+
 // Zauber-Aufruf an einer Position: roter Runenkreis + Pentagramm + Element-Partikel.
 export function spellCast(cx: number, cy: number, element: SpellElement): void {
   if (reduceMotion()) return;

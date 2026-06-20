@@ -125,6 +125,55 @@ function addLog(room: RoomState, actionText: string) {
   }
 }
 
+// Goetter-Wuerfel: erzeugt eine ZUFAELLIGE, aber gebalancte Karte - garantiert ~1 Manastufe
+// ueber dem Einsatz (nie Muell, kein Cherry-Picking weil random). diceManaCost = was der Wurf kostet.
+const FORGE_NAMES_MINION = ["Frostgeborener", "Runenwächter", "Blutaxt-Berserker", "Eisjarl", "Schattenwolf", "Sturmschmied", "Grabhüter", "Nebelseher", "Knochenbrecher", "Fjordriese", "Wolfsblut-Krieger", "Aschejarl"];
+const FORGE_NAMES_SPELL = ["Runenfluch", "Frostbann", "Blutopfer", "Götterfunke", "Wolfsruf", "Nordlicht", "Aschehauch", "Hela's Gabe"];
+const FORGE_EMOJI_MINION = ["🪓", "🐺", "🛡️", "❄️", "⚒️", "💀", "🐗", "🦅", "🐉", "👹", "🏹", "⚔️"];
+function forgePick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function rollForgedCard(diceManaCost: number): Card {
+  const printedCost = Math.min(10, Math.max(0, diceManaCost));
+  const tier = Math.min(10, diceManaCost + 1); // ~1 Stufe ueber dem Einsatz
+  const id = `dice-${Math.random().toString(36).substring(2, 7)}`;
+  const isSpell = Math.random() < 0.25;
+
+  if (isSpell) {
+    const roll = Math.random();
+    let spellEffect: "damage" | "heal" | "draw";
+    let spellValue: number;
+    let emoji: string, desc: string;
+    if (roll < 0.6) { spellEffect = "damage"; spellValue = tier + 1; emoji = "🔥"; desc = `🔥 Füge ${spellValue} Schaden zu (beliebiges Ziel).`; }
+    else if (roll < 0.85) { spellEffect = "heal"; spellValue = tier + 3; emoji = "💚"; desc = `💚 Heile ${spellValue} Leben (beliebiges Ziel).`; }
+    else { spellEffect = "draw"; spellValue = Math.max(1, Math.round(tier / 3)); emoji = "📖"; desc = `🃏 Ziehe ${spellValue} Karte(n).`; }
+    return {
+      id, templateId: "custom_magic", name: forgePick(FORGE_NAMES_SPELL), type: "spell",
+      cost: printedCost, attack: 0, health: 0, maxHealth: 0, emoji, description: desc,
+      hasTaunt: false, hasCharge: false, hasDivineShield: false,
+      spellEffect, spellValue, isReady: false,
+    };
+  }
+
+  // Diener: Stat-Budget tier*2+1, evtl. 1 Keyword (Tier-Gates + Punktkosten), Rest auf Attack/Health.
+  let statPoints = tier * 2 + 1;
+  let hasTaunt = false, hasCharge = false, hasDivineShield = false;
+  const kw = Math.random();
+  if (kw < 0.18 && tier >= 3 && statPoints > 5) { hasDivineShield = true; statPoints -= 3; }
+  else if (kw < 0.36 && tier >= 2 && statPoints > 4) { hasCharge = true; statPoints -= 2; }
+  else if (kw < 0.58 && statPoints > 3) { hasTaunt = true; statPoints -= 1; }
+  if (statPoints < 2) statPoints = 2;
+  let atk = 1 + Math.floor(Math.random() * Math.max(1, statPoints - 1));
+  let hp = Math.max(1, statPoints - atk);
+  atk = Math.min(12, atk); hp = Math.min(12, hp);
+  const tags = [hasTaunt ? "🛡️ Spott" : "", hasCharge ? "⚡ Ansturm" : "", hasDivineShield ? "✨ Gottesschild" : ""].filter(Boolean).join(", ");
+  return {
+    id, templateId: "custom_magic", name: forgePick(FORGE_NAMES_MINION), type: "minion",
+    cost: printedCost, attack: atk, health: hp, maxHealth: hp, emoji: forgePick(FORGE_EMOJI_MINION),
+    description: tags ? `${tags}. Vom Würfel der Götter geschmiedet.` : "Vom Würfel der Götter geschmiedet.",
+    hasTaunt, hasCharge, hasDivineShield, isReady: false,
+  };
+}
+
 // Trigger automatic rage and trash-talk insults when a minion dies or major hit occurs
 function triggerRageChat(room: RoomState, offendingPlayer: PlayerState, triggerType: "minion_died" | "high_damage") {
   const insults = {
@@ -714,9 +763,15 @@ function handleGameAction(connectionId: string, action: ClientAction) {
           }
           opponent.board = opponent.board.filter(m => m.health > 0);
         } else if (card.templateId === "alexstrasza") {
-          opponent.health = 15;
-          addLog(room, `🐉❤️ Marc's Breath sets opponent Hero health to 15.`);
-          triggerRageChat(room, opponent, "high_damage");
+          // Marc's Breath: setzt das Leben EINES beliebigen Helden auf 15 (Ziel waehlt der Spieler).
+          const targetHero = isTargetHero
+            ? (targetId === player.id ? player : opponent)
+            : opponent;
+          const before = targetHero.health;
+          targetHero.health = 15;
+          const verb = before > 15 ? "faellt auf" : before < 15 ? "steigt auf" : "bleibt bei";
+          addLog(room, `🐉❤️ Marc's Breath: ${targetHero.name}s Held ${verb} 15 (${before} → 15).`);
+          if (before > 15) triggerRageChat(room, targetHero, "high_damage");
         } else if (card.templateId === "ragnaros") {
           addLog(room, `🔥 DIE INSECT! Ragnaros blasts a random enemy for 8 damage!`);
           const targets = [opponent, ...opponent.board];
@@ -1190,6 +1245,38 @@ function handleGameAction(connectionId: string, action: ClientAction) {
       player.hand.push(customCard);
       player.hasForgedThisGame = true;
       addLog(room, `🧪 Alchemy Success! ${player.name} hat eine geheime Karte erschaffen: ${customCard.name} (${customCard.cost} Mana)!`);
+
+      broadcastToRoom(roomId, {
+        type: "ROOM_STATE_UPDATE",
+        payload: room,
+      });
+      break;
+    }
+
+    case "ROLL_FORGE_DICE": {
+      const { roomId } = action.payload;
+      const room = rooms.get(roomId);
+      if (!room || room.phase !== "playing" || room.turn !== connectionId) return;
+
+      const player = room.player1?.id === connectionId ? room.player1 : room.player2;
+      if (!player) return;
+
+      const diceManaCost = (player.forgeDiceCount ?? 0) + 1;
+      if (player.mana < diceManaCost) {
+        ws.send(JSON.stringify({ type: "ERROR", payload: { message: `Der Götter-Würfel kostet ${diceManaCost} Mana.` } }));
+        return;
+      }
+      if (player.hand.length >= 10) {
+        ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Deine Hand ist voll!" } }));
+        return;
+      }
+
+      player.mana -= diceManaCost;
+      player.forgeDiceCount = (player.forgeDiceCount ?? 0) + 1;
+      const diceCard = rollForgedCard(diceManaCost);
+      player.hand.push(diceCard);
+      const stats = diceCard.type === "minion" ? `${diceCard.attack}/${diceCard.health}` : "Zauber";
+      addLog(room, `🎲 Götter-Würfel (${diceManaCost} Mana): ${player.name} erhält ${diceCard.name} (${stats}, ${diceCard.cost} Mana).`);
 
       broadcastToRoom(roomId, {
         type: "ROOM_STATE_UPDATE",

@@ -11,7 +11,7 @@ import { Card, RoomState, HeroClass, ClientAction, GameEvent, OpenRoomInfo, Onli
 import { HERO_POWER_COST, HERO_POWERS, HERO_POWERS_LIST } from "./constants";
 import { playSound, playRaven } from "./utils/audio";
 import { generateVikingName } from "./utils/names";
-import { flashDamage, deathPoof, screenFlash, lungeAttack, spellCast, castProjectile, roundStartFlare, type SpellElement } from "./utils/combatFx";
+import { flashDamage, deathPoof, screenFlash, lungeAttack, spellCast, castProjectile, roundStartFlare, diceRoll, type SpellElement } from "./utils/combatFx";
 
 // Zauber/Heldenkraft -> Element fuer die VFX (Runenkreis + Partikel).
 const SPELL_ELEMENT: Record<string, SpellElement> = {
@@ -55,7 +55,7 @@ export default function App() {
   // Targeting UI states
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null); // from hand
   const [selectedAttackerId, setSelectedAttackerId] = useState<string | null>(null); // from board
-  const [targetingMode, setTargetingMode] = useState<"none" | "spell_target" | "attack_target" | "heropower_target">("none");
+  const [targetingMode, setTargetingMode] = useState<"none" | "spell_target" | "attack_target" | "heropower_target" | "battlecry_target">("none");
   const [toast, setToast] = useState<{ message: string; type: "info" | "warning" | "success" } | null>(null);
   const [copiedCode, setCopiedCode] = useState<boolean>(false);
 
@@ -528,6 +528,23 @@ export default function App() {
     });
   };
 
+  // Goetter-Wuerfel: gebalancte Zufallskarte, steigende Mana-Kosten, mehrfach pro Spiel.
+  const handleRollDice = () => {
+    if (!room || !me || !isActiveTurn) return;
+    const cost = (me.forgeDiceCount ?? 0) + 1;
+    if (me.mana < cost) {
+      showToast(`Der Götter-Würfel kostet ${cost} Mana.`, "warning");
+      return;
+    }
+    if (me.hand.length >= 10) {
+      showToast("Deine Hand ist voll!", "warning");
+      return;
+    }
+    diceRoll();
+    playSound("spell");
+    sendAction({ type: "ROLL_FORGE_DICE", payload: { roomId: room.roomId } });
+  };
+
   // 2. Play Actions
   // Wird aus der Karten-Vorschau heraus aufgerufen ("Spielen"-Knopf). Spielt jetzt.
   const playCardNow = (card: Card) => {
@@ -544,7 +561,15 @@ export default function App() {
     if (card.type === "minion") {
       // Minions are played directly on battlefield instantly
       if (me.board.length >= 7) {
-        showToast("Your board is full (Max 7 minions)!", "warning");
+        showToast("Dein Brett ist voll (max 7 Diener)!", "warning");
+        return;
+      }
+      if (card.battlecryNeedsTarget) {
+        // z.B. Marc's Breath: erst einen Helden waehlen, dann ausspielen.
+        setSelectedCardId(card.id);
+        setSelectedAttackerId(null);
+        setTargetingMode("battlecry_target");
+        showToast(`${card.name}: Wähle einen Helden (deinen oder den Gegner)!`, "info");
         return;
       }
       sendAction({
@@ -723,6 +748,19 @@ export default function App() {
           targetId: isTargetHero ? undefined : targetId,
           isTargetHero,
         },
+      });
+      clearTargeting();
+    } else if (targetingMode === "battlecry_target" && selectedCardId) {
+      // Diener-Battlecry mit Ziel (z.B. Marc's Breath): nur Helden erlaubt.
+      if (!isTargetHero) {
+        showToast("Für diesen Effekt musst du einen Helden wählen!", "warning");
+        return;
+      }
+      const c = centerOf(`hero-${targetId}`);
+      if (c) spellCast(c.x, c.y, "holy");
+      sendAction({
+        type: "PLAY_CARD",
+        payload: { roomId: room.roomId, cardId: selectedCardId, targetId, isTargetHero: true },
       });
       clearTargeting();
     }
@@ -1320,15 +1358,36 @@ export default function App() {
                       onClick={() => setShowAlchemyForge(true)}
                       disabled={me.hasForgedThisGame}
                       type="button"
+                      title="Baue dir einmal pro Spiel eine eigene Karte"
                       className={`px-4 py-3 font-bold font-sans text-xs tracking-wide uppercase rounded-xl transition-all shadow-md ${
                         me.hasForgedThisGame
                           ? "bg-mg-stone text-mg-fog opacity-60 cursor-not-allowed"
                           : "bg-gradient-to-r from-purple-800 to-indigo-800 hover:from-purple-700 hover:to-indigo-700 text-purple-100 cursor-pointer shadow-purple-950/20"
                       }`}
                     >
-                      {me.hasForgedThisGame ? "⏳ Alchemy Used" : "🔮 Alchemy Forge"}
+                      {me.hasForgedThisGame ? "⏳ Schmiede genutzt" : "🔮 Schmiede"}
                     </button>
                   )}
+
+                  {isActiveTurn && (() => {
+                    const diceCost = (me.forgeDiceCount ?? 0) + 1;
+                    const diceDisabled = me.mana < diceCost || me.hand.length >= 10;
+                    return (
+                      <button
+                        onClick={handleRollDice}
+                        disabled={diceDisabled}
+                        type="button"
+                        title={`Götter-Würfel: zufällige Karte ~1 Stufe über dem Einsatz. Kostet ${diceCost} Mana, steigt pro Wurf.`}
+                        className={`px-4 py-3 font-bold font-sans text-xs tracking-wide uppercase rounded-xl transition-all shadow-md ${
+                          diceDisabled
+                            ? "bg-mg-stone text-mg-fog opacity-60 cursor-not-allowed"
+                            : "bg-gradient-to-r from-mg-bronze to-amber-700 hover:from-mg-bronze-bright hover:to-amber-600 text-mg-void cursor-pointer shadow-amber-950/20"
+                        }`}
+                      >
+                        🎲 Würfel ({diceCost})
+                      </button>
+                    );
+                  })()}
 
                   {isActiveTurn ? (
                     <EndTurnButton timeRemaining={timeRemaining} onEndTurn={handleEndTurn} />

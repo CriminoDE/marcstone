@@ -14,6 +14,7 @@ export interface Card {
   hasTaunt?: boolean;
   hasCharge?: boolean;
   hasDivineShield?: boolean;
+  battlecryNeedsTarget?: boolean; // Diener-Battlecry braucht ein Ziel (z.B. Marc's Breath -> Held)
   isReady?: boolean; // can attack this turn
   spellEffect?: "damage" | "heal" | "draw";
   spellValue?: number;
@@ -34,6 +35,7 @@ export interface PlayerState {
   board: Card[];
   heroPowerUsed: boolean;
   hasForgedThisGame?: boolean;
+  forgeDiceCount?: number; // wie oft der Goetter-Wuerfel diese Partie genutzt wurde (steigende Kosten)
   isReady: boolean;
   isOnline?: boolean; // True if player currently connected to WebSocket server
   selectedHeroPowerIndex?: number; // 0, 1, or 2 (undefined means they still need to choose)
@@ -99,6 +101,7 @@ export type ClientAction =
   | { type: "END_TURN"; payload: { roomId: string } }
   | { type: "SEND_CHAT"; payload: { roomId: string; text: string } }
   | { type: "RESTART_GAME"; payload: { roomId: string } }
+  | { type: "ROLL_FORGE_DICE"; payload: { roomId: string } }
   | { type: "LEAVE_ROOM"; payload: { roomId: string } }
   | { type: "REGISTER_NAME"; payload: { name: string } }
   | { type: "ADD_BOT"; payload: { roomId: string } }
