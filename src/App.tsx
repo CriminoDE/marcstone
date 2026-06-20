@@ -5,6 +5,7 @@ import { HeroState } from "./components/HeroState";
 import { ChatPanel } from "./components/ChatPanel";
 import { EndTurnButton } from "./components/EndTurnButton";
 import { Atmosphere } from "./components/Atmosphere";
+import { MusicToggle } from "./components/MusicToggle";
 import { Card, RoomState, HeroClass, ClientAction, GameEvent, OpenRoomInfo, OnlinePlayerInfo } from "./types";
 import { HERO_POWER_COST, HERO_POWERS, HERO_POWERS_LIST } from "./constants";
 import { playSound, playRaven } from "./utils/audio";
@@ -717,6 +718,7 @@ export default function App() {
     return (
       <div className="min-h-screen text-mg-frost-text font-body selection:bg-mg-bronze selection:text-mg-void">
         <Atmosphere onRaven={playRaven} />
+        <MusicToggle />
         {/* Banner */}
         <div className="bg-gradient-to-r from-mg-bronze to-mg-bronze py-1.5 px-4 text-center text-xs font-mono font-bold text-mg-void flex items-center justify-center gap-1.5 shadow-md">
           <span>{isConnected ? "🟢 Server Live & Active" : "🟡 Reconnecting to server..."}</span>
@@ -748,6 +750,7 @@ export default function App() {
     return (
       <div className="min-h-screen text-mg-frost-text flex flex-col justify-between py-6 px-4">
         <Atmosphere onRaven={playRaven} />
+        <MusicToggle />
         {/* Header bar */}
         <div className="max-w-4xl mx-auto w-full bg-mg-slate/60 rounded-3xl border border-mg-stone p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col gap-1.5 text-center md:text-left">
