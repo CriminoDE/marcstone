@@ -1,6 +1,7 @@
 import React from "react";
 import { HeroClass, OpenRoomInfo, OnlinePlayerInfo } from "../types";
 import { HERO_POWERS } from "../constants";
+import { generateVikingName } from "../utils/names";
 
 interface LobbyProps {
   playerName: string;
@@ -14,33 +15,19 @@ interface LobbyProps {
   errorMsg: string | null;
   openRooms: OpenRoomInfo[];
   onlinePlayers: OnlinePlayerInfo[];
-  leaderboard: {name: string, score: number}[];
+  leaderboard: { name: string; score: number }[];
   onQuickJoin: (roomId: string) => void;
   onDeleteRoom: (roomId: string) => void;
 }
 
-const CLASS_DESCRIPTIONS: Record<HeroClass, { role: string; desc: string; emoji: string }> = {
-  Mage: {
-    role: "Spells and Firepower",
-    desc: "Uses Fireballs, Arcane attacks, and destructive Pyroblasts to control the field directly.",
-    emoji: "🧙‍♀️",
-  },
-  Priest: {
-    role: "Wounded Healing & Endurance",
-    desc: "Heals minions or the hero to outlast opponents in strategic fatigue matches.",
-    emoji: "🩹",
-  },
-  Hunter: {
-    role: "Aggressive direct pressure",
-    desc: "Summons agile beasts and attacks the enemy hero with steady archery shots.",
-    emoji: "🏹",
-  },
-  Paladin: {
-    role: "Tokens and Reinforcements",
-    desc: "Surrounds the opponent with Silver Hand Recruits, Divine Shields, and Consecrations.",
-    emoji: "🫡",
-  },
+const CLASS_INFO: Record<HeroClass, { emoji: string; tag: string }> = {
+  Mage: { emoji: "🧙‍♀️", tag: "Zauberfeuer" },
+  Priest: { emoji: "🩹", tag: "Heilung" },
+  Hunter: { emoji: "🏹", tag: "Druck" },
+  Paladin: { emoji: "🫡", tag: "Schildwall" },
 };
+
+const CLASSES: HeroClass[] = ["Mage", "Priest", "Hunter", "Paladin"];
 
 export function Lobby({
   playerName,
@@ -58,371 +45,219 @@ export function Lobby({
   onQuickJoin,
   onDeleteRoom,
 }: LobbyProps) {
-  const classesList: HeroClass[] = ["Mage", "Priest", "Hunter", "Paladin"];
+  const power = HERO_POWERS[selectedClass];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Sleek Hero header */}
-      <div className="text-center mb-6">
-        <span className="text-xs bg-mg-bronze/10 text-mg-bronze font-display font-bold px-3 py-1.5 rounded-full border border-mg-bronze/20 uppercase tracking-[0.2em]">
-          ⚔️ Nordisches Online-Kartenduell
-        </span>
-        <h1 className="text-5xl md:text-7xl font-display font-black tracking-[0.06em] text-mg-frost-text mt-5 uppercase drop-shadow-[0_3px_24px_rgba(95,168,214,0.28)]">
-          Marc<span className="text-mg-bronze drop-shadow-[0_2px_18px_rgba(176,132,59,0.5)]">gard</span>
+    <div className="max-w-3xl mx-auto px-4 py-10 md:py-14">
+      {/* Header */}
+      <header className="text-center mb-9">
+        <h1 className="font-display font-black text-6xl md:text-8xl tracking-[0.05em] uppercase text-mg-frost-text drop-shadow-[0_3px_28px_rgba(95,168,214,0.3)]">
+          Marc<span className="text-mg-bronze drop-shadow-[0_2px_20px_rgba(176,132,59,0.55)]">gard</span>
         </h1>
-        <p className="text-mg-fog mt-3 text-sm md:text-base max-w-lg mx-auto leading-relaxed font-body italic">
-          Ein dunkles Kartenduell aus Eis und Blut. Fordere deinen Bruder per Link heraus, auf jedem Gerät.
+        <p className="text-mg-fog mt-3 text-sm md:text-base max-w-md mx-auto leading-relaxed font-body italic">
+          Ein dunkles Kartenspiel aus Eis und Blut. Fordere deinen Bruder per Link heraus, auf jedem Gerät.
         </p>
-
-        {/* Patch Notes */}
-        <div className="mt-6 max-w-lg mx-auto bg-mg-slate/50 border border-mg-stone rounded-2xl p-4 text-left">
-          <h3 className="text-xs font-mono font-bold text-mg-bronze tracking-widest uppercase mb-2">📜 Patch Notes v1.6.0 - Festung</h3>
-          <ul className="text-[10px] text-mg-fog space-y-1 list-disc pl-4 font-sans">
-            <li><strong>Stabiler Online:</strong> Automatischer Reconnect. Verbindung weg? Du landest von selbst wieder im laufenden Spiel.</li>
-            <li><strong>Herzschlag:</strong> Tote Verbindungen werden erkannt, kein stilles Einfrieren mehr.</li>
-            <li><strong>Zug beenden:</strong> Knopf jetzt GEDRÜCKT HALTEN bis der Balken voll ist - kein Aus-Versehen-Beenden mehr.</li>
-            <li><strong>Timer:</strong> Letzte 5 Sekunden ticken laut und deutlich runter.</li>
-            <li><strong>Eigenes Hosting:</strong> Läuft jetzt auf einem eigenen Server statt im KI-Studio.</li>
-          </ul>
-        </div>
-      </div>
+      </header>
 
       {errorMsg && (
-        <div className="mb-6 bg-red-950/40 border border-red-500/40 text-red-300 p-4 rounded-2xl text-xs font-mono flex items-center gap-3 animate-pulse">
+        <div className="mb-5 bg-mg-blood/15 border border-mg-blood-bright/40 text-mg-frost-text p-3 rounded-xl text-xs font-body flex items-center gap-2.5">
           <span>⚠️</span>
           <span>{errorMsg}</span>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Step 1: Nickname and Class selections */}
-        <div className="lg:col-span-2 space-y-6 bg-mg-slate/40 rounded-3xl border border-mg-stone p-6 shadow-xl">
-          <div>
-            <label className="block text-xs font-mono font-bold text-mg-fog uppercase tracking-wider mb-2">
-              1. Choose your Duelist Name
-            </label>
-            <input
-              type="text"
-              value={playerName}
-              onChange={(e) => setPlayerName(e.target.value.substring(0, 15))}
-              placeholder="Enter duelist name..."
-              className="w-full bg-mg-void/80 border border-mg-stone-light/80 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-mg-bronze font-sans transition-all"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-mono font-bold text-mg-fog uppercase tracking-wider mb-3">
-              2. Choose your Hero Class
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              {classesList.map((heroClass) => {
-                const info = CLASS_DESCRIPTIONS[heroClass];
-                const power = HERO_POWERS[heroClass];
-                const isSelected = selectedClass === heroClass;
-                return (
-                  <button
-                    key={heroClass}
-                    type="button"
-                    onClick={() => setSelectedClass(heroClass)}
-                    className={`p-4 rounded-2xl border text-left cursor-pointer transition-all flex flex-col justify-between h-36 relative overflow-hidden
-                      ${isSelected 
-                        ? "border-mg-bronze bg-mg-slate/20 text-white shadow-[0_0_15px_rgba(234,179,8,0.15)] scale-102" 
-                        : "border-mg-stone bg-mg-void/60 text-mg-fog hover:border-mg-stone-light/60"
-                      }`}
-                  >
-                    <div className="flex justify-between items-start w-full">
-                      <div>
-                        <span className="text-xs uppercase font-mono tracking-widest text-mg-fog">
-                          {info.role}
-                        </span>
-                        <h3 className="text-base font-bold text-white font-sans mt-0.5 flex items-center gap-1.5">
-                          <span>{info.emoji}</span>
-                          <span>{heroClass}</span>
-                        </h3>
-                      </div>
-                      {isSelected && (
-                        <span className="bg-mg-bronze text-mg-void text-[10px] font-extrabold px-1.5 py-0.5 rounded-full leading-none">
-                          Active
-                        </span>
-                      )}
-                    </div>
-                    
-                    <div className="mt-2 text-[10px] text-mg-fog leading-tight flex-1">
-                      {info.desc}
-                    </div>
-
-                    {/* Miniature power display */}
-                    <div className="mt-2 pt-1 border-t border-mg-stone flex items-center gap-1.5 text-[9px] font-mono text-mg-bronze/90 bg-mg-slate/30 -mx-4 -mb-4 px-4 py-1.5">
-                      <span className="font-sans text-xs">{power.emoji}</span>
-                      <span className="font-bold underline">{power.name}:</span>
-                      <span className="truncate max-w-[140px] text-mg-fog">{power.description}</span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+      {/* PLAY PANEL */}
+      <section className="mg-panel rounded-2xl p-6 md:p-8 mb-6">
+        {/* Name */}
+        <label className="block text-[11px] font-display font-bold text-mg-bronze uppercase tracking-[0.15em] mb-2">
+          Dein Name
+        </label>
+        <div className="flex gap-2 mb-6">
+          <input
+            type="text"
+            value={playerName}
+            onChange={(e) => setPlayerName(e.target.value.substring(0, 15))}
+            placeholder="Name des Duellanten..."
+            className="flex-1 bg-mg-void/70 border border-mg-stone rounded-xl px-4 py-3 text-sm text-mg-frost-text font-body focus:outline-none focus:border-mg-bronze transition-all"
+          />
+          <button
+            type="button"
+            onClick={() => setPlayerName(generateVikingName())}
+            title="Neuer nordischer Name"
+            className="px-4 rounded-xl bg-mg-slate-raised border border-mg-stone text-lg text-mg-fog hover:text-mg-frost-text hover:border-mg-stone-light cursor-pointer transition-all"
+          >
+            🎲
+          </button>
         </div>
 
-        {/* Step 2: Room creation & joining controls */}
-        <div className="space-y-6">
-          {/* Room actions box */}
-          <div className="bg-gradient-to-b from-mg-slate to-mg-void border border-mg-stone rounded-3xl p-6 shadow-xl flex flex-col h-full justify-between">
-            <div className="space-y-4">
-              <h3 className="text-xs font-mono font-bold text-mg-fog uppercase tracking-wider">
-                3. Create or Join a Duel
-              </h3>
+        {/* Deck / Class */}
+        <label className="block text-[11px] font-display font-bold text-mg-bronze uppercase tracking-[0.15em] mb-2">
+          Wähle dein Deck
+        </label>
+        <div className="grid grid-cols-4 gap-2">
+          {CLASSES.map((cls) => {
+            const info = CLASS_INFO[cls];
+            const active = selectedClass === cls;
+            return (
+              <button
+                key={cls}
+                type="button"
+                onClick={() => setSelectedClass(cls)}
+                className={`flex flex-col items-center gap-1 py-3 rounded-xl border cursor-pointer transition-all ${
+                  active
+                    ? "border-mg-bronze bg-mg-bronze/10 shadow-[0_0_18px_rgba(176,132,59,0.25)] -translate-y-0.5"
+                    : "border-mg-stone bg-mg-void/40 hover:border-mg-stone-light"
+                }`}
+              >
+                <span className="text-2xl md:text-3xl">{info.emoji}</span>
+                <span className={`text-[10px] md:text-xs font-display font-bold tracking-wide ${active ? "text-mg-frost-text" : "text-mg-fog"}`}>
+                  {cls}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <p className="mt-3 text-center text-[11px] text-mg-fog font-body">
+          <span className="text-mg-bronze-bright font-bold">{power.emoji} {power.name}</span>
+          <span className="mx-1.5 text-mg-stone-light">·</span>
+          {power.description}
+        </p>
 
-              {/* Action: Create room */}
-              <div className="p-4 rounded-2xl bg-mg-slate/50 border border-mg-stone/80 space-y-3">
-                <div>
-                  <h4 className="text-xs font-sans font-bold text-white">Direct Host Connection</h4>
-                  <p className="text-[10px] text-mg-fog mt-0.5">
-                    Start a matchmaking room instantly. You'll receive a Room Code to send to your brother.
-                  </p>
-                </div>
-                
-                <button
-                  type="button"
-                  onClick={() => onCreateRoom(false)}
-                  className="w-full bg-mg-bronze hover:bg-mg-bronze-bright text-mg-void font-sans font-bold text-xs py-3 px-4 rounded-xl shadow-md cursor-pointer transition-all hover:scale-103 text-center uppercase tracking-wider"
-                >
-                  Create Game Room 🚀
-                </button>
-              </div>
+        {/* Primary action */}
+        <button
+          type="button"
+          onClick={() => onCreateRoom(false)}
+          className="w-full mt-6 py-4 font-display font-bold text-sm uppercase tracking-[0.12em] rounded-xl cursor-pointer
+            bg-gradient-to-b from-mg-bronze-bright to-mg-bronze text-mg-void border border-[#7a5a26]
+            shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_4px_0_#6e521f,0_8px_16px_rgba(0,0,0,0.5)]
+            active:translate-y-[3px] active:shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_1px_0_#6e521f] transition-all"
+        >
+          ⚔️ Duell erstellen
+        </button>
 
-              {/* Action: Join Room */}
-              <div className="p-4 rounded-2xl bg-mg-slate/50 border border-mg-stone/80 space-y-3">
-                <div>
-                  <h4 className="text-xs font-sans font-bold text-white">Join Existing Match</h4>
-                  <p className="text-[10px] text-mg-fog mt-0.5">
-                    Enter the code shared with you to join your brother's arena.
-                  </p>
+        {/* Join by code */}
+        <div className="mt-3 flex gap-2">
+          <input
+            type="text"
+            value={roomIdInput}
+            onChange={(e) => setRoomIdInput(e.target.value.toUpperCase())}
+            placeholder="CODE EINGEBEN"
+            className="flex-1 bg-mg-void/70 border border-mg-stone rounded-xl px-4 py-3 text-xs font-display tracking-[0.25em] text-center text-mg-frost-text focus:outline-none focus:border-mg-frost transition-all uppercase"
+          />
+          <button
+            type="button"
+            onClick={onJoinRoom}
+            className="px-5 rounded-xl font-display font-bold text-xs uppercase tracking-wider bg-mg-slate-raised text-mg-frost-text border border-mg-stone hover:border-mg-frost hover:text-mg-frost cursor-pointer transition-all"
+          >
+            Beitreten
+          </button>
+        </div>
+      </section>
+
+      {/* OPEN DUELS */}
+      {openRooms.length > 0 && (
+        <section className="mb-6">
+          <h2 className="flex items-center gap-2 text-[11px] font-display font-bold text-mg-bronze uppercase tracking-[0.18em] mb-3">
+            <span className="h-px flex-1 bg-gradient-to-r from-transparent to-mg-stone" />
+            Offene Duelle ({openRooms.length})
+            <span className="h-px flex-1 bg-gradient-to-l from-transparent to-mg-stone" />
+          </h2>
+          <div className="space-y-2">
+            {openRooms.map((r) => (
+              <div
+                key={r.roomId}
+                className="mg-panel rounded-xl px-4 py-3 flex items-center justify-between gap-3"
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-display font-bold text-xs text-mg-bronze tracking-widest">{r.roomId}</span>
+                    <span className="text-[10px] text-mg-fog">
+                      {r.p2Name ? (r.phase === "lobby" ? "⏳ Lobby" : "⚔️ Im Kampf") : "🪑 Wartet"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[11px] text-mg-frost-text/90 truncate mt-0.5">
+                    <span className={`w-1.5 h-1.5 rounded-full ${r.p1Online ? "bg-mg-poison" : "bg-mg-blood-bright"}`} />
+                    <span className="truncate">{r.p1Name}</span>
+                    {r.p2Name && <span className="text-mg-stone-light">vs</span>}
+                    {r.p2Name && <span className="truncate">{r.p2Name}</span>}
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={roomIdInput}
-                    onChange={(e) => setRoomIdInput(e.target.value.toUpperCase())}
-                    placeholder="ENTER CODE..."
-                    className="flex-1 bg-mg-void border border-mg-stone-light/80 rounded-xl px-3 py-2 text-xs font-mono text-center text-white focus:outline-none focus:border-mg-bronze tracking-widest"
-                  />
+                <div className="flex gap-1.5 shrink-0">
                   <button
                     type="button"
-                    onClick={onJoinRoom}
-                    className="bg-blue-600 hover:bg-blue-500 text-white font-mono font-bold text-xs px-4 rounded-xl cursor-pointer transition-colors"
+                    onClick={() => onQuickJoin(r.roomId)}
+                    className="text-[11px] font-display font-bold uppercase tracking-wide bg-mg-bronze hover:bg-mg-bronze-bright text-mg-void py-1.5 px-3 rounded-lg cursor-pointer transition-all"
                   >
-                    Join
+                    {r.p2Name ? "Rejoin" : "Beitreten"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onDeleteRoom(r.roomId)}
+                    title="Raum löschen"
+                    className="text-[11px] border border-mg-stone hover:border-mg-blood-bright bg-mg-void/40 hover:bg-mg-blood/20 text-mg-fog hover:text-mg-frost-text px-2 rounded-lg cursor-pointer transition-all"
+                  >
+                    🗑️
                   </button>
                 </div>
               </div>
-            </div>
+            ))}
+          </div>
+        </section>
+      )}
 
-            {/* Quick instructions guide */}
-            <div className="mt-6 pt-4 border-t border-mg-stone text-[10px] text-mg-fog space-y-2 leading-relaxed">
-              <h5 className="font-mono font-bold text-mg-fog uppercase tracking-widest text-[9px]">How to play (Hearthstone rules)</h5>
-              <ul className="list-disc pl-3 space-y-1">
-                <li>Both players have 30 health. You lose if your health hits 0.</li>
-                <li>Each turn you draw 1 card, and gain +1 Max Mana (up to 10).</li>
-                <li>Play minions to defend your hero and attack enemy units.</li>
-                <li><strong>Taunt</strong> minions block attacks and MUST be targeted first!</li>
-                <li><strong>Divine Shields</strong> absorb the first incoming damage point completely.</li>
-                <li><strong>Charge</strong> minions can attack immediately on the turn they're summoned.</li>
-                <li>Activate your Hero Power for 2 Mana each turn.</li>
+      {/* BOTTOM: Patch Notes + Rangliste */}
+      <div className="grid md:grid-cols-2 gap-4">
+        {/* Patch Notes */}
+        <div className="mg-panel rounded-xl p-4">
+          <h3 className="text-[11px] font-display font-bold text-mg-bronze uppercase tracking-[0.15em] mb-3">
+            📜 Patch Notes
+          </h3>
+          <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
+            <div>
+              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.0 · Marcgard erwacht</div>
+              <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
+                <li>Dunkel-nordische Optik, Schnee und fliegende Raben.</li>
+                <li>Neuer Name, neue Schrift, neue Lobby.</li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-[11px] font-display font-bold text-mg-fog">v1.6 · Festung</div>
+              <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
+                <li>Stabiler Online: Auto-Reconnect, kein Rausfliegen mehr.</li>
+                <li>Zug beenden = gedrückt halten. Lauteres Timer-Ticken.</li>
               </ul>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* 2-Column layout list for Lobby info */}
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-mg-slate pt-8 animate-fade-in">
-        
-        {/* Active Duels Map */}
-        <div className="bg-mg-slate/40 border border-mg-stone rounded-3xl p-6 shadow-xl flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-mono font-bold text-mg-bronze uppercase tracking-widest flex items-center gap-2">
-                🏰 Aktive Duelle & Säle ({openRooms.length}/10)
-              </h3>
-              <span className="text-[10px] bg-emerald-500/10 text-emerald-400 font-mono px-2 py-0.5 rounded-full border border-emerald-500/20">
-                Lobby Live
-              </span>
-            </div>
-            
-            {openRooms.length === 0 ? (
-              <div className="py-8 px-4 text-center border border-dashed border-mg-stone rounded-2xl bg-mg-void/40">
-                <p className="text-xl">📯</p>
-                <p className="text-xs text-mg-fog font-sans mt-2">Das Reich ist ruhig. Keine aktiven Duelle im Augenblick.</p>
-                <p className="text-[10px] text-mg-fog mt-1 font-mono">Erstelle oben einen neuen Spielraum und lade jemanden ein!</p>
-              </div>
+        {/* Leaderboard */}
+        <div className="mg-panel rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-[11px] font-display font-bold text-mg-bronze uppercase tracking-[0.15em]">
+              🏆 Halle des Ruhms
+            </h3>
+            <span className="text-[10px] text-mg-fog font-body flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-mg-poison" />
+              {onlinePlayers.length} online
+            </span>
+          </div>
+          <div className="max-h-52 overflow-y-auto pr-1">
+            {leaderboard.length === 0 ? (
+              <div className="text-[11px] text-mg-fog italic font-body py-2">Noch keine Siege verzeichnet. Sei der Erste.</div>
             ) : (
-              <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
-                {openRooms.map((r) => {
-                  return (
-                    <div key={r.roomId} className="bg-mg-void/80 border border-mg-stone p-3.5 rounded-2xl flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between hover:border-mg-stone transition-colors">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-xs bg-mg-bronze/15 text-mg-bronze-bright px-2 py-0.5 rounded border border-mg-bronze/10">
-                            {r.roomId}
-                          </span>
-                          <span className="text-[10px] text-mg-fog">
-                            Status: <span className="font-bold text-mg-fog uppercase">{r.p2Name ? (r.phase === "lobby" ? "⏳ Lobby" : "⚔️ Im Kampf") : "⏳ Wartet"}</span>
-                          </span>
-                        </div>
-                        
-                        <div className="text-[11px] text-mg-fog space-y-1 font-sans">
-                          <div className="flex items-center gap-1.5">
-                            <span className={`w-1.5 h-1.5 rounded-full ${r.p1Online ? "bg-emerald-500 animate-pulse" : "bg-red-500"}`} />
-                            <span className="text-mg-fog font-mono text-[9px]">P1:</span>
-                            <span className="font-medium">{r.p1Name}</span>
-                            <span className="text-[10px] text-mg-fog">[{r.p1Class}]</span>
-                          </div>
-                          {r.p2Name ? (
-                            <div className="flex items-center gap-1.5">
-                              <span className={`w-1.5 h-1.5 rounded-full ${r.p2Online ? "bg-emerald-500 animate-pulse" : "bg-red-500"}`} />
-                              <span className="text-mg-fog font-mono text-[9px]">P2:</span>
-                              <span className="font-medium">{r.p2Name}</span>
-                              <span className="text-[10px] text-mg-fog">[{r.p2Class}]</span>
-                            </div>
-                          ) : (
-                            <div className="text-mg-fog italic text-[10px] pl-3">
-                              Warte auf Herausforderer...
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="flex gap-1.5 w-full sm:w-auto mt-2 sm:mt-0 justify-end">
-                        <button
-                          type="button"
-                          onClick={() => onQuickJoin(r.roomId)}
-                          className="flex-1 sm:flex-none text-[11px] font-bold bg-mg-bronze hover:bg-mg-bronze-bright text-mg-void py-1.5 px-3 rounded-lg transition-all font-sans uppercase shadow cursor-pointer hover:scale-103"
-                        >
-                          {r.p2Name ? "Rejoin" : "Join Duel"}
-                        </button>
-                        
-                        <button
-                          type="button"
-                          onClick={() => onDeleteRoom(r.roomId)}
-                          title="Lösche diesen Raum"
-                          className="text-[11px] border border-mg-stone hover:border-red-900 bg-mg-slate/50 hover:bg-red-950/40 text-red-400 px-2 py-1.5 rounded-lg transition-all cursor-pointer"
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="space-y-1.5">
+                {leaderboard.map((lb, idx) => (
+                  <div key={lb.name} className="flex justify-between items-center text-[11px] font-body border-b border-mg-stone/40 pb-1.5 last:border-0">
+                    <span className={`font-bold ${idx === 0 ? "text-mg-bronze-bright" : idx === 1 ? "text-mg-frost-text" : idx === 2 ? "text-mg-bronze" : "text-mg-fog"}`}>
+                      {idx + 1}. {lb.name}
+                    </span>
+                    <span className="text-mg-bronze font-bold">{lb.score} {lb.score === 1 ? "Sieg" : "Siege"}</span>
+                  </div>
+                ))}
               </div>
             )}
           </div>
-          
-          {/* Active online players strip */}
-          <div className="mt-5 pt-4 border-t border-mg-stone">
-            <h4 className="text-[10px] font-mono tracking-widest uppercase font-bold text-mg-fog mb-2">
-              🔮 Online-Duellanten im Gasthaus ({onlinePlayers.length})
-            </h4>
-            <div className="flex flex-wrap gap-1.5 border-b border-mg-stone pb-4 mb-4">
-              {onlinePlayers.map((player) => (
-                <span
-                  key={player.id}
-                  className="inline-flex items-center gap-1.5 text-[10px] font-mono bg-mg-void/80 border border-mg-stone text-mg-fog px-2.5 py-1 rounded-full"
-                >
-                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                  <span>{player.name}</span>
-                </span>
-              ))}
-              {onlinePlayers.length === 0 && (
-                <span className="text-[10px] text-mg-fog italic">Keine Spieler am Tisch...</span>
-              )}
-            </div>
-
-            {/* Leaderboard  */}
-            <h4 className="text-[10px] font-mono tracking-widest uppercase font-bold text-mg-bronze mb-2 flex items-center gap-2">
-              🏆 Halle des Ruhms (Leaderboard)
-            </h4>
-            <div className="bg-mg-void/60 border border-mg-bronze/15 rounded-xl p-3 max-h-[160px] overflow-y-auto w-full">
-               {leaderboard.length === 0 ? (
-                 <div className="text-[10px] text-mg-fog italic">Noch keine Siege verzeichnet...</div>
-               ) : (
-                 <div className="space-y-1.5">
-                   {leaderboard.map((lb, idx) => (
-                     <div key={lb.name} className="flex justify-between items-center text-[10px] font-mono border-b border-mg-stone/50 pb-1.5 last:border-0 last:pb-0">
-                       <span className={`font-bold ${idx === 0 ? "text-mg-bronze-bright" : idx === 1 ? "text-mg-fog" : idx === 2 ? "text-mg-bronze" : "text-mg-fog"}`}>
-                         {idx + 1}. {lb.name}
-                       </span>
-                       <span className="text-mg-bronze/80 font-bold bg-mg-bronze/10 px-2 rounded-full py-0.5">{lb.score} {lb.score === 1 ? "Sieg" : "Siege"}</span>
-                     </div>
-                   ))}
-                 </div>
-               )}
-            </div>
-          </div>
         </div>
-
-        {/* Parchment Spellbook for Patchnotes */}
-        <div className="bg-gradient-to-br from-mg-slate/10 via-mg-slate/40 to-mg-slate/10 border border-mg-bronze/20 rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col justify-between">
-          <div className="absolute right-3 top-3 opacity-5 pointer-events-none text-8xl font-serif">📖</div>
-          
-          <div>
-            <h3 className="text-xs font-mono font-bold text-mg-bronze uppercase tracking-widest flex items-center gap-2 mb-4">
-              📚 Das Update-Zauberbuch (Patchnotes)
-            </h3>
-            
-            <div className="bg-mg-void/60 border border-mg-bronze/15 rounded-2xl p-4 space-y-4 max-h-[290px] overflow-y-auto">
-              <div className="border-b border-mg-stone pb-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-mg-bronze-bright font-sans">v1.3.0 - Die Mana-Waage der Alchemie</span>
-                  <span className="text-[8px] font-mono text-mg-bronze/70 bg-mg-bronze/10 px-1.5 py-0.5 rounded uppercase font-bold text-[9px]">AKTUELL</span>
-                </div>
-                <p className="text-[10px] text-mg-fog mt-1 leading-relaxed font-sans">
-                  Fairness im Reich! Die Alchemie-Schmiede berechnet nun Mana-Kosten basierend auf Macht.
-                </p>
-                <ul className="list-disc pl-3.5 mt-1.5 space-y-1 text-[10px] text-mg-fog font-sans">
-                  <li><strong>Dynamische Kosten</strong>: Starke Kombis (z.B. hohe Werte + Ansturm + Gottesschild) kosten mehr Mana.</li>
-                  <li><strong>Zauberschriftrollen</strong>: Du kannst nun Zauber fälschen (Schaden, Heilung oder Karten ziehen).</li>
-                  <li><strong>Limit der Gier</strong>: Du kannst pro Runde nur noch eine einzige Karte der Alchemie-Schmiede erschaffen! Höchstens 10 Mana.</li>
-                </ul>
-              </div>
-
-              <div className="border-b border-mg-stone pb-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-mg-fog font-sans">v1.2.0 - Das Reconnect-Bündnis</span>
-                </div>
-                <p className="text-[10px] text-mg-fog mt-1 leading-relaxed font-sans">
-                  Maximale Stabilität für Duelle gegen deinen Bruder! Bei Verbindungsverlusten fliegt nun niemand mehr komplett raus.
-                </p>
-                <ul className="list-disc pl-3.5 mt-1.5 space-y-1 text-[10px] text-mg-fog font-sans">
-                  <li><strong>Lobby & Online-Liste</strong>: Zeigt nun alle offenen Räume im Reich sowie alle gerade aktiven Spieler direkt an.</li>
-                  <li><strong>Room Keep-Alive (1 Stunde)</strong>: Matchmaking-Räume bleiben nach Aktivierung für mindestens eine Stunde geöffnet.</li>
-                  <li><strong>Reconnection Auto-Join</strong>: Tritt einfach mit demselben Namen bei, um deinen Platz im Spiel sofort wieder zu übernehmen.</li>
-                  <li><strong>Ersteller-Zepter (Löschfunktion)</strong>: Ein Klicks auf 🗑️ säubert ungenutzte Räume sofort von der Liste.</li>
-                  <li><strong>Limitierung</strong>: Maximal 10 gleichzeitig aktive Räume.</li>
-                </ul>
-              </div>
-
-              <div>
-                <span className="text-[11px] font-bold text-mg-fog font-sans">v1.1.0 - Die Alchemie-Schmiede & Feuereffekte</span>
-                <p className="text-[10px] text-mg-fog mt-1 leading-relaxed font-sans">
-                  Eigene Diener und Zauberschriftrollen live während des Duells kreieren!
-                </p>
-                <ul className="list-disc pl-3.5 mt-1.5 space-y-1 text-[10px] text-mg-fog font-sans">
-                  <li><strong>Alchemy Forge</strong>: Personalisiere deine eigenen Kampfkarten mitten im Match.</li>
-                  <li><strong>Audio & Visual-Booster</strong>: Soundeffekte und Pyroblasten entfesseln jetzt magische Audiofeedback-Wärme.</li>
-                  <li><strong>Mobil-Scroll-Fix</strong>: Kein störendes automatisches Runterscrollen mehr auf Touchgeräten während hektischer Phasen!</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-          
-          <div className="mt-4 text-center">
-            <span className="text-[8px] font-mono text-mg-bronze/60 uppercase tracking-widest bg-mg-slate/20 px-3 py-1 rounded-full border border-mg-bronze/10">
-              Gepflegt im Archivar von Marcgard
-            </span>
-          </div>
-        </div>
-
       </div>
     </div>
   );

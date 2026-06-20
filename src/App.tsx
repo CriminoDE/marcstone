@@ -8,6 +8,7 @@ import { Atmosphere } from "./components/Atmosphere";
 import { Card, RoomState, HeroClass, ClientAction, GameEvent, OpenRoomInfo, OnlinePlayerInfo } from "./types";
 import { HERO_POWER_COST, HERO_POWERS, HERO_POWERS_LIST } from "./constants";
 import { playSound, playRaven } from "./utils/audio";
+import { generateVikingName } from "./utils/names";
 
 export default function App() {
   // Connection states
@@ -18,7 +19,7 @@ export default function App() {
 
   // Player configurations
   const [playerName, setPlayerName] = useState<string>(() => {
-    return localStorage.getItem("arcanum_playerName") || `Duelist-${Math.floor(1000 + Math.random() * 9000)}`;
+    return localStorage.getItem("arcanum_playerName") || generateVikingName();
   });
   const [selectedClass, setSelectedClass] = useState<HeroClass>("Mage");
   const [roomIdInput, setRoomIdInput] = useState<string>("");
