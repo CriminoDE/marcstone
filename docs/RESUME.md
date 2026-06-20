@@ -24,7 +24,19 @@ Marcgard = Browser-Kartenduell (Hearthstone-artig), 1v1 online ueber Link, fuer 
 ## Testen ohne zweiten Spieler
 Raum erstellen -> Warteraum -> "Uebungsgegner hinzufuegen" -> lokaler Bot "Holgar" (kein Gemini, kostenlos). WS-Testskripte: `/tmp/wstest.mjs` (Reconnect), `/tmp/bottest.mjs` (Bot) - bei Bedarf neu schreiben.
 
-## STAND (Stand: 2026-06-20, **v2.9 LIVE auf https://marcgard.onrender.com**)
+## STAND (Stand: 2026-06-20, **v2.9.1 LIVE auf https://marcgard.onrender.com**)
+
+### ⭐ OFFENE HENRY-WUENSCHE / BACKLOG (fuer naechste Session - WICHTIG zuerst lesen)
+Aus den Live-Playtests gesammelt, nach Prio:
+1. **EPISCHER SIEG-/TODES-REPLAY in ZEITLUPE (Henrys grosser Wunsch, NUR TEILWEISE erledigt):** Wenn ein Spieler gewinnt / ein Held faellt, soll der LETZTE ZUG nochmal in Zeitlupe wiederholt + praesentiert werden: die gespielte Karte soll gross "tanzen"/sich praesentieren, dann in Zeitlupe der Angriff, der Schaden, und beim Helden-Tod eine fette Animation + Geraeusch. Soll richtig EPISCH sein. **Bisher gebaut (v2.9.1):** Helden-Todes-Explosion (`heroDeathExplosion` in combatFx) + `hero_death`-Boom-Sound + "So endete es"-Text (letzte Log-Zeilen) im Sieg-Screen. **NOCH OFFEN:** der eigentliche ZEITLUPEN-REPLAY des letzten Zuges mit Karten-Praesentation. Dafuer braucht es strukturierte "last action"-Daten vom Server (welche Karte, Angreifer, Ziel, Schaden) statt nur Text-Log -> dann clientseitig nachspielen.
+2. **2v2-Modus (Wave 4, NICHT begonnen):** Teams auf der FFA-Infra. Sitze in 2 Teams (A/B alternierend, Sitz%2), Gegner = nur Feind-Team, Heilung/Buffs auch auf Verbuendete, Sieg = letztes Team steht. Lobby-Button "2v2". `ffaOpponents` team-aware, `checkFfaVictory` team-aware, UI Verbuendeten-Panel markieren.
+3. **Frozen-Optik aufhuebschen (optional):** Henry erwaehnte 21st.dev fuer eisige Animationen. Aktuell CSS (blauer Schleier + ❄️ + cyan Rand) - reicht, kann spaeter fancy werden.
+4. **Balance nach Playtest (mit Henry):** Werte in docs/BALANCE-CHANGES.md, Henry kann jeden vetoen/tunen. Neue Zauber-Manakosten (Blizzard/Holy Nova/Div. Sturm je 5) evtl. auf 4? m_champion 6 ok?
+
+### v2.9.1 deployed (Commit 1c7f316) - Lobby-Fix + heller Glow + Todes-Moment
+- **FFA-Lobby-Haenger GEFIXT (kritisch):** nach FFA kam man nicht in die Lobby zurueck. Server entfernt Sitz beim Verlassen in JEDER Phase (LEAVE_ROOM), Client ignoriert Updates nach bewusstem Verlassen (`hasLeftRoomRef` in App.tsx, gesetzt in handleLeaveRoom, zurueckgesetzt in Create/Join). Browser-getestet.
+- **Mana-Glow viel heller:** `mg-playable-pulse` (index.css) + brightness/saturate; nicht-spielbar opacity-40+grayscale. Henry: "muss hell leuchten".
+- **Todes-Moment:** heroDeathExplosion + hero_death-Sound bei Held-auf-0 (Diff-Effekt in App.tsx + FfaGame.tsx). "So endete es"-Box im Sieg-Screen (Duell + FFA).
 
 ### v2.9 deployed (Commit e054d7d) - Klassen-Identitaet + echtes Einfrieren + Sichtbarkeit + Balance
 - **Klassen-Decks endlich verschieden:** Mage Frost/Feuer, Priest Heilung/Schatten, Hunter Bestien, Paladin Licht. 8 neue Karten (4 Signatur-Zauber blizzard/holy_nova/multi_shot/divine_storm + 4 Diener), alle ziellos verdrahtet (Duell PLAY_CARD + botPlaySpell + FFA resolveFfaSpell + SPELL_ELEMENT-Maps). Legendaere nicht mehr ueberall.
