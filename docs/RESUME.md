@@ -24,7 +24,7 @@ Marcgard = Browser-Kartenduell (Hearthstone-artig), 1v1 online ueber Link, fuer 
 ## Testen ohne zweiten Spieler
 Raum erstellen -> Warteraum -> "Uebungsgegner hinzufuegen" -> lokaler Bot "Holgar" (kein Gemini, kostenlos). WS-Testskripte: `/tmp/wstest.mjs` (Reconnect), `/tmp/bottest.mjs` (Bot) - bei Bedarf neu schreiben.
 
-## STAND (Stand: 2026-06-20, **v2.13 gepusht auf main, Render-Deploy + Live-Verifikation laeuft** - vorher v2.12 LIVE Commit 0318c45 auf https://marcgard.onrender.com)
+## STAND (Stand: 2026-06-20, **v2.13 LIVE auf https://marcgard.onrender.com** - Commit b876817, deployed (dep-d8rbii6) + verifiziert: health 200, Live-JS-Bundle sha256-identisch mit lokalem Build + enthaelt v2.13, WS erstellt Raum. Vorher v2.12 = 0318c45.)
 
 ### v2.13 (lokal, ungepusht) - Marcs Macht + hellere Handkarten
 - **4 neue Marc-Legendaere** (nur bestehende Frameworks, KEIN neues Keyword): `m_wrath` Zorn des Marc (4M Zauber, 4 Schaden an ALLEN Dienern symmetrisch), `m_curse` Marcs Fluch (3M zielbar, halbiert Leben min 3), `m_seer` Marc der Seher (4M 3/4 Kampfschrei: zieh 2, zahl 2 Leben min 1), `fenrir` Fenrir der Endwolf (7M 6/6 Ansturm). In `src/constants.ts` + ALLEN Modi verdrahtet (Duell PLAY_CARD/resolveBattlecry/botPlaySpell, FFA resolveFfaSpell/resolveFfaBattlecry/FFA-Bot-targetedDmg, Client targetSpells+FFA_TARGETED_SPELLS+SPELL_ELEMENT). Headless 16 Spiele vs Bot: 0 Crashes, alle 4 Karten feuern, server-stdout 0 Errors.
