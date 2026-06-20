@@ -540,6 +540,7 @@ export default function App() {
       showToast("Deine Hand ist voll!", "warning");
       return;
     }
+    setShowAlchemyForge(false); // schliessen, damit die Wuerfel-Animation auf dem Brett sichtbar ist
     diceRoll();
     playSound("spell");
     sendAction({ type: "ROLL_FORGE_DICE", payload: { roomId: room.roomId } });
@@ -1356,38 +1357,13 @@ export default function App() {
                   {isActiveTurn && (
                     <button
                       onClick={() => setShowAlchemyForge(true)}
-                      disabled={me.hasForgedThisGame}
                       type="button"
-                      title="Baue dir einmal pro Spiel eine eigene Karte"
-                      className={`px-4 py-3 font-bold font-sans text-xs tracking-wide uppercase rounded-xl transition-all shadow-md ${
-                        me.hasForgedThisGame
-                          ? "bg-mg-stone text-mg-fog opacity-60 cursor-not-allowed"
-                          : "bg-gradient-to-r from-purple-800 to-indigo-800 hover:from-purple-700 hover:to-indigo-700 text-purple-100 cursor-pointer shadow-purple-950/20"
-                      }`}
+                      title="Alchemie-Schmiede: Götter-Würfel (zufällig, mehrfach) oder eigene Karte bauen (1x/Spiel)"
+                      className="px-4 py-3 font-bold font-sans text-xs tracking-wide uppercase rounded-xl transition-all shadow-md bg-gradient-to-r from-purple-800 to-indigo-800 hover:from-purple-700 hover:to-indigo-700 text-purple-100 cursor-pointer shadow-purple-950/20"
                     >
-                      {me.hasForgedThisGame ? "⏳ Schmiede genutzt" : "🔮 Schmiede"}
+                      🔮 Schmiede
                     </button>
                   )}
-
-                  {isActiveTurn && (() => {
-                    const diceCost = (me.forgeDiceCount ?? 0) + 1;
-                    const diceDisabled = me.mana < diceCost || me.hand.length >= 10;
-                    return (
-                      <button
-                        onClick={handleRollDice}
-                        disabled={diceDisabled}
-                        type="button"
-                        title={`Götter-Würfel: zufällige Karte ~1 Stufe über dem Einsatz. Kostet ${diceCost} Mana, steigt pro Wurf.`}
-                        className={`px-4 py-3 font-bold font-sans text-xs tracking-wide uppercase rounded-xl transition-all shadow-md ${
-                          diceDisabled
-                            ? "bg-mg-stone text-mg-fog opacity-60 cursor-not-allowed"
-                            : "bg-gradient-to-r from-mg-bronze to-amber-700 hover:from-mg-bronze-bright hover:to-amber-600 text-mg-void cursor-pointer shadow-amber-950/20"
-                        }`}
-                      >
-                        🎲 Würfel ({diceCost})
-                      </button>
-                    );
-                  })()}
 
                   {isActiveTurn ? (
                     <EndTurnButton timeRemaining={timeRemaining} onEndTurn={handleEndTurn} />
@@ -1508,8 +1484,8 @@ export default function App() {
               <div className="flex items-center gap-2">
                 <span className="text-2xl">🔮</span>
                 <div>
-                  <h3 className="font-serif font-black text-white text-lg tracking-wide uppercase">Alchemy Card Forge</h3>
-                  <p className="text-[10px] text-purple-400 tracking-wider">Synthesize Your Legendary Card</p>
+                  <h3 className="font-serif font-black text-white text-lg tracking-wide uppercase">Alchemie-Schmiede</h3>
+                  <p className="text-[10px] text-purple-400 tracking-wider">Würfle dein Schicksal oder bau deine eigene Karte</p>
                 </div>
               </div>
               <button
@@ -1520,6 +1496,46 @@ export default function App() {
                 ✕
               </button>
             </div>
+
+            {/* Götter-Würfel: Zufallskarte, mehrfach, steigende Kosten */}
+            {(() => {
+              const diceCost = (me?.forgeDiceCount ?? 0) + 1;
+              const diceDisabled = !me || !isActiveTurn || me.mana < diceCost || me.hand.length >= 10;
+              return (
+                <div className="rounded-2xl border border-mg-bronze/40 bg-gradient-to-b from-mg-bronze/10 to-mg-void/40 p-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🎲</span>
+                    <div className="flex-1">
+                      <div className="font-display font-bold text-mg-bronze-bright text-sm">Götter-Würfel</div>
+                      <div className="text-[10px] text-mg-fog leading-snug">Zufällige Karte, ~1 Stufe über dem Einsatz. Mehrfach pro Spiel, Kosten steigen.</div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRollDice}
+                    disabled={diceDisabled}
+                    className={`w-full py-2.5 rounded-xl font-display font-bold text-xs uppercase tracking-wider transition-all ${
+                      diceDisabled
+                        ? "bg-mg-stone text-mg-fog opacity-60 cursor-not-allowed"
+                        : "bg-gradient-to-r from-mg-bronze to-amber-700 hover:from-mg-bronze-bright hover:to-amber-600 text-mg-void cursor-pointer active:scale-98"
+                    }`}
+                  >
+                    {!isActiveTurn ? "⏳ Nicht dein Zug" : me && me.hand.length >= 10 ? "Hand voll" : me && me.mana < diceCost ? `Braucht ${diceCost} Mana` : `🎲 Würfeln (${diceCost} Mana)`}
+                  </button>
+                </div>
+              );
+            })()}
+
+            {/* Trenner */}
+            <div className="flex items-center gap-3 text-[9px] text-mg-fog uppercase tracking-widest font-display">
+              <span className="h-px flex-1 bg-mg-stone" /> oder selber bauen (1x/Spiel) <span className="h-px flex-1 bg-mg-stone" />
+            </div>
+
+            {me?.hasForgedThisGame && (
+              <div className="text-[10px] text-mg-fog/80 italic text-center bg-mg-void/40 border border-mg-stone rounded-xl py-2">
+                Selber-Bauen hast du dieses Spiel schon genutzt - der Würfel geht aber weiter.
+              </div>
+            )}
 
             {/* Inputs Grid */}
             <div className="space-y-3 text-xs">
@@ -1694,17 +1710,19 @@ export default function App() {
                 if (forgeSpellEffect === "draw") calculatedCost = Math.ceil(spVal * 2.5);
               }
               const isTooExpensive = calculatedCost > 10;
+              const alreadyForged = !!me?.hasForgedThisGame;
+              const manualDisabled = isTooExpensive || alreadyForged;
               return (
                 <button
                   type="submit"
                   className={`w-full py-3 mt-4 text-white font-bold tracking-wider uppercase rounded-xl shadow-lg transition-all text-xs flex justify-center items-center gap-2 ${
-                    isTooExpensive 
-                      ? "bg-mg-stone cursor-not-allowed opacity-50" 
+                    manualDisabled
+                      ? "bg-mg-stone cursor-not-allowed opacity-50"
                       : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 cursor-pointer active:scale-98"
                   }`}
-                  disabled={isTooExpensive}
+                  disabled={manualDisabled}
                 >
-                  {isTooExpensive ? "⚠️ Zu mächtig (>10 Mana)" : `🧪 Schmieden (${calculatedCost} Mana)`} 
+                  {alreadyForged ? "⏳ Selber-Bauen schon genutzt" : isTooExpensive ? "⚠️ Zu mächtig (>10 Mana)" : `🧪 Schmieden (${calculatedCost} Mana)`}
                 </button>
               );
             })()}

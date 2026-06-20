@@ -66,8 +66,9 @@ export function HeroState({
   return (
     <div
       id={`hero-${player.id}`}
-      onClick={() => {
+      onClick={(e) => {
         if (canBeTargeted && onHeroClick) {
+          e.stopPropagation(); // nicht zum Board-Klick (Targeting abbrechen) durchblubbern
           onHeroClick();
         }
       }}

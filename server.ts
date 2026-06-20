@@ -643,7 +643,12 @@ function handleGameAction(connectionId: string, action: ClientAction) {
       room.player2.board = [];
       room.player1.hand = [];
       room.player2.hand = [];
-      
+      // Schmiede pro Partie zuruecksetzen (Spieler-Objekte werden wiederverwendet!)
+      room.player1.hasForgedThisGame = false;
+      room.player2.hasForgedThisGame = false;
+      room.player1.forgeDiceCount = 0;
+      room.player2.forgeDiceCount = 0;
+
       // Auto-assign AI power
       if (room.isAIGame && room.player2.id === "AI_GEMINI_OPPONENT") {
          room.player2.selectedHeroPowerIndex = 0;
@@ -1338,6 +1343,8 @@ function handleGameAction(connectionId: string, action: ClientAction) {
         room.player1.deck = [];
         room.player1.mana = 0;
         room.player1.maxMana = 0;
+        room.player1.hasForgedThisGame = false;
+        room.player1.forgeDiceCount = 0;
       }
       if (room.player2) {
         room.player2.health = 30;
@@ -1346,6 +1353,8 @@ function handleGameAction(connectionId: string, action: ClientAction) {
         room.player2.deck = [];
         room.player2.mana = 0;
         room.player2.maxMana = 0;
+        room.player2.hasForgedThisGame = false;
+        room.player2.forgeDiceCount = 0;
       }
 
       addLog(room, `Game reset by player request. Ready for a new duel!`);

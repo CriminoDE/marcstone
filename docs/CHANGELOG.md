@@ -14,7 +14,12 @@ Format: `## [Version] - Datum` mit Kategorien Hinzugefuegt / Geaendert / Behoben
 - **Marc's Breath (alexstrasza) zielbar**: neuer Client-Targeting-Modus `battlecry_target` - Diener mit `battlecryNeedsTarget` lassen dich erst einen Helden waehlen (eigenen oder gegnerischen) und setzen DESSEN Leben auf 15 (vorher hart auf den Gegner + ohne sichtbaren Effekt). Klarer Log mit HP-Differenz + Holy-Cast-FX.
 
 ### Technik
-- Server bleibt autoritativ; Battlecry-Ziel kommt client-getrieben ueber PLAY_CARD (targetId/isTargetHero), kein riskanter Pending-State. `forgeDiceCount` resettet automatisch (frische Spieler-Objekte pro Spiel).
+- Server bleibt autoritativ; Battlecry-Ziel kommt client-getrieben ueber PLAY_CARD (targetId/isTargetHero), kein riskanter Pending-State.
+
+### Behoben (nach Review-Agent)
+- **Goetter-Wuerfel ist jetzt IN der Schmiede** (ein "🔮 Schmiede"-Knopf oeffnet das Fenster mit Wuerfel oben + Selber-Bauen darunter), statt separatem Action-Leisten-Knopf.
+- `forgeDiceCount` + `hasForgedThisGame` werden bei START_GAME und RESTART_GAME zurueckgesetzt (vorher Bug: Rematch im selben Raum startete mit teurem Wuerfel + gesperrter Schmiede - die Spieler-Objekte werden wiederverwendet, nicht neu erstellt).
+- Klick auf ein Helden-Ziel loest keinen falschen "abgebrochen"-Toast mehr aus (stopPropagation in HeroState).
 
 ## [2.3.0] - Karten-Vorschau (Tap-to-read) + Handy-Tooltips
 
