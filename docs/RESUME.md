@@ -24,7 +24,7 @@ Marcgard = Browser-Kartenduell (Hearthstone-artig), 1v1 online ueber Link, fuer 
 ## Testen ohne zweiten Spieler
 Raum erstellen -> Warteraum -> "Uebungsgegner hinzufuegen" -> lokaler Bot "Holgar" (kein Gemini, kostenlos). WS-Testskripte: `/tmp/wstest.mjs` (Reconnect), `/tmp/bottest.mjs` (Bot) - bei Bedarf neu schreiben.
 
-## STAND (Stand: 2026-06-21, **v2.15 (Karten-Wave) gebaut + getestet** - Deploy-Status siehe unten. Vorher v2.14 Todesroecheln LIVE 375017d.)
+## STAND (Stand: 2026-06-21, **v2.15 (Karten-Wave) LIVE auf https://marcgard.onrender.com** - Commit 0ff4d13, deployed (dep-d8rh2jo) + verifiziert: health 200, Live-JS sha256-identisch mit Build + enthaelt v2.15/Runen-Wandel/Marcs Bann, WS erstellt Raum. Vorher v2.14 = 375017d.)
 
 ### v2.15 - Karten-Wave (Bann + Heldenkraft-Wandel + Bedrohungen)
 - **4 Karten:** `m_runeshift` Runen-Wandel (2M Zauber: Heldenkraft +1 mod 3 + heroPowerUsed=false = sofort wieder bereit; die Wunschlisten-Karte), `m_bann` Marcs Bann (3M zielbar: verbannt Feind-Diener per splice = KEIN Todesroecheln), `nidhogg` Nidhoegg (6M 5/5, Todesroecheln 5 an Feind-Held), `valkyrie` Walkuere (5M 4/5 Spott, Kampfschrei: andere eigene Diener +1/+1).
