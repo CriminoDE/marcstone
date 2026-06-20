@@ -34,7 +34,7 @@ export function CardItem({
             🌀
           </div>
           <span className="text-[9px] font-mono font-bold tracking-wider text-mg-bronze/70 mt-3 uppercase text-center leading-none">
-            Arcane<br />Duel
+            Arkanes<br />Duell
           </span>
         </div>
       </div>
@@ -87,10 +87,10 @@ export function CardItem({
               : "border-mg-stone-light/70"
         }
         ${canBePlayed && isOwner ? "hover:-translate-y-2 hover:border-mg-poison cursor-pointer hover:z-20 md:hover:-translate-y-3" : ""}
-        ${canAttack && isOwner ? "hover:-translate-y-2 hover:border-mg-bronze-bright cursor-pointer glow-ready hover:z-20 md:hover:-translate-y-3" : ""}
+        ${canAttack && isOwner ? "hover:-translate-y-2 hover:border-emerald-400 cursor-pointer glow-attackable hover:z-20 md:hover:-translate-y-3" : ""}
         ${(!canBePlayed && !canAttack) && onClick ? "cursor-pointer hover:z-20" : ""}
         ${isHovered ? "z-40 scale-110 md:scale-110" : "z-10"}
-        ${isExhausted && card.type === "minion" && isOwner ? "opacity-90" : ""}
+        ${isExhausted && card.type === "minion" && isOwner ? "minion-exhausted" : ""}
         ${className}
       `}
     >
@@ -162,7 +162,7 @@ export function CardItem({
         </div>
       ) : (
         <div className="text-center text-[5px] md:text-[7px] font-mono tracking-widest text-indigo-400 uppercase font-bold mt-0.5 md:mt-1">
-          SPELL CAST
+          ZAUBER WIRKEN
         </div>
       )}
 

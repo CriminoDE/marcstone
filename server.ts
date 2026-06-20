@@ -221,7 +221,7 @@ function processEndTurn(room: RoomState, currentTurnConnectionId: string) {
 
   // Swap turn
   room.turn = opponent.id;
-  room.turnEndTime = Date.now() + 30000;
+  room.turnEndTime = Date.now() + 45000;
 
   // Upgrade active opponent's Mana
   if (opponent.maxMana < 10) {
@@ -370,7 +370,7 @@ function beginGamePhase(room: RoomState) {
   
   room.phase = "playing";
   room.heroSelectionEndTime = undefined;
-  room.turnEndTime = Date.now() + 30000;
+  room.turnEndTime = Date.now() + 45000;
   
   // Auto-assign random hero powers if not selected
   if (room.player1 && room.player1.selectedHeroPowerIndex === undefined) {

@@ -127,6 +127,20 @@ body {
 .glow-ready {
   box-shadow: 0 0 12px rgba(95, 168, 214, 0.75);
 }
+/* Diener, der JETZT angreifen kann: gruenes, leicht pulsierendes Leuchten */
+.glow-attackable {
+  box-shadow: 0 0 12px rgba(74, 222, 128, 0.85), 0 0 4px rgba(74, 222, 128, 0.6);
+  animation: attackablePulse 1.8s ease-in-out infinite;
+}
+@keyframes attackablePulse {
+  0%, 100% { box-shadow: 0 0 9px rgba(74, 222, 128, 0.6), 0 0 3px rgba(74, 222, 128, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(74, 222, 128, 1), 0 0 7px rgba(74, 222, 128, 0.8); }
+}
+/* Diener, der diesen Zug schon angegriffen hat (oder frisch beschworen): ausgegraut */
+.minion-exhausted {
+  filter: grayscale(0.7) brightness(0.72);
+  opacity: 0.9;
+}
 .glow-taunt {
   box-shadow: 0 0 14px rgba(192, 57, 43, 0.85);
 }
@@ -162,5 +176,5 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mg-fog, .mg-aurora, .mg-marc-glow, .mg-blood-veil { animation: none; }
+  .mg-fog, .mg-aurora, .mg-marc-glow, .mg-blood-veil, .glow-attackable { animation: none; }
 }

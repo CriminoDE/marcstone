@@ -8,12 +8,12 @@ interface ChatPanelProps {
 }
 
 const PREBUILT_EMOTES = [
-  "Greets! 🧙‍♀️",
-  "Well Played! 🤝",
-  "Oops! 🥴",
-  "That was a mistake! 💥",
-  "Threaten: My board is superior! ⚔️",
-  "My apologies! 🧪",
+  "Sei gegrüßt, Wurm. 🧙‍♀️",
+  "Stark gespielt, Bruder. 🤝",
+  "Autsch, das tat weh. 🥴",
+  "Schwerer Fehler, kleiner Mann. 💥",
+  "Mein Brett zerschmettert deins! ⚔️",
+  "Verzeih, das war zu brutal. 🧪",
 ];
 
 export function ChatPanel({ room, connectionId, onSendMessage }: ChatPanelProps) {
@@ -46,9 +46,9 @@ export function ChatPanel({ room, connectionId, onSendMessage }: ChatPanelProps)
       {/* 1. Tactical Logs Section */}
       <div className="flex-1 flex flex-col bg-mg-slate/90 rounded-2xl border border-mg-bronze/40 p-4 shadow-inner">
         <h4 className="text-xs font-mono font-bold tracking-widest text-mg-bronze uppercase pb-2 border-b border-stone-800 flex items-center justify-between">
-          <span>⚔️ Battle Log Chronicles</span>
+          <span>⚔️ Schlachtchronik</span>
           <span className="text-[10px] bg-mg-bronze/10 text-mg-bronze-bright px-2 py-0.5 rounded-full font-mono">
-            {room.history.length} Actions
+            {room.history.length} Aktionen
           </span>
         </h4>
         
@@ -56,7 +56,7 @@ export function ChatPanel({ room, connectionId, onSendMessage }: ChatPanelProps)
         <div ref={logScrollRef} className="flex-1 overflow-y-auto mt-3 pr-2 space-y-1.5 font-mono text-xs text-stone-300">
           {room.history.length === 0 ? (
             <div className="h-full flex items-center justify-center text-stone-500 text-[11px] italic">
-              No battle events logged yet. Let the duel begin!
+              Noch kein Blut geflossen. Lass das Duell beginnen!
             </div>
           ) : (
             room.history.map((log, index) => {
@@ -92,7 +92,7 @@ export function ChatPanel({ room, connectionId, onSendMessage }: ChatPanelProps)
       {/* 2. Interactive Chat Room Section */}
       <div className="w-full md:w-80 flex flex-col bg-mg-slate/90 rounded-2xl border border-mg-bronze/40 p-4 shadow-inner">
         <h4 className="text-xs font-mono font-bold tracking-widest text-mg-bronze-bright uppercase pb-2 border-b border-stone-800 flex items-center justify-between">
-          <span>💬 Live Trash-Talk Chat</span>
+          <span>💬 Spott-Kammer</span>
           <span className="w-2 h-2 rounded-full bg-mg-bronze animate-pulse" />
         </h4>
 
@@ -100,7 +100,7 @@ export function ChatPanel({ room, connectionId, onSendMessage }: ChatPanelProps)
         <div ref={chatScrollRef} className="flex-1 overflow-y-auto my-3 pr-2 space-y-2 max-h-[220px] md:max-h-[300px]">
           {room.messages.length === 0 ? (
             <div className="h-full flex items-center justify-center text-stone-500 text-[11px] italic">
-              Send emotes or messages to trash talk!
+              Schick Sprüche oder Nachrichten und mach ihn fertig!
             </div>
           ) : (
             room.messages.map((msg) => {
@@ -147,7 +147,7 @@ export function ChatPanel({ room, connectionId, onSendMessage }: ChatPanelProps)
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="Type message..."
+            placeholder="Nachricht tippen..."
             maxLength={100}
             className="flex-1 bg-mg-slate border border-mg-stone-light rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 font-sans"
           />
@@ -155,7 +155,7 @@ export function ChatPanel({ room, connectionId, onSendMessage }: ChatPanelProps)
             type="submit"
             className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-xl text-xs font-mono font-bold cursor-pointer transition-colors"
           >
-            Send
+            Senden
           </button>
         </form>
       </div>

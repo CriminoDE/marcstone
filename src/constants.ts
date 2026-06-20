@@ -9,7 +9,7 @@ export const CARD_TEMPLATES = {
     attack: 1,
     health: 2,
     emoji: "🛡️",
-    description: "🛡️ Taunt. 'Ready for action!'",
+    description: "🛡️ Spott. 'Bereit fürs Gemetzel!'",
     hasTaunt: true,
   },
   "b_murloc": {
@@ -19,7 +19,7 @@ export const CARD_TEMPLATES = {
     attack: 2,
     health: 1,
     emoji: "🐸",
-    description: "⚡ Charge. Relentlessly annoying.",
+    description: "⚡ Ansturm. Geht erbarmungslos auf die Nerven.",
     hasCharge: true,
   },
   "s_slime": {
@@ -29,7 +29,7 @@ export const CARD_TEMPLATES = {
     attack: 1,
     health: 3,
     emoji: "🦠",
-    description: "Extremely sticky. Good early defense.",
+    description: "Klebt wie die Pest. Solide frühe Mauer.",
   },
 
   // 1 Mana Spells
@@ -40,7 +40,7 @@ export const CARD_TEMPLATES = {
     attack: 0,
     health: 0,
     emoji: "🏹",
-    description: "💥 Deal 2 damage to any target.",
+    description: "💥 Füge 2 Schaden an einem beliebigen Ziel zu.",
   },
 
   // 2 Mana Minions
@@ -51,7 +51,7 @@ export const CARD_TEMPLATES = {
     attack: 3,
     health: 1,
     emoji: "🐠",
-    description: "⚡ Charge. High threat, low health.",
+    description: "⚡ Ansturm. Hohe Gefahr, wenig Leben.",
     hasCharge: true,
   },
   "annoy_tron": {
@@ -61,7 +61,7 @@ export const CARD_TEMPLATES = {
     attack: 1,
     health: 2,
     emoji: "🤖",
-    description: "🛡️ Taunt. 🌟 Divine Shield. HELLO!!!",
+    description: "🛡️ Spott. 🌟 Gottesschild. HALLO!!!",
     hasTaunt: true,
     hasDivineShield: true,
   },
@@ -72,7 +72,7 @@ export const CARD_TEMPLATES = {
     attack: 2,
     health: 3,
     emoji: "🐊",
-    description: "Standard stats. Very reliable.",
+    description: "Solide Werte. Grundsolide und verlässlich.",
   },
 
   // 2 Mana Spells
@@ -83,7 +83,7 @@ export const CARD_TEMPLATES = {
     attack: 0,
     health: 0,
     emoji: "💚",
-    description: "💚 Restore 6 health to any target.",
+    description: "💚 Heile 6 Leben an einem beliebigen Ziel.",
   },
 
   // 3 Mana Minions
@@ -94,7 +94,7 @@ export const CARD_TEMPLATES = {
     attack: 3,
     health: 4,
     emoji: "🕷️",
-    description: "Thick armor. Excellent stats.",
+    description: "Dicker Panzer. Hervorragende Werte.",
   },
   "s_crusader": {
     name: "Scarlet Crusader",
@@ -103,7 +103,7 @@ export const CARD_TEMPLATES = {
     attack: 3,
     health: 1,
     emoji: "⚔️",
-    description: "🌟 Divine Shield. Absorbs first hit.",
+    description: "🌟 Gottesschild. Schluckt den ersten Treffer.",
     hasDivineShield: true,
   },
   "w_rider": {
@@ -113,7 +113,7 @@ export const CARD_TEMPLATES = {
     attack: 3,
     health: 1,
     emoji: "🐺",
-    description: "⚡ Charge. 'Taste my blade!'",
+    description: "⚡ Ansturm. 'Schmeck meine Klinge!'",
     hasCharge: true,
   },
 
@@ -125,7 +125,7 @@ export const CARD_TEMPLATES = {
     attack: 4,
     health: 5,
     emoji: "❄️",
-    description: "The apex alpha yeti. Absolute unit.",
+    description: "Der Alpha-Yeti. Ein absoluter Brocken.",
   },
   "s_shieldmasta": {
     name: "Sen'jin Shieldmasta",
@@ -134,7 +134,7 @@ export const CARD_TEMPLATES = {
     attack: 3,
     health: 5,
     emoji: "👹",
-    description: "🛡️ Taunt. 'TAZ'DINGO!!!'",
+    description: "🛡️ Spott. 'TAZ'DINGO!!!'",
     hasTaunt: true,
   },
 
@@ -146,7 +146,7 @@ export const CARD_TEMPLATES = {
     attack: 0,
     health: 0,
     emoji: "🔥",
-    description: "🔥 Deal 6 damage to any target.",
+    description: "🔥 Füge 6 Schaden an einem beliebigen Ziel zu.",
   },
   "consecration": {
     name: "Consecration",
@@ -155,7 +155,7 @@ export const CARD_TEMPLATES = {
     attack: 0,
     health: 0,
     emoji: "📢",
-    description: "📢 Deal 2 damage to ALL enemy minions.",
+    description: "📢 Füge ALLEN gegnerischen Dienern 2 Schaden zu.",
   },
 
   // 5 Mana Minions
@@ -166,7 +166,7 @@ export const CARD_TEMPLATES = {
     attack: 3,
     health: 6,
     emoji: "🤢",
-    description: "🛡️ Taunt. Disgustingly hard to remove.",
+    description: "🛡️ Spott. Ekelhaft zäh, kaum totzukriegen.",
     hasTaunt: true,
   },
 
@@ -178,7 +178,7 @@ export const CARD_TEMPLATES = {
     attack: 6,
     health: 7,
     emoji: "🪵",
-    description: "The ultimate legend. Unmatched power.",
+    description: "Die ultimative Legende. Rohe Übermacht.",
   },
   "sunwalker": {
     name: "Sunwalker",
@@ -187,7 +187,7 @@ export const CARD_TEMPLATES = {
     attack: 4,
     health: 5,
     emoji: "🐂",
-    description: "🛡️ Taunt. 🌟 Divine Shield.",
+    description: "🛡️ Spott. 🌟 Gottesschild.",
     hasTaunt: true,
     hasDivineShield: true,
   },
@@ -198,7 +198,7 @@ export const CARD_TEMPLATES = {
     attack: 5,
     health: 5,
     emoji: "🏹🧝‍♀️",
-    description: "❤️ Battlecry: Steal a random enemy minion and attach it to your board!",
+    description: "❤️ Kampfschrei: Raube einen zufälligen gegnerischen Diener und stell ihn auf dein Brett!",
   },
   "meteor": {
     name: "Meteor Strike",
@@ -207,7 +207,7 @@ export const CARD_TEMPLATES = {
     attack: 0,
     health: 0,
     emoji: "🌠",
-    description: "🌠 Deal 8 damage to ANY target.",
+    description: "🌠 Füge 8 Schaden an einem BELIEBIGEN Ziel zu.",
   },
 
   // 7 Mana Spells
@@ -218,7 +218,7 @@ export const CARD_TEMPLATES = {
     attack: 0,
     health: 0,
     emoji: "🌌",
-    description: "🌌 Deal 4 damage to all enemy minions.",
+    description: "🌌 Füge allen gegnerischen Dienern 4 Schaden zu.",
   },
 
   // 8 Mana Minions
@@ -229,7 +229,7 @@ export const CARD_TEMPLATES = {
     attack: 8,
     health: 8,
     emoji: "👑",
-    description: "🛡️ Taunt. 🌟 Divine Shield. 'Bow before your king!'",
+    description: "🛡️ Spott. 🌟 Gottesschild. 'Kniet vor eurem König!'",
     hasTaunt: true,
     hasDivineShield: true,
   },
@@ -240,7 +240,7 @@ export const CARD_TEMPLATES = {
     attack: 8,
     health: 8,
     emoji: "🔥👺",
-    description: "🔥 Battlecry: Deal 8 damage to a random enemy!",
+    description: "🔥 Kampfschrei: Füge einem zufälligen Gegner 8 Schaden zu!",
   },
   "m_firelord": {
     name: "Marc the Firelord",
@@ -249,7 +249,7 @@ export const CARD_TEMPLATES = {
     attack: 7,
     health: 7,
     emoji: "👑🔥",
-    description: "🔥 Battlecry: Deal 4 damage to all enemies!",
+    description: "🔥 Kampfschrei: Füge allen Gegnern 4 Schaden zu!",
   },
 
   // 10 Mana Minions & Spells
@@ -260,7 +260,7 @@ export const CARD_TEMPLATES = {
     attack: 12,
     health: 12,
     emoji: "🐉",
-    description: "Cataclysmic dragon. Direct board obliteration.",
+    description: "Drache der Apokalypse. Fegt das Brett leer.",
   },
   "pyroblast": {
     name: "Pyroblast",
@@ -269,7 +269,7 @@ export const CARD_TEMPLATES = {
     attack: 0,
     health: 0,
     emoji: "☄️",
-    description: "☄️ Deal 10 damage! Complete ruin.",
+    description: "☄️ Füge 10 Schaden zu! Der totale Untergang.",
   },
   "mind_control": {
     name: "Mind Control",
@@ -278,7 +278,7 @@ export const CARD_TEMPLATES = {
     attack: 0,
     health: 0,
     emoji: "👁️",
-    description: "👁️ Seize control of an enemy minion.",
+    description: "👁️ Reiß einen gegnerischen Diener unter deine Kontrolle.",
   },
 
   // Newly Balanced Marcgard cards
@@ -289,7 +289,7 @@ export const CARD_TEMPLATES = {
     attack: 1,
     health: 2,
     emoji: "🛡️👦",
-    description: "🛡️ Taunt. Brave soul ready for glory.",
+    description: "🛡️ Spott. Eine tapfere Seele, bereit für den Ruhm.",
     hasTaunt: true,
   },
   "dr_boom": {
@@ -299,7 +299,7 @@ export const CARD_TEMPLATES = {
     attack: 7,
     health: 7,
     emoji: "💣💥",
-    description: "💣 Battlecry: Deal 1 damage to 3 random targets!",
+    description: "💣 Kampfschrei: Füge 3 zufälligen Zielen je 1 Schaden zu!",
   },
   "pot_greed": {
     name: "Tome of Marc",
@@ -308,7 +308,7 @@ export const CARD_TEMPLATES = {
     attack: 0,
     health: 0,
     emoji: "📖",
-    description: "🃏 Draw 2 cards.",
+    description: "🃏 Ziehe 2 Karten.",
   },
   "alexstrasza": {
     name: "Marc's Breath",
@@ -327,7 +327,7 @@ export const CARD_TEMPLATES = {
     attack: 4,
     health: 5,
     emoji: "🏇🛡️",
-    description: "🌟 Divine Shield. ⚡ Charge. Instant valor.",
+    description: "🌟 Gottesschild. ⚡ Ansturm. Sofortige Schlagkraft.",
     hasDivineShield: true,
     hasCharge: true,
   },
@@ -363,68 +363,68 @@ export const HERO_POWERS_LIST = {
   Mage: [
     {
       name: "Fireblast",
-      description: "Deal 1 damage to any target.",
+      description: "Füge einem beliebigen Ziel 1 Schaden zu.",
       emoji: "🔥",
     },
     {
       name: "Chilled Arcana",
-      description: "Deal 1 damage to a minion and Freeze it.",
+      description: "Füge einem Diener 1 Schaden zu und friere ihn ein.",
       emoji: "❄️",
     },
     {
       name: "Unstable Magic",
-      description: "Deal 1-3 random damage to a random enemy minion.",
+      description: "Füge einem zufälligen gegnerischen Diener 1-3 zufälligen Schaden zu.",
       emoji: "🌀",
     }
   ],
   Priest: [
     {
       name: "Lesser Heal",
-      description: "Restore 2 health to any target.",
+      description: "Heile 2 Leben an einem beliebigen Ziel.",
       emoji: "🩹",
     },
     {
       name: "Power Infusion",
-      description: "Give a friendly minion +2 Health.",
+      description: "Gib einem befreundeten Diener +2 Leben.",
       emoji: "✨",
     },
     {
       name: "Mind Spike",
-      description: "Deal 1 damage to any target. If it's a minion, reduce its attack by 1 until your next turn.",
+      description: "Füge einem beliebigen Ziel 1 Schaden zu. Ist es ein Diener, senke seinen Angriff bis zu deinem nächsten Zug um 1.",
       emoji: "🔮",
     }
   ],
   Hunter: [
     {
       name: "Steady Shot",
-      description: "Deal 2 damage to the enemy hero.",
+      description: "Füge dem gegnerischen Helden 2 Schaden zu.",
       emoji: "🏹",
     },
     {
       name: "Call Pet",
-      description: "Summon a 1/1 Fast Boar with Charge.",
+      description: "Beschwöre einen 1/1 Wildkeiler mit Ansturm.",
       emoji: "🐗",
     },
     {
       name: "Explosive Trap",
-      description: "Deal 1 damage to all enemy minions.",
+      description: "Füge allen gegnerischen Dienern 1 Schaden zu.",
       emoji: "💣",
     }
   ],
   Paladin: [
     {
       name: "Reinforce",
-      description: "Summon a 1/1 Silver Hand Recruit.",
+      description: "Beschwöre einen 1/1 Rekruten der Silbernen Hand.",
       emoji: "🫡",
     },
     {
       name: "Aegis Armor",
-      description: "Give a friendly minion Divine Shield.",
+      description: "Gib einem befreundeten Diener Gottesschild.",
       emoji: "🛡️",
     },
     {
       name: "Holy Light",
-      description: "Deal 1 damage to an enemy minion and restore 1 health to your hero.",
+      description: "Füge einem gegnerischen Diener 1 Schaden zu und heile deinen Helden um 1 Leben.",
       emoji: "☀️",
     }
   ]

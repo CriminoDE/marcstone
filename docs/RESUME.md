@@ -48,6 +48,17 @@ Raum erstellen -> Warteraum -> "Uebungsgegner hinzufuegen" -> lokaler Bot "Holga
 ### DECK-DESIGN (Befund)
 Aktuell sind alle 4 Klassen ~80% identischer Neutral-Stapel; nur paar Karten je Klasse anders -> die **Heldenkraft ist quasi der einzige echte Unterschied**. Falls echte Klassen-Identitaet gewuenscht: pro Klasse eigene Schluesselkarten definieren (`STANDARD_CLASS_CARDS` in constants.ts).
 
+### GESTOERTE IDEEN / SPAETER (niedrige Prio, Henrys Wunschliste)
+- **Ragnarök-Modus:** 3-4 Spieler Free-for-all, im Dreieck/Kreis arrangiert, feste Zugreihenfolge, random Start, man kann JEDEN angreifen. Voraussetzung: sauberes Targeting - Zauber die aktuell hart 1 Gegner setzen oder "random enemy" treffen muessen multiplayer-tauglich werden (Ziel-Spieler waehlbar). Erst nach solidem Grundspiel + sauberem Code. Ganz am Ende.
+- **2v2-Modus** (falls sinnvoll) - gleiche Targeting-Voraussetzung.
+- **Heldenkraft-Wechsel-Karte:** seltene Karte, die die eigene Heldenkraft tauscht. OP + versatil. Mana-Kosten austarieren (2-4+?). Kommt mit der Karten-Design-Phase (B), Teil von "Klassen interessant machen".
+- Generell B-Phase: mehr coole Karten/Zauber designen + balancen, Klassen-Identitaet schaerfen.
+
+### ARBEITSWEISE (von Henry, 2026-06-20 nachts)
+- Henry schlaeft, ich ziehe autonom den Plan (A3 -> A4/A5/A6 -> A7 -> B) durch, so weit wie moeglich, immer build+deploy+verify, **Patch-Notes bei JEDEM groesseren Build gross in die Lobby** (`Lobby.tsx` Patch-Notes-Block + `docs/CHANGELOG.md`).
+- **Supabase/DB NICHT anfassen** - Henry macht Google-OAuth + DB morgen selbst mit eigenem Account. Phase C ist nur geplant, nicht von mir gebaut.
+- Riskante Aenderungen (z.B. A7 FX-beidseitig) mit Review-Agent absichern. Am Ende ein Agent fuer Balancing/Scoring/Bugfixing.
+
 ### Lore-Richtung (fuer Karten-Namen/Klassen)
 Marc = dunkler Hellseher mit Untergangs-Prophezeiung. Marc-Zauber (Blut/Fluch, gluehen) vs normale Wikinger-Krieger (Schild/Axt). Siehe `docs/LORE.md`. GoT-Ton, derbe aber sauber.
 

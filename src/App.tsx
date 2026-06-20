@@ -64,7 +64,7 @@ export default function App() {
 
   // Alchemy Forge dynamic form states
   const [showAlchemyForge, setShowAlchemyForge] = useState(false);
-  const [forgeName, setForgeName] = useState("Flame-branded Squire");
+  const [forgeName, setForgeName] = useState("Flammen-gezeichneter Knappe");
   const [forgeType, setForgeType] = useState<"minion" | "spell">("minion");
   const [forgeCost, setForgeCost] = useState(3);
   const [forgeAttack, setForgeAttack] = useState<string>("3");
@@ -419,7 +419,7 @@ export default function App() {
     if (!room) return;
     navigator.clipboard.writeText(room.roomId);
     setCopiedCode(true);
-    showToast(`Code ${room.roomId} copied! Send this to your brother!`, "success");
+    showToast(`Code ${room.roomId} kopiert! Schick ihn deinem Bruder!`, "success");
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
@@ -436,7 +436,7 @@ export default function App() {
     setErrorMsg(null);
     const cleanRid = roomIdInput.trim().toUpperCase();
     if (!cleanRid) {
-      setErrorMsg("Please enter a valid 6-character room code!");
+      setErrorMsg("Gib einen gültigen 6-stelligen Raum-Code ein!");
       return;
     }
     
@@ -553,7 +553,7 @@ export default function App() {
 
     // Validate mana
     if (me.mana < card.cost) {
-      showToast(`Not enough Mana! This card costs ${card.cost} Mana.`, "warning");
+      showToast(`Zu wenig Mana! Diese Karte kostet ${card.cost} Mana.`, "warning");
       return;
     }
 
@@ -585,7 +585,7 @@ export default function App() {
         setSelectedCardId(card.id);
         setSelectedAttackerId(null);
         setTargetingMode("spell_target");
-        showToast(`Casting ${card.name}! Choose an active minion or either Hero avatar to target!`, "info");
+        showToast(`${card.name} wird gewirkt! Wähle einen aktiven Diener oder einen der beiden Helden als Ziel!`, "info");
       } else {
         // Spells like Consecration, Flamestrike (AOE, no targets) -> Zauber-Flare sofort
         const el = spellElementOf(card);
@@ -606,7 +606,7 @@ export default function App() {
     if (!room || room.phase !== "playing" || !isActiveTurn) return;
 
     if (!card.isReady) {
-      showToast(`${card.name} is exhausted! It can't attack on the turn it is summoned.`, "warning");
+      showToast(`${card.name} ist erschöpft! Er kann in der Runde, in der er beschworen wird, nicht angreifen.`, "warning");
       return;
     }
 
@@ -614,19 +614,19 @@ export default function App() {
     setSelectedAttackerId(card.id);
     setSelectedCardId(null);
     setTargetingMode("attack_target");
-    showToast(`⚔️ Attack Mode: Choose an enemy minion to fight, or click the enemy Hero avatar!`, "info");
+    showToast(`⚔️ Angriffsmodus: Wähle einen gegnerischen Diener zum Kämpfen, oder klick auf den gegnerischen Helden!`, "info");
   };
 
   const handleHeroPowerClick = () => {
     if (!room || room.phase !== "playing" || !isActiveTurn || !me) return;
 
     if (me.heroPowerUsed) {
-      showToast("You already used your Hero Power this turn!", "warning");
+      showToast("Du hast deine Heldenkraft in dieser Runde schon genutzt!", "warning");
       return;
     }
 
     if (me.mana < HERO_POWER_COST) {
-      showToast(`Hero Power costs ${HERO_POWER_COST} mana!`, "warning");
+      showToast(`Die Heldenkraft kostet ${HERO_POWER_COST} Mana!`, "warning");
       return;
     }
 
@@ -668,9 +668,9 @@ export default function App() {
       setSelectedAttackerId(null);
       setTargetingMode("heropower_target");
       if (hClass === "Paladin" && powerIdx === 1) {
-        showToast(`Choose a FRIENDLY minion to bestow Divine Shield! ✨`, "info");
+        showToast(`Wähle einen BEFREUNDETEN Diener, dem du Gottesschild verleihst! ✨`, "info");
       } else {
-        showToast(`Choose a minion card or Hero portrait to blast/heal!`, "info");
+        showToast(`Wähle eine Diener-Karte oder ein Helden-Portrait zum Verbrennen/Heilen!`, "info");
       }
     }
   };
@@ -704,13 +704,13 @@ export default function App() {
       const oppositionBoardHasTaunt = opponent?.board.some((m) => m.hasTaunt);
       if (oppositionBoardHasTaunt) {
         if (isTargetHero) {
-          showToast("A minion with Taunt is protecting the enemy Hero!", "warning");
+          showToast("Ein Diener mit Spott beschützt den gegnerischen Helden!", "warning");
           return;
         }
         // Is target a taunt?
         const targetedMinion = opponent?.board.find((m) => m.id === targetId);
         if (!targetedMinion?.hasTaunt) {
-          showToast("You MUST target an enemy minion with Taunt first!", "warning");
+          showToast("Du MUSST zuerst einen gegnerischen Diener mit Spott angreifen!", "warning");
           return;
         }
       }
@@ -788,7 +788,7 @@ export default function App() {
     if (!room || !me) return;
 
     if (!forgeName.trim()) {
-      showToast("Geben Sie Ihrer Kreation einen Namen!", "warning");
+      showToast("Gib deiner Kreation einen Namen!", "warning");
       return;
     }
 
@@ -801,11 +801,11 @@ export default function App() {
       const atkVal = Number(forgeAttack);
       const hpVal = Number(forgeHealth);
       if (isNaN(atkVal) || atkVal < 1 || atkVal > 10) {
-        showToast("Die Angriffskraft Ihrer Kreatur muss eine Zahl von 1 bis 10 sein!", "warning");
+        showToast("Die Angriffskraft deiner Kreatur muss eine Zahl von 1 bis 10 sein!", "warning");
         return;
       }
       if (isNaN(hpVal) || hpVal < 1 || hpVal > 10) {
-        showToast("Die Lebenspunkte Ihrer Kreatur müssen eine Zahl von 1 bis 10 sein!", "warning");
+        showToast("Die Lebenspunkte deiner Kreatur müssen eine Zahl von 1 bis 10 sein!", "warning");
         return;
       }
     } else {
@@ -861,7 +861,7 @@ export default function App() {
       }
     });
 
-    showToast(`🪄 ${forgeName} wurde in Ihrer Hand heraufbeschworen!`, "success");
+    showToast(`🪄 ${forgeName} wurde in deine Hand beschworen!`, "success");
     setShowAlchemyForge(false);
   };
 
@@ -869,7 +869,7 @@ export default function App() {
     // Only cancel if clicking empty background board
     if (targetingMode !== "none") {
       clearTargeting();
-      showToast("Targeting cancelled.", "info");
+      showToast("Zielwahl abgebrochen.", "info");
     }
   };
 
@@ -882,19 +882,19 @@ export default function App() {
         
         {/* Large Countdown Timer */}
         <div className="absolute top-8 left-1/2 -translate-x-1/2 flex flex-col items-center animate-fade-in">
-          <span className="text-[10px] text-mg-bronze/80 font-mono tracking-widest uppercase mb-1">Time Remaining</span>
+          <span className="text-[10px] text-mg-bronze/80 font-mono tracking-widest uppercase mb-1">Verbleibende Zeit</span>
           <span className={`text-6xl font-black font-mono tracking-tighter ${heroSelectionTimeRemaining <= 3 ? 'text-red-500 animate-pulse drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]' : 'text-mg-bronze-bright drop-shadow-[0_0_15px_rgba(251,191,36,0.6)]'}`}>
             {heroSelectionTimeRemaining}s
           </span>
         </div>
 
         <div className="text-center max-w-xl mx-auto mb-8 mt-16">
-          <span className="text-[10px] uppercase tracking-widest text-mg-bronze font-mono font-bold px-2 py-0.5 bg-mg-bronze/10 rounded-full border border-mg-bronze/20">💎 Legendary Specialization 💎</span>
+          <span className="text-[10px] uppercase tracking-widest text-mg-bronze font-mono font-bold px-2 py-0.5 bg-mg-bronze/10 rounded-full border border-mg-bronze/20">💎 Legendäre Spezialisierung 💎</span>
           <h2 className="text-2xl md:text-3xl font-serif font-black text-white mt-3 mb-2 tracking-wide uppercase">
-            Choose Your Specialized Power
+            Wähle deine Heldenkraft
           </h2>
           <p className="text-xs text-mg-fog font-sans leading-relaxed">
-            Your deck is ready for battle! Settle on one of three dynamic hero abilities to command for the rest of this Marcgard duel.
+            Dein Deck ist kampfbereit! Entscheide dich für eine von drei Heldenkräften, die du den Rest dieses Marcgard-Duells befehligst.
           </p>
         </div>
 
@@ -920,7 +920,7 @@ export default function App() {
                 {power.description}
               </p>
               <span className="text-[9px] uppercase tracking-wide font-mono text-mg-bronze font-extrabold mt-4 px-2 py-1 bg-mg-bronze/10 border border-mg-bronze/20 rounded-xl group-hover:bg-mg-bronze group-hover:text-mg-void transition-colors">
-                Unlock Power
+                Kraft freischalten
               </span>
             </button>
           ))}
@@ -937,8 +937,8 @@ export default function App() {
         <MusicToggle />
         {/* Banner */}
         <div className="bg-gradient-to-r from-mg-bronze to-mg-bronze py-1.5 px-4 text-center text-xs font-mono font-bold text-mg-void flex items-center justify-center gap-1.5 shadow-md">
-          <span>{isConnected ? "🟢 Server Live & Active" : "🟡 Reconnecting to server..."}</span>
-          <span className="opacity-80">| Ready for instant mobile-desktop play!</span>
+          <span>{isConnected ? "🟢 Server läuft & ist aktiv" : "🟡 Verbinde neu mit dem Server..."}</span>
+          <span className="opacity-80">| Bereit fürs sofortige Spiel auf Handy und PC!</span>
         </div>
 
         <Lobby
@@ -970,20 +970,20 @@ export default function App() {
         {/* Header bar */}
         <div className="max-w-4xl mx-auto w-full bg-mg-slate/60 rounded-3xl border border-mg-stone p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col gap-1.5 text-center md:text-left">
-            <span className="text-[10px] font-mono tracking-widest text-mg-bronze uppercase font-bold">Marcgard Matchmaker</span>
-            <h2 className="text-2xl font-extrabold text-white uppercase tracking-wider">Room Lobby Lounge</h2>
+            <span className="text-[10px] font-mono tracking-widest text-mg-bronze uppercase font-bold">Marcgard Duell-Halle</span>
+            <h2 className="text-2xl font-extrabold text-white uppercase tracking-wider">Vorraum</h2>
           </div>
 
           {/* Code Board */}
           <div className="flex items-center gap-3 bg-mg-void border border-mg-stone px-4 py-3 rounded-2xl">
-            <span className="text-xs font-mono text-mg-fog uppercase">Room ID:</span>
+            <span className="text-xs font-mono text-mg-fog uppercase">Raum-ID:</span>
             <span className="text-lg font-mono font-bold text-mg-bronze select-all tracking-widest">{room.roomId}</span>
             <button
               onClick={copyRoomCode}
               type="button"
               className="px-3 py-1 bg-mg-bronze/10 text-mg-bronze-bright hover:bg-mg-bronze hover:text-mg-void rounded-xl text-xs font-mono transition-all font-bold cursor-pointer"
             >
-              {copiedCode ? "Copied!" : "Share Link"}
+              {copiedCode ? "Kopiert!" : "Link teilen"}
             </button>
           </div>
         </div>
@@ -993,7 +993,7 @@ export default function App() {
           {/* Player 1 Card */}
           <div className="relative p-6 rounded-3xl border border-mg-stone bg-mg-slate/30 flex flex-col items-center justify-between h-56 shadow-lg overflow-hidden">
             <div className="absolute top-0 inset-x-0 h-1 bg-mg-bronze" />
-            <span className="text-[10px] font-mono font-bold text-mg-fog uppercase tracking-widest mb-2">Host Player (1)</span>
+            <span className="text-[10px] font-mono font-bold text-mg-fog uppercase tracking-widest mb-2">Gastgeber (1)</span>
             {room.player1 ? (
               <div className="text-center space-y-2">
                 <span className="text-5xl">
@@ -1005,17 +1005,17 @@ export default function App() {
                 </span>
               </div>
             ) : (
-              <div className="text-mg-fog text-xs italic">Empty slot. Waiting for host...</div>
+              <div className="text-mg-fog text-xs italic">Leerer Platz. Warte auf den Gastgeber...</div>
             )}
             <div className="text-[10px] text-emerald-400 font-mono mt-2 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" /> Ready
+              <span className="w-2 h-2 rounded-full bg-emerald-500" /> Bereit
             </div>
           </div>
 
           {/* Player 2 Card */}
           <div className="relative p-6 rounded-3xl border border-mg-stone bg-mg-slate/30 flex flex-col items-center justify-between h-56 shadow-lg overflow-hidden">
             <div className="absolute top-0 inset-x-0 h-1 bg-indigo-500" />
-            <span className="text-[10px] font-mono font-bold text-mg-fog uppercase tracking-widest mb-2">Challenger Player (2)</span>
+            <span className="text-[10px] font-mono font-bold text-mg-fog uppercase tracking-widest mb-2">Herausforderer (2)</span>
             {room.player2 ? (
               <div className="text-center space-y-2">
                 <span className="text-5xl">
@@ -1028,7 +1028,7 @@ export default function App() {
               </div>
             ) : (
               <div className="text-center space-y-3">
-                <div className="text-mg-fog text-xs italic">Waiting for challenger invite...</div>
+                <div className="text-mg-fog text-xs italic">Warte auf den Herausforderer...</div>
                 <div className="text-[9px] font-mono text-mg-fog py-1 px-3 bg-mg-void rounded-full border border-mg-slate">
                   Code: {room.roomId}
                 </div>
@@ -1036,11 +1036,11 @@ export default function App() {
             )}
             {room.player2 ? (
               <div className="text-[10px] text-emerald-400 font-mono mt-2 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" /> Connected
+                <span className="w-2 h-2 rounded-full bg-emerald-500" /> Verbunden
               </div>
             ) : (
               <div className="text-[10px] text-rose-500 font-mono mt-2 flex items-center gap-1.5 animate-pulse">
-                <span className="w-2 h-2 rounded-full bg-rose-500" /> Waiting...
+                <span className="w-2 h-2 rounded-full bg-rose-500" /> Wartet...
               </div>
             )}
           </div>
@@ -1054,7 +1054,7 @@ export default function App() {
               type="button"
               className="px-10 py-4 bg-gradient-to-r from-mg-bronze to-mg-bronze hover:from-mg-bronze-bright hover:to-mg-bronze-bright text-mg-void scale-102 hover:scale-105 font-bold font-sans text-sm uppercase tracking-widest rounded-2xl shadow-lg cursor-pointer transition-all"
             >
-              🚀 Duel Battle Start!
+              🚀 Duell starten!
             </button>
           ) : (
             <div className="flex flex-col items-center gap-4">
@@ -1080,7 +1080,7 @@ export default function App() {
             type="button"
             className="text-xs text-mg-fog hover:text-white transition-colors cursor-pointer border-b border-dashed border-mg-stone hover:border-mg-fog pt-1 mt-2"
           >
-            Leave lobby & return to Main Entrance
+            Lobby verlassen & zurück zum Haupteingang
           </button>
         </div>
 
@@ -1142,16 +1142,16 @@ export default function App() {
           {room.phase === "playing" ? (
             isActiveTurn ? (
               <span className="text-emerald-400 animate-pulse bg-emerald-950/30 border border-emerald-500/20 px-3 py-1 rounded-xl">
-                🛡️ Your Action Turn!
+                🛡️ Du bist am Zug!
               </span>
             ) : (
               <span className="text-mg-fog bg-mg-void/60 px-3 py-1 rounded-xl">
-                ⏳ Waiting for {opponent?.name || "Opponent"}...
+                ⏳ Warte auf {opponent?.name || "Gegner"}...
               </span>
             )
           ) : (
             <span className="text-mg-bronze-bright uppercase tracking-wider font-sans font-black">
-              ⚔️ Post-Match Chronicles
+              ⚔️ Chronik nach dem Kampf
             </span>
           )}
         </div>
@@ -1163,7 +1163,7 @@ export default function App() {
             type="button"
             className="text-mg-fog hover:text-rose-400 text-xs px-3 py-1 rounded-xl bg-mg-void border border-mg-stone hover:border-rose-900 transition-all font-sans"
           >
-            Leave Match
+            Kampf verlassen
           </button>
         </div>
       </header>
@@ -1171,13 +1171,13 @@ export default function App() {
       {/* Burning-fuse turn timer */}
       {room.phase === "playing" && (
         <div className="max-w-7xl mx-auto w-full mt-2 px-1 z-20 relative">
-          <FuseTimer remaining={timeRemaining} total={30} active={!!isActiveTurn} />
+          <FuseTimer remaining={timeRemaining} total={45} active={!!isActiveTurn} />
         </div>
       )}
 
-      {/* Target choice toast prompt */}
+      {/* Target choice toast prompt - pointer-events-none, damit es NIE Taps aufs Brett/den Helden blockiert */}
       {toast && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 max-w-sm w-full mx-auto px-4 z-50">
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 max-w-sm w-full mx-auto px-4 z-50 pointer-events-none">
           <div className={`p-3 rounded-2xl border flex items-center gap-2 text-xs font-sans shadow-xl text-center justify-center animate-bounce ${
             toast.type === "warning"
               ? "bg-red-950 border-red-500 text-red-100"
@@ -1211,7 +1211,7 @@ export default function App() {
                 onHeroClick={() => handleTargetSelection(opponent.id, true)}
               />
             ) : (
-              <div className="text-[10px] md:text-xs text-mg-fog italic">No opponent joined yet.</div>
+              <div className="text-[10px] md:text-xs text-mg-fog italic">Noch kein Gegner beigetreten.</div>
             )}
 
             {/* Opponent Card count & deck summary */}
@@ -1223,12 +1223,12 @@ export default function App() {
                   <span className="flex items-center justify-end gap-1 font-bold">
                     <span className={`w-1 h-1 md:w-1.5 md:h-1.5 rounded-full ${opponent.isOnline !== false ? "bg-emerald-500 animate-pulse" : "bg-red-500"}`} />
                     <span className={opponent.isOnline !== false ? "text-emerald-400" : "text-red-400"}>
-                      {opponent.isOnline !== false ? "Online" : "Disconn."}
+                      {opponent.isOnline !== false ? "Online" : "Getrennt"}
                     </span>
                   </span>
                 </div>
-                {/* Visual Card backs representing opponent's hand */}
-                <div className="flex gap-0.5 md:gap-1">
+                {/* Visual Card backs representing opponent's hand - am Handy ausgeblendet (nur Zahlen) */}
+                <div className="hidden sm:flex gap-0.5 md:gap-1">
                   {Array.from({ length: Math.min(6, opponent.hand.length) }).map((_, i) => (
                     <div key={i} className="w-3 h-4 md:w-5 md:h-7 rounded-sm md:rounded border border-indigo-900 bg-indigo-950 shadow shadow-indigo-500/10" />
                   ))}
@@ -1247,20 +1247,20 @@ export default function App() {
             {targetingMode !== "none" && (
               <div className="absolute inset-0 bg-mg-slate/20 rounded-xl md:rounded-2xl border-2 border-dashed border-mg-bronze/50 flex flex-col items-center justify-center pointer-events-none z-30">
                 <span className="text-[10px] md:text-xs font-mono text-mg-bronze-bright font-extrabold uppercase animate-pulse px-2 text-center">
-                  🎯 Targets Active: Choose any minion or Hero portrait!
+                  🎯 Ziel wählen: Klick auf einen beliebigen Diener oder ein Helden-Portrait!
                 </span>
                 <span className="text-[8px] md:text-[9px] text-mg-fog font-sans mt-0.5 md:mt-1 px-4 text-center">
-                  Click on any empty board section to cancel target.
+                  Klick auf einen leeren Bereich des Bretts, um abzubrechen.
                 </span>
               </div>
             )}
 
             {/* 1. Opposition Row Deployed Minions */}
             <div className="flex flex-col items-center gap-0.5 md:gap-1.5 w-full">
-              <span className="text-[6px] md:text-[8px] font-mono font-bold text-mg-fog tracking-widest uppercase">Opposition Deployment (Max 7)</span>
+              <span className="text-[6px] md:text-[8px] font-mono font-bold text-mg-fog tracking-widest uppercase">Gegnerische Aufstellung (max 7)</span>
               <div className="flex flex-row flex-nowrap md:flex-wrap justify-center gap-1 md:gap-3 w-full overflow-visible">
                 {opponent && opponent.board.length === 0 ? (
-                  <div className="text-[8px] md:text-[10px] text-mg-stone-light italic py-2 md:py-4 font-mono">Board is empty and clear.</div>
+                  <div className="text-[8px] md:text-[10px] text-mg-stone-light italic py-2 md:py-4 font-mono">Das Brett ist leer und sauber.</div>
                 ) : (
                   opponent?.board.map((card) => {
                     const isTauntTargetNeeded = opponent.board.some(m => m.hasTaunt) && !card.hasTaunt;
@@ -1288,16 +1288,16 @@ export default function App() {
             {/* Divider lines representing tactical front line */}
             <div className="border-t border-mg-slate relative my-0.5 md:my-1">
               <span className="absolute left-1/2 -translate-x-1/2 -top-1 md:-top-2 bg-mg-void px-2 md:px-3 text-[6px] md:text-[8px] font-mono text-mg-fog tracking-widest uppercase z-10">
-                ⚔️ Front-Line Range ⚔️
+                ⚔️ Frontlinie ⚔️
               </span>
             </div>
 
             {/* 2. Player Row Deployed Minions */}
             <div className="flex flex-col items-center gap-0.5 md:gap-1.5 w-full">
-              <span className="text-[6px] md:text-[8px] font-mono font-bold text-mg-fog tracking-widest uppercase">Your Friendly Deployed Units</span>
+              <span className="text-[6px] md:text-[8px] font-mono font-bold text-mg-fog tracking-widest uppercase">Deine aufgestellten Einheiten</span>
               <div className="flex flex-row flex-nowrap md:flex-wrap justify-center gap-1 md:gap-3 w-full overflow-visible">
                 {me && me.board.length === 0 ? (
-                  <div className="text-[8px] md:text-[10px] text-mg-stone-light italic py-2 md:py-4 font-mono">No units deployed. Play minion from your hand.</div>
+                  <div className="text-[8px] md:text-[10px] text-mg-stone-light italic py-2 md:py-4 font-mono">Keine Einheiten aufgestellt. Spiel einen Diener aus deiner Hand.</div>
                 ) : (
                   me?.board.map((card) => {
                     const isSelected = selectedAttackerId === card.id;
@@ -1342,9 +1342,9 @@ export default function App() {
                 {/* Hand control counts & End Turn Action buttons */}
                 <div className="flex items-center gap-4 flex-wrap">
                   <div className="text-right font-mono text-[10px] text-mg-fog">
-                    <span>Your Hand: {me.hand.length}/10 Cards</span>
+                    <span>Deine Hand: {me.hand.length}/10 Karten</span>
                     <br />
-                    <span>Library Deck: {me.deck.length} remaining</span>
+                    <span>Deck: {me.deck.length} übrig</span>
                     <br />
                     <span className="mt-1 inline-flex items-center gap-1.5 font-bold">
                       <span className={`w-1.5 h-1.5 rounded-full ${me.isOnline !== false ? "bg-emerald-500 shadow shadow-emerald-400" : "bg-red-500"}`} />
@@ -1373,7 +1373,7 @@ export default function App() {
                       type="button"
                       className="px-6 py-3 bg-mg-slate text-mg-fog border border-mg-stone font-bold font-sans text-xs tracking-wider uppercase rounded-xl cursor-not-allowed opacity-60 flex items-center gap-2"
                     >
-                      <span>⏳ Opponent</span>
+                      <span>⏳ Gegner</span>
                       <span className="px-2 py-0.5 rounded-full text-[10px] bg-mg-stone font-mono text-mg-bronze/80">
                         {timeRemaining}s
                       </span>
@@ -1387,7 +1387,7 @@ export default function App() {
             {me && (
               <div className="flex gap-4 overflow-x-auto py-3 px-1">
                 {me.hand.length === 0 ? (
-                  <div className="text-xs text-mg-fog italic py-4 pl-4">Your hand is empty. End turn to draw cards!</div>
+                  <div className="text-xs text-mg-fog italic py-4 pl-4">Deine Hand ist leer. Beende den Zug, um Karten zu ziehen!</div>
                 ) : (
                   me.hand.map((card) => {
                     const isPlayedSelected = selectedCardId === card.id;
@@ -1423,10 +1423,10 @@ export default function App() {
             {isWinnerMe && (
               <>
                 <span className="text-7xl animate-bounce">👑</span>
-                <span className="text-xs font-mono font-bold tracking-widest text-mg-bronze uppercase">Victory Accomplished!</span>
-                <h2 className="text-4xl font-extrabold text-white uppercase tracking-tight">Champion Duelist</h2>
+                <span className="text-xs font-mono font-bold tracking-widest text-mg-bronze uppercase">Sieg errungen!</span>
+                <h2 className="text-4xl font-extrabold text-white uppercase tracking-tight">Champion-Duellant</h2>
                 <p className="text-mg-fog text-sm max-w-sm">
-                  Congratulations <strong>{me?.name}</strong>! You successfully outwitted and vanquished {opponent?.name || "your brother"} in the card battle. Well played!
+                  Glückwunsch <strong>{me?.name}</strong>! Du hast {opponent?.name || "deinen Bruder"} im Kartenkampf überlistet und niedergerungen. Stark gespielt!
                 </p>
               </>
             )}
@@ -1434,10 +1434,10 @@ export default function App() {
             {isWinnerOpponent && (
               <>
                 <span className="text-7xl">💀</span>
-                <span className="text-xs font-mono font-bold tracking-widest text-indigo-400 uppercase">Defeat Suffered</span>
-                <h2 className="text-4xl font-extrabold text-white uppercase tracking-tight">Match Defeated</h2>
+                <span className="text-xs font-mono font-bold tracking-widest text-indigo-400 uppercase">Niederlage kassiert</span>
+                <h2 className="text-4xl font-extrabold text-white uppercase tracking-tight">Kampf verloren</h2>
                 <p className="text-mg-fog text-sm max-w-sm">
-                  Tough luck! <strong>{opponent?.name}</strong> successfully wiped your hero down. Refine your deck selections and take revenge!
+                  Pech gehabt! <strong>{opponent?.name}</strong> hat deinen Helden ausgelöscht. Feil an deinem Deck und nimm Rache!
                 </p>
               </>
             )}
@@ -1445,10 +1445,10 @@ export default function App() {
             {isDraw && (
               <>
                 <span className="text-7xl">🧪</span>
-                <span className="text-xs font-mono font-bold tracking-widest text-mg-fog uppercase">Mutual Annihilation</span>
-                <h2 className="text-4xl font-extrabold text-white uppercase tracking-tight">Tie Duel</h2>
+                <span className="text-xs font-mono font-bold tracking-widest text-mg-fog uppercase">Gegenseitige Auslöschung</span>
+                <h2 className="text-4xl font-extrabold text-white uppercase tracking-tight">Unentschieden</h2>
                 <p className="text-mg-fog text-sm max-w-sm">
-                  Both heroes perished simultaneously! The battlefield remains in absolute silence. Play another duel to break the tie!
+                  Beide Helden sind gleichzeitig gefallen! Über dem Schlachtfeld liegt absolute Stille. Spielt ein weiteres Duell, um zu entscheiden!
                 </p>
               </>
             )}
@@ -1459,14 +1459,14 @@ export default function App() {
                 type="button"
                 className="flex-1 bg-mg-bronze hover:bg-mg-bronze-bright text-mg-void font-bold text-xs py-3 rounded-xl shadow-md cursor-pointer transition-all uppercase tracking-wider"
               >
-                🔄 Play Again
+                🔄 Nochmal spielen
               </button>
               <button
                 onClick={handleLeaveRoom}
                 type="button"
                 className="flex-1 bg-mg-stone hover:bg-mg-stone-light text-white font-bold text-xs py-3 rounded-xl shadow-md cursor-pointer transition-all uppercase tracking-wider"
               >
-                🚪 Back to Lobby
+                🚪 Zurück zur Lobby
               </button>
             </div>
           </div>
@@ -1540,12 +1540,12 @@ export default function App() {
             {/* Inputs Grid */}
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block text-[10px] uppercase font-mono text-mg-fog mb-1">Card Name</label>
+                <label className="block text-[10px] uppercase font-mono text-mg-fog mb-1">Kartenname</label>
                 <input
                   type="text"
                   value={forgeName}
                   onChange={(e) => setForgeName(e.target.value)}
-                  placeholder="e.g. Flame-branded Squire"
+                  placeholder="z.B. Flammen-gezeichneter Knappe"
                   className="w-full bg-mg-void border border-mg-stone rounded-xl px-3 py-2 text-white focus:border-purple-500 focus:outline-none"
                   required
                 />
@@ -1553,34 +1553,34 @@ export default function App() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] uppercase font-mono text-mg-fog mb-1">Card Type</label>
+                  <label className="block text-[10px] uppercase font-mono text-mg-fog mb-1">Kartentyp</label>
                   <select
                     value={forgeType}
                     onChange={(e) => setForgeType(e.target.value as "minion" | "spell")}
                     className="w-full bg-mg-void border border-mg-stone rounded-xl px-3 py-2 text-white focus:border-purple-500 focus:outline-none"
                   >
-                    <option value="minion">Minion Unit</option>
-                    <option value="spell">Spell Scroll</option>
+                    <option value="minion">Diener</option>
+                    <option value="spell">Zauberrolle</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] uppercase font-mono text-mg-fog mb-1">Emoji Artwork</label>
+                  <label className="block text-[10px] uppercase font-mono text-mg-fog mb-1">Emoji-Motiv</label>
                   <select
                     value={forgeEmoji}
                     onChange={(e) => setForgeEmoji(e.target.value)}
                     className="w-full bg-mg-void border border-mg-stone rounded-xl px-3 py-2 text-white focus:border-purple-500 focus:outline-none"
                   >
-                    <option value="⚔️">⚔️ Swordsman</option>
-                    <option value="🛡️">🛡️ Shield guardian</option>
-                    <option value="🧙‍♂️">🧙‍♂️ Arch-Mage</option>
-                    <option value="👹">👹 Shadow Fiend</option>
-                    <option value="🐉">🐉 Ancient Dragon</option>
-                    <option value="☄️">☄️ Mystic Comet</option>
-                    <option value="🧪">🧪 Poison Tonic</option>
-                    <option value="🩹">🩹 Golden Elixir</option>
-                    <option value="🐺">🐺 Dire Wolf</option>
-                    <option value="💀">💀 Necromancer</option>
+                    <option value="⚔️">⚔️ Schwertkämpfer</option>
+                    <option value="🛡️">🛡️ Schildwächter</option>
+                    <option value="🧙‍♂️">🧙‍♂️ Erzmagier</option>
+                    <option value="👹">👹 Schattendämon</option>
+                    <option value="🐉">🐉 Uralter Drache</option>
+                    <option value="☄️">☄️ Mystischer Komet</option>
+                    <option value="🧪">🧪 Gifttrank</option>
+                    <option value="🩹">🩹 Goldenes Elixier</option>
+                    <option value="🐺">🐺 Schreckenswolf</option>
+                    <option value="💀">💀 Totenbeschwörer</option>
                   </select>
                 </div>
               </div>
@@ -1589,7 +1589,7 @@ export default function App() {
                 {forgeType === "minion" && (
                   <>
                     <div>
-                      <label className="block text-[10px] uppercase font-mono text-mg-fog mb-1">Attack Rating</label>
+                      <label className="block text-[10px] uppercase font-mono text-mg-fog mb-1">Angriffskraft</label>
                       <input
                         type="number"
                         min="1"
@@ -1601,7 +1601,7 @@ export default function App() {
                     </div>
 
                     <div>
-                      <label className="block text-[10px] uppercase font-mono text-mg-fog mb-1">Health Points</label>
+                      <label className="block text-[10px] uppercase font-mono text-mg-fog mb-1">Lebenspunkte</label>
                       <input
                         type="number"
                         min="1"
@@ -1649,14 +1649,14 @@ export default function App() {
                   type="text"
                   value={forgeDesc}
                   onChange={(e) => setForgeDesc(e.target.value)}
-                  placeholder="e.g. Deal 3 damage to any enemy."
+                  placeholder="z.B. Füge einem beliebigen Gegner 3 Schaden zu."
                   className="w-full bg-mg-void border border-mg-stone rounded-xl px-3 py-2 text-white focus:border-purple-500 focus:outline-none"
                 />
               </div>
 
               {forgeType === "minion" && (
                 <div className="bg-mg-void p-3 rounded-xl border border-mg-stone space-y-2 mt-2">
-                  <span className="block text-[9px] uppercase font-mono text-mg-fog font-bold">Select Defensive Keywords</span>
+                  <span className="block text-[9px] uppercase font-mono text-mg-fog font-bold">Schlüsselwörter wählen</span>
                   <div className="flex flex-wrap gap-4">
                     <label className="flex items-center gap-1.5 cursor-pointer text-[11px] text-mg-fog">
                       <input

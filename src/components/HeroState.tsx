@@ -46,7 +46,7 @@ export function HeroState({
             <span
               key={i}
               className="w-3.5 h-3.5 rounded-full bg-blue-500 border border-blue-300 shadow-[0_0_8px_rgba(59,130,246,0.8)] inline-block transition-all"
-              title="Available Mana"
+              title="Verfügbares Mana"
             />
           );
         } else {
@@ -54,7 +54,7 @@ export function HeroState({
             <span
               key={i}
               className="w-3.5 h-3.5 rounded-full bg-mg-stone-light/80 border border-mg-fog inline-block"
-              title="Spent Mana"
+              title="Verbrauchtes Mana"
             />
           );
         }
@@ -115,7 +115,7 @@ export function HeroState({
             </span>
             <div className="flex flex-wrap gap-0.5 mt-1 min-h-[14px]">
               {player.maxMana > 0 ? renderManaCrystals() : (
-                <span className="text-[9px] text-mg-fog uppercase tracking-widest leading-none">Lobby phase</span>
+                <span className="text-[9px] text-mg-fog uppercase tracking-widest leading-none">Lobby-Phase</span>
               )}
             </div>
           </div>
@@ -152,21 +152,21 @@ export function HeroState({
                   ? "border-blue-500/50 bg-blue-950/40 text-blue-200 hover:border-blue-400 hover:scale-103 cursor-pointer" 
                   : "border-mg-stone bg-mg-slate/40 text-mg-fog cursor-not-allowed opacity-60"
               }`}
-            title={`Hero Power: ${classPower.name}. ${classPower.description}`}
+            title={`Heldenkraft: ${classPower.name}. ${classPower.description}`}
           >
             <div className="flex items-center gap-1 text-[11px] font-mono leading-none font-bold">
               <span>{classPower.emoji}</span>
               <span className="text-[9px] bg-blue-600/30 text-blue-300 px-1 py-0.2 rounded-md">2☄️</span>
             </div>
             <span className="text-[8px] font-bold font-sans tracking-wide leading-none truncate w-full mt-1">
-              {player.heroPowerUsed ? "Spent" : classPower.name}
+              {player.heroPowerUsed ? "Verbraucht" : classPower.name}
             </span>
           </button>
         )}
 
         {/* Display-only Hero power description for enemies */}
         {isEnemy && (
-          <div className="w-14 p-1 rounded-xl bg-mg-slate/60 border border-mg-stone flex flex-col items-center justify-center opacity-75" title={`Enemy Hero Power: ${classPower.name}. ${classPower.description}`}>
+          <div className="w-14 p-1 rounded-xl bg-mg-slate/60 border border-mg-stone flex flex-col items-center justify-center opacity-75" title={`Gegnerische Heldenkraft: ${classPower.name}. ${classPower.description}`}>
             <span className="text-sm leading-none">{classPower.emoji}</span>
             <span className="text-[8px] font-mono font-bold text-mg-fog truncate w-full mt-1 text-center">
               {classPower.name}

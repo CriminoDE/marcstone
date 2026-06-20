@@ -7,6 +7,17 @@ Format: `## [Version] - Datum` mit Kategorien Hinzugefuegt / Geaendert / Behoben
 
 ---
 
+## [2.5.0] - Komplett Deutsch + Angriff-UX-Fixes (Handy)
+
+### Geaendert
+- **Alles auf Deutsch** (~95 Strings, per Uebersetzungs-Agent): alle Karten-Beschreibungen + Heldenkraft-Texte (constants.ts), alle Toasts/Labels/Menues/Victory/Schmiede-Formular (App.tsx), Kampf-Emotes frech-nordisch (ChatPanel), CardItem, HeroState. Eigennamen (Kartennamen, Heldenkraft-Namen) bewusst gelassen. Formelle "Sie"-Reste in der Schmiede auf "du" gezogen.
+
+### Behoben (Henrys Handy-Playtest)
+- **Angreifen blockiert nicht mehr:** der Ziel-Hinweis-Toast lag auf kleinen Screens ueber dem Gegner-Helden und fing den Tap ab -> "abgebrochen". Toast ist jetzt `pointer-events-none`, Taps gehen sauber auf Held/Brett durch.
+- **Diener-Status klar erkennbar:** angriffsbereite eigene Diener haben ein gruenes, pulsierendes Leuchten (`glow-attackable`), schon eingesetzte/frisch beschworene sind ausgegraut (`minion-exhausted`).
+- **Zug-Timer 30 -> 45 Sek** (Handy tippt langsamer).
+- **Gegner-Handkarten-Rueckseiten am Handy ausgeblendet** (liefen ueber/sahen buggy aus; nur die Zahlen bleiben).
+
 ## [2.4.0] - Goetter-Wuerfel + Marc's Breath zielbar
 
 ### Hinzugefuegt

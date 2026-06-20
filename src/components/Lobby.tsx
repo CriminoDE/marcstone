@@ -202,7 +202,7 @@ export function Lobby({
                     onClick={() => onQuickJoin(r.roomId)}
                     className="text-[11px] font-display font-bold uppercase tracking-wide bg-mg-bronze hover:bg-mg-bronze-bright text-mg-void py-1.5 px-3 rounded-lg cursor-pointer transition-all"
                   >
-                    {r.p2Name ? "Rejoin" : "Beitreten"}
+                    {r.p2Name ? "Zurückkehren" : "Beitreten"}
                   </button>
                   <button
                     type="button"
@@ -228,7 +228,16 @@ export function Lobby({
           </h3>
           <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
             <div>
-              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.4 · Würfel & Drachenatem</div>
+              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.5 · Alles Deutsch + sauberes Angreifen</div>
+              <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
+                <li>Komplett auf Deutsch (Karten, Texte, Menüs, Kampf-Emotes).</li>
+                <li>Angreifen am Handy gefixt: der Hinweis blockiert nicht mehr, du triffst den Helden sauber.</li>
+                <li>Angriffsbereite Diener leuchten grün, schon eingesetzte sind ausgegraut - sofort erkennbar.</li>
+                <li>Mehr Zeit pro Zug (45 statt 30 Sek). Gegner-Anzeige am Handy aufgeräumt.</li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-[11px] font-display font-bold text-mg-fog">v2.4 · Würfel & Drachenatem</div>
               <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
                 <li>🎲 Götter-Würfel in der Schmiede: zufällige Karte ~1 Stufe über dem Einsatz, mehrfach nutzbar (steigende Mana-Kosten).</li>
                 <li>Marc's Breath: du wählst jetzt selbst welchen Helden du auf 15 setzt (auch dich selbst zum Heilen).</li>
