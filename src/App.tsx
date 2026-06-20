@@ -4,6 +4,7 @@ import { CardItem } from "./components/CardItem";
 import { HeroState } from "./components/HeroState";
 import { ChatPanel } from "./components/ChatPanel";
 import { EndTurnButton } from "./components/EndTurnButton";
+import { FuseTimer } from "./components/FuseTimer";
 import { Atmosphere } from "./components/Atmosphere";
 import { MusicToggle } from "./components/MusicToggle";
 import { Card, RoomState, HeroClass, ClientAction, GameEvent, OpenRoomInfo, OnlinePlayerInfo } from "./types";
@@ -917,6 +918,13 @@ export default function App() {
           </button>
         </div>
       </header>
+
+      {/* Burning-fuse turn timer */}
+      {room.phase === "playing" && (
+        <div className="max-w-7xl mx-auto w-full mt-2 px-1 z-20 relative">
+          <FuseTimer remaining={timeRemaining} total={30} active={!!isActiveTurn} />
+        </div>
+      )}
 
       {/* Target choice toast prompt */}
       {toast && (

@@ -44,6 +44,8 @@ export function CardItem({
   // Is minion dead or wounded?
   const isWounded = card.type === "minion" && card.health < card.maxHealth;
   const isExhausted = card.type === "minion" && !card.isReady;
+  // Marc-forged cards (the dark seer's work) glow blood-red and feel "wrongly powerful".
+  const isMarc = card.templateId === "custom_magic";
 
   // Build Explanations List for the Custom Tooltip
   const tooltips: string[] = [];
@@ -69,16 +71,22 @@ export function CardItem({
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`relative rounded-xl border-2 flex flex-col justify-between shadow-lg transition-all duration-300 select-none shrink-0
+      className={`relative rounded-xl border-2 flex flex-col justify-between shadow-[0_6px_16px_rgba(0,0,0,0.7),inset_0_0_0_1px_rgba(176,132,59,0.22)] transition-all duration-300 select-none shrink-0
         w-[4.8rem] h-[6.8rem] p-1 sm:w-28 sm:h-36 sm:p-1.5 md:w-36 md:h-48 md:p-2
-        ${card.type === "minion" ? "bg-mg-stone" : "bg-gradient-to-b from-indigo-950 to-mg-stone"} 
-        ${isSelected 
-          ? "border-mg-bronze-bright scale-105 md:scale-110 glow-selected z-30" 
-          : card.hasTaunt 
-            ? "border-red-600/70 glow-taunt" 
-            : "border-mg-stone-light/80"
+        ${isMarc
+          ? "bg-gradient-to-b from-[#2A0E0E] to-mg-void"
+          : card.type === "minion"
+            ? "bg-gradient-to-b from-mg-slate-raised to-mg-slate"
+            : "bg-gradient-to-b from-mg-frost-deep/30 to-mg-void"}
+        ${isSelected
+          ? "border-mg-bronze-bright scale-105 md:scale-110 glow-selected z-30"
+          : card.hasTaunt
+            ? "border-mg-blood-bright/70 glow-taunt"
+            : isMarc
+              ? "border-mg-blood mg-marc-glow"
+              : "border-mg-stone-light/70"
         }
-        ${canBePlayed && isOwner ? "hover:-translate-y-2 hover:border-green-400 cursor-pointer shadow-green-500/10 hover:z-20 md:hover:-translate-y-3" : ""}
+        ${canBePlayed && isOwner ? "hover:-translate-y-2 hover:border-mg-poison cursor-pointer hover:z-20 md:hover:-translate-y-3" : ""}
         ${canAttack && isOwner ? "hover:-translate-y-2 hover:border-mg-bronze-bright cursor-pointer glow-ready hover:z-20 md:hover:-translate-y-3" : ""}
         ${(!canBePlayed && !canAttack) && onClick ? "cursor-pointer hover:z-20" : ""}
         ${isHovered ? "z-40 scale-110 md:scale-110" : "z-10"}
@@ -86,8 +94,8 @@ export function CardItem({
         ${className}
       `}
     >
-      {/* Royal Blue Mana Crystal Cost badge */}
-      <div className="absolute -top-2 -left-2 md:-top-2.5 md:-left-2.5 w-5 h-5 md:w-7 md:h-7 rounded-full bg-blue-600 border border-mg-bronze-bright md:border-2 flex items-center justify-center font-mono font-bold text-[9px] md:text-xs text-white shadow-md z-10">
+      {/* Mana rune (ice/arcane) */}
+      <div className="absolute -top-2 -left-2 md:-top-2.5 md:-left-2.5 w-5 h-5 md:w-7 md:h-7 rounded-full bg-gradient-to-b from-mg-frost to-mg-frost-deep border border-mg-bronze-bright md:border-2 flex items-center justify-center font-display font-bold text-[9px] md:text-xs text-mg-frost-text shadow-[0_0_8px_rgba(95,168,214,0.5)] z-10">
         {card.cost}
       </div>
 
@@ -98,7 +106,7 @@ export function CardItem({
 
       {/* Card Header & Type Icon */}
       <div className="flex items-center justify-between text-[8px] md:text-[11px] font-bold text-mg-fog">
-        <span className="truncate max-w-[50px] md:max-w-[85px] leading-tight text-white font-sans">{card.name}</span>
+        <span className={`truncate max-w-[50px] md:max-w-[85px] leading-tight ${isMarc ? "text-mg-ember font-rune tracking-wide" : "text-mg-frost-text font-display"}`}>{card.name}</span>
         <span className="text-[10px] md:text-xs" title={card.type}>
           {card.type === "minion" ? "👾" : "🔮"}
         </span>
@@ -106,19 +114,19 @@ export function CardItem({
 
       {/* Card art space */}
       <div className={`h-8 md:h-16 rounded md:rounded-lg my-0.5 md:my-1 flex items-center justify-center text-xl md:text-4xl shadow-inner relative overflow-hidden
-        ${card.type === "minion" ? "bg-mg-slate/60" : "bg-indigo-900/40"}`}
+        ${card.type === "minion" ? "bg-mg-void" : "bg-mg-frost-deep/20"}`}
       >
         <span>{card.emoji}</span>
         {/* Keyword Quick Badges */}
         <div className="absolute bottom-0 left-0 flex gap-0.5 pointer-events-none">
           {card.hasTaunt && (
-            <span className="bg-red-600 text-white text-[5px] md:text-[7px] font-bold px-0.5 md:px-1 rounded shadow">T</span>
+            <span className="bg-mg-blood-bright text-mg-frost-text text-[5px] md:text-[7px] font-bold px-0.5 md:px-1 rounded shadow">T</span>
           )}
           {card.hasCharge && (
-            <span className="bg-mg-bronze text-mg-slate text-[5px] md:text-[7px] font-bold px-0.5 md:px-1 rounded shadow">C</span>
+            <span className="bg-mg-bronze text-mg-void text-[5px] md:text-[7px] font-bold px-0.5 md:px-1 rounded shadow">C</span>
           )}
           {card.hasDivineShield && (
-            <span className="bg-blue-500 text-white text-[5px] md:text-[7px] font-bold px-0.5 md:px-1 rounded shadow">S</span>
+            <span className="bg-mg-frost text-mg-void text-[5px] md:text-[7px] font-bold px-0.5 md:px-1 rounded shadow">S</span>
           )}
         </div>
       </div>
@@ -130,9 +138,9 @@ export function CardItem({
 
       {/* Bottom stats indicators for Minions */}
       {card.type === "minion" ? (
-        <div className="flex justify-between items-center mt-0.5 md:mt-1 pt-0.5 md:pt-1 border-t border-mg-stone-light/60 font-mono font-bold text-[9px] md:text-xs">
+        <div className="flex justify-between items-center mt-0.5 md:mt-1 pt-0.5 md:pt-1 border-t border-mg-stone-light/60 font-display font-bold text-[9px] md:text-xs">
           {/* Attack Rating */}
-          <div className="flex items-center gap-0.5 bg-mg-bronze/10 text-mg-bronze-bright px-1 md:px-1.5 py-0.5 rounded-md border border-mg-bronze/20">
+          <div className="flex items-center gap-0.5 bg-mg-blood/25 text-mg-frost-text px-1 md:px-1.5 py-0.5 rounded-md border border-mg-blood-bright/40">
             <span className="text-[7px] md:text-[10px]">⚔️</span>
             <span>{card.attack}</span>
           </div>
@@ -145,8 +153,8 @@ export function CardItem({
           {/* Health Rating */}
           <div className={`flex items-center gap-0.5 px-1 md:px-1.5 py-0.5 rounded-md border ${
             isWounded
-              ? "bg-red-600/20 text-red-400 border-red-500/30 font-extrabold animate-pulse"
-              : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+              ? "bg-mg-blood/30 text-mg-blood-bright border-mg-blood-bright/50 font-extrabold animate-pulse"
+              : "bg-mg-poison/15 text-mg-poison border-mg-poison/30"
           }`}>
             <span className="text-[7px] md:text-[10px]">❤️</span>
             <span>{card.health}</span>

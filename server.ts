@@ -131,22 +131,22 @@ function addLog(room: RoomState, actionText: string) {
 function triggerRageChat(room: RoomState, offendingPlayer: PlayerState, triggerType: "minion_died" | "high_damage") {
   const insults = {
     minion_died: [
-      "NEIN! Nicht mein treuer Gefährte! Das wirst du büßen! 😡",
-      "Das war ein eiskaltes Kriegsverbrechen auf Marcstone-Boden! 🤬",
-      "Rache für die Gefallenen! Du wirst dafür bezahlen! 💀",
-      "Du feiger Magiebeutel! Schlag jemanden in deiner Größe! 😤",
-      "Er war doch noch so jung... Was für ein feiger Zug! 😭",
-      "Ein unschuldiges Wesen einfach ausgelöscht. Karma wird dich richten! 🔮",
-      "Marcstone-Götter weinen für meinen Diener! Rache naht! 🌪️"
+      "Beim Blut Odins! Du wirst in Hel verrotten dafür, Wurm! 🪓",
+      "Mein Krieger zieht nach Walhall. Du ziehst gleich unter meine Axt, feiger Hund! ⚔️",
+      "Die Raben fressen noch DEINE Augen, nicht meine! 🐦‍⬛",
+      "Du schlachtest meine Männer wie ein Bauer die Schweine. Thor sieht dich, Made. ⚡",
+      "Heul nur. Ich nähre Fenrir mit deinen Knochen! 🐺",
+      "Ein guter Mann gefallen, und du grinst? Dein Grab ist schon geschaufelt. 💀",
+      "Beim Met meiner Ahnen, dafür blutest du bis Ragnarök! 🩸"
     ],
     high_damage: [
-      "Autsch! Aber verlass dich nicht drauf, meine Rache wird episch! ⚡",
-      "Wie schmeckt dieser billige Zaubertrick, du ungebildeter Koboldflüsterer?! 😠",
-      "Verdammt seist du und dein ganzer schimmeliger Alchemisten-Clan! 🧙‍♂️",
-      "Aus dem Weg, Geringverdiener der Magiekünste! Das kitzelt nur! 😏",
-      "Ein reiner Glückstreffer! Beim nächsten Mal blocke ich das blind! 🛡️",
-      "Du spielst so unbarmherzig! Ein wilder Affe drückt wohl Knöpfe! 🐒",
-      "Unerhört! Meine feinen Roben sind jetzt schmutzig! 💅"
+      "Das kitzelt, du milchgesichtiger Wicht! Schlag fester oder geh heim zu Mutter! 😤",
+      "Ein Mückenstich. Meine Großmutter trifft härter mit der Schöpfkelle. 🥄",
+      "SO sieht ein Mann aus, der nicht jammert. Lern was, Weichei. 🛡️",
+      "Spar dir die Tricks, Zauberbeutel. Stahl gewinnt, nicht dein Gewinsel. 🗡️",
+      "Brüll ruhig, kleiner Skalde. Walhall lacht über dich. 🍺",
+      "Du blutest mich, ich blute dich doppelt. So ist das Gesetz des Nordens. ❄️",
+      "Glückstreffer, Bauer. Beim nächsten Mal hack ich dir den Bart ab! 🪓"
     ]
   };
 
