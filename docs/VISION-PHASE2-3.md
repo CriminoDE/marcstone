@@ -16,6 +16,25 @@ Henrys Ansage: "einfach ein geileres Hearthstone." Darf nicht verloren gehen.
 - **Dumpfe Krieger** / dumpfe Kriegstrommeln im Hintergrund.
 - Leise Mittelalter-Hintergrundmusik.
 
+## Kampf-Effekte + Animationen (Phase 3) - NEU
+- **Rundenstart:** zwei ueberkreuzte Schwerter fliegen von rechts nach links ein, bleiben kurz auf dem Feld liegen, faden weg.
+- **Angriff:** Kriegstrommeln-Sound + krasser Effekt; die angreifende Figur bewegt sich richtig (Lunge zum Ziel, Impact, Ziel wackelt). Figuren muessen sich generell gut bewegen, nicht steif.
+- **Zauber gewirkt - element-basierte VFX auf dem Schlachtfeld:** je nach Zauber-Typ/Element ein eigener Effekt:
+  - rotes **Pentagramm / Runen-Zirkel** das aufleuchtet
+  - **Feuer:** aufgehende Flammen
+  - **Frost:** kurzer heftiger Schneefall
+  - (weitere Elemente entsprechend)
+- **Auto-Beleidigungen** im derben Wikinger-Ton (Odin/Hel/Fenrir/Walhall) - LIVE, spaeter kontext-abhaengiger + mehr Spruechte.
+
+## Handy + Lesbarkeit (Phase 2) - NEU
+- Handy-Ansicht muss gut + klar lesbar sein, PC noch besser. (Anfangs war Handy kacke, schon verbessert, aber weiter haerten.)
+- **Karten anklickbar/vergroesserbar** zum Lesen (Tap-to-Zoom, grosse Lese-Ansicht der Karte).
+- **Glossar** irgendwo: erklaert welcher Effekt/Keyword was macht (Spott, Ansturm, Gottesschild, Kampfschrei ...).
+- **Timeout muss zuverlaessig** sein: wenn die Zeit ablaeuft, sauberer Zug-Wechsel (Server-Interval erledigt das, regelmaessig pruefen).
+
+## Inhalt spaeter
+- Mehr Karten, Effekte, Decks. Erst Base Game + Base Animations bauen, dann erweitern.
+
 ## Timer-Effekt (Phase 3)
 - Statt nur Zahl + Ticken: eine **brennende Zuendschnur** die runterbrennt, wenn die Zugzeit ablaeuft. Visuell spuerbar dass die Zeit knapp wird.
 
