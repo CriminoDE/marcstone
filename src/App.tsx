@@ -12,7 +12,7 @@ import { Card, RoomState, HeroClass, ClientAction, GameEvent, OpenRoomInfo, Onli
 import { HERO_POWER_COST, HERO_POWERS, HERO_POWERS_LIST } from "./constants";
 import { playSound, playRaven } from "./utils/audio";
 import { generateVikingName } from "./utils/names";
-import { flashDamage, deathPoof, screenFlash, lungeAttack, spellCast, castProjectile, roundStartFlare, diceRoll, type SpellElement } from "./utils/combatFx";
+import { flashDamage, deathPoof, screenFlash, lungeAttack, spellCast, castProjectile, roundStartFlare, diceRoll, heroDeathExplosion, type SpellElement } from "./utils/combatFx";
 
 // Zauber/Heldenkraft -> Element fuer die VFX (Runenkreis + Partikel).
 const SPELL_ELEMENT: Record<string, SpellElement> = {
@@ -96,6 +96,9 @@ export default function App() {
   // Connection refs for robust auto-reconnect + auto-rejoin
   const wsRef = useRef<WebSocket | null>(null);
   const shouldReconnectRef = useRef<boolean>(true);
+  // Nach bewusstem Verlassen: Raum-Updates ignorieren, bis wir wieder absichtlich beitreten.
+  // Sonst zieht ein nachzuegelnder ROOM_STATE_UPDATE (v.a. nach FFA-Sieg) zurueck in den Raum.
+  const hasLeftRoomRef = useRef<boolean>(false);
   const reconnectTimerRef = useRef<number | null>(null);
   const playerNameRef = useRef<string>(playerName);
   const connectionIdRef = useRef<string>("");
@@ -185,6 +188,8 @@ export default function App() {
           screenFlash(0.5 + dmg / 14);
           myHeroHit = true;
         }
+        // Entscheidender Schlag: Held faellt auf 0 -> epische Todes-Explosion + Boom.
+        if (isHero && now.hp <= 0 && before.hp > 0) { heroDeathExplosion(document.getElementById(key)); playSound("hero_death"); }
       });
       // Tode (Figur war da, jetzt weg) -> Rauch an letzter Position
       prev.forEach((before, key) => {
@@ -246,6 +251,8 @@ export default function App() {
         switch (gameEvent.type) {
           case "ROOM_STATE_UPDATE": {
             const updatedRoom = gameEvent.payload;
+            // Bewusst verlassen -> keine Raum-Updates mehr annehmen (sonst Lobby-Haenger nach FFA-Sieg).
+            if (hasLeftRoomRef.current) break;
 
             // Identify my player slot (by current id or by name) and keep connectionId fresh.
             // Matching by name is what makes reconnect work: after a rejoin the server hands us a new id.
@@ -434,6 +441,7 @@ export default function App() {
   // 1. Core Lobby Buttons
   const handleCreateRoom = (vsAI: boolean = false, mode: "duel" | "ffa" = "duel", maxPlayers?: number) => {
     setErrorMsg(null);
+    hasLeftRoomRef.current = false; // absichtlich Raum betreten -> Updates wieder annehmen
     sendAction({
       type: "CREATE_ROOM",
       payload: mode === "ffa"
@@ -444,6 +452,7 @@ export default function App() {
 
   const handleJoinRoom = () => {
     setErrorMsg(null);
+    hasLeftRoomRef.current = false;
     const cleanRid = roomIdInput.trim().toUpperCase();
     if (!cleanRid) {
       setErrorMsg("Gib einen gültigen 6-stelligen Raum-Code ein!");
@@ -471,6 +480,7 @@ export default function App() {
 
   const handleQuickJoinRoom = (rid: string) => {
     setErrorMsg(null);
+    hasLeftRoomRef.current = false;
     const cleanRid = rid.trim().toUpperCase();
     setRoomIdInput(cleanRid);
 
@@ -526,6 +536,7 @@ export default function App() {
     localStorage.removeItem("marc_roomId");
     localStorage.removeItem("marc_heroClass");
     connectionIdRef.current = "";
+    hasLeftRoomRef.current = true; // nachzuegelnde Raum-Updates ignorieren
     setRoom(null);
     clearTargeting();
   };
@@ -1491,6 +1502,14 @@ export default function App() {
                 </p>
               </>
             )}
+
+            {/* Letzter Moment: so endete es */}
+            <div className="w-full bg-mg-void/60 border border-mg-stone rounded-xl p-3 text-left">
+              <div className="text-[10px] uppercase tracking-widest text-mg-bronze font-mono mb-1">So endete es</div>
+              {(room.history || []).slice(-4).map((l, i) => (
+                <div key={i} className="text-[11px] text-mg-fog font-body leading-snug truncate">{l}</div>
+              ))}
+            </div>
 
             <div className="flex gap-4 pt-4 w-full">
               <button

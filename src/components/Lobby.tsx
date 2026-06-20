@@ -265,7 +265,15 @@ export function Lobby({
           </h3>
           <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
             <div>
-              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.9 · Klassen & Eis ❄️</div>
+              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.9.1 · Fixes & Wucht 💥</div>
+              <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
+                <li><b>Free-for-All:</b> Rückkehr in die Lobby gefixt (hing vorher nach Spielende).</li>
+                <li>Spielbare Karten <b>leuchten jetzt richtig hell</b> grün, nicht-spielbare sind dunkel.</li>
+                <li><b>Epischer Todes-Moment:</b> Explosion + Boom-Sound wenn ein Held fällt; Sieg-Screen zeigt den letzten Zug.</li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-[11px] font-display font-bold text-mg-fog">v2.9 · Klassen & Eis ❄️</div>
               <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
                 <li><b>Eigene Klassen-Decks:</b> Mage = Frost/Feuer (Blizzard), Priest = Heilung/Schatten (Heilige Nova), Hunter = Bestien (Mehrfachschuss), Paladin = Licht (Göttlicher Sturm). 8 neue Karten.</li>
                 <li><b>Einfrieren wirkt jetzt wirklich</b> - eingefrorene Diener überspringen ihren Angriff, mit blauer Eis-Optik ❄️.</li>

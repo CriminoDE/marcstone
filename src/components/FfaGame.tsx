@@ -7,7 +7,7 @@ import { MusicToggle } from "./MusicToggle";
 import { FfaForge } from "./FfaForge";
 import { HERO_POWER_COST, HERO_POWERS_LIST } from "../constants";
 import { playRaven, playSound } from "../utils/audio";
-import { flashDamage, deathPoof, screenFlash, lungeAttack, spellCast, castProjectile, roundStartFlare, type SpellElement } from "../utils/combatFx";
+import { flashDamage, deathPoof, screenFlash, lungeAttack, spellCast, castProjectile, roundStartFlare, heroDeathExplosion, type SpellElement } from "../utils/combatFx";
 
 // Zauber/Heldenkraft -> Element fuer die Projektil-/Cast-VFX (gespiegelt aus App.tsx).
 const SPELL_ELEMENT: Record<string, SpellElement> = {
@@ -95,6 +95,8 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
         flashDamage(document.getElementById(key), dmg, { big: isHero || dmg >= 5 });
         anyHit = true;
         if (isHero && key === myHeroKey) { screenFlash(0.5 + dmg / 14); myHit = true; }
+        // Entscheidender Schlag: Held faellt auf 0 -> epische Todes-Explosion + Boom.
+        if (isHero && now.hp <= 0 && before.hp > 0) { heroDeathExplosion(document.getElementById(key)); playSound("hero_death"); }
       });
       prev.forEach((before, key) => {
         if (cur.has(key) || !key.startsWith("card-") || !before.rect) return;
@@ -413,10 +415,17 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
       {room.phase === "victory" && (
         <div className="fixed inset-0 bg-mg-void/85 backdrop-blur-md flex flex-col items-center justify-center z-50 p-6 text-center">
           <div className="text-6xl mb-4">{room.winnerId === myId ? "👑" : "☠️"}</div>
-          <h2 className="text-3xl font-serif font-black text-white uppercase tracking-wide">
+          <h2 className="text-3xl font-serif font-black text-white uppercase tracking-wide animate-fade-in">
             {room.winnerId === "DRAW" ? "Unentschieden" : `${winner?.name ?? "?"} gewinnt!`}
           </h2>
           <p className="text-sm text-mg-fog mt-2">{room.winnerId === myId ? "Letzter Überlebender. Marcgard gehört dir." : "Gefallen im Free-for-All."}</p>
+          {/* Letzter Moment: so endete es */}
+          <div className="mt-4 max-w-md w-full bg-mg-void/60 border border-mg-stone rounded-xl p-3 text-left">
+            <div className="text-[10px] uppercase tracking-widest text-mg-bronze font-mono mb-1">So endete es</div>
+            {(room.history || []).slice(-4).map((l, i) => (
+              <div key={i} className="text-[11px] text-mg-fog font-body leading-snug truncate">{l}</div>
+            ))}
+          </div>
           <div className="flex gap-3 mt-6">
             {isCreator && <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-mg-bronze text-mg-void font-bold hover:scale-105">Nochmal</button>}
             <button onClick={onLeave} className="px-5 py-2.5 rounded-xl border border-mg-stone bg-mg-void/60 text-mg-fog font-bold">Zur Lobby</button>

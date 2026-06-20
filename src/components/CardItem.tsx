@@ -97,8 +97,8 @@ export function CardItem({
         ${canBePlayed && isOwner ? "hover:-translate-y-2 hover:border-mg-poison cursor-pointer hover:z-20 md:hover:-translate-y-3" : ""}
         ${canAttack && isOwner ? "hover:-translate-y-2 hover:border-emerald-400 cursor-pointer glow-attackable hover:z-20 md:hover:-translate-y-3" : ""}
         ${(!canBePlayed && !canAttack) && onClick ? "cursor-pointer hover:z-20" : ""}
-        ${playableNow ? "ring-2 ring-emerald-400 shadow-[0_0_16px_rgba(52,211,153,0.6)] -translate-y-1 md:-translate-y-1.5 cursor-pointer" : ""}
-        ${unplayableNow ? "opacity-45 saturate-50" : ""}
+        ${playableNow ? "ring-[3px] ring-emerald-300 shadow-[0_0_26px_7px_rgba(74,222,128,0.7)] brightness-115 saturate-125 -translate-y-1.5 md:-translate-y-2 cursor-pointer mg-playable-pulse" : ""}
+        ${unplayableNow ? "opacity-40 grayscale-[0.45] brightness-[0.6]" : ""}
         ${isFrozen ? "ring-2 ring-cyan-300 shadow-[0_0_16px_rgba(103,232,249,0.75)] !border-cyan-300/80" : ""}
         ${isHovered ? "z-40 scale-110 md:scale-110" : "z-10"}
         ${isExhausted && card.type === "minion" && isOwner ? "minion-exhausted" : ""}

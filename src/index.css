@@ -136,6 +136,14 @@ body {
   0%, 100% { box-shadow: 0 0 9px rgba(74, 222, 128, 0.6), 0 0 3px rgba(74, 222, 128, 0.5); }
   50% { box-shadow: 0 0 20px rgba(74, 222, 128, 1), 0 0 7px rgba(74, 222, 128, 0.8); }
 }
+/* Spielbare Handkarte (genug Mana): kraeftiges, atmendes gruenes Leuchten - klar erkennbar */
+.mg-playable-pulse {
+  animation: playablePulse 1.6s ease-in-out infinite;
+}
+@keyframes playablePulse {
+  0%, 100% { box-shadow: 0 0 18px 4px rgba(74, 222, 128, 0.55), 0 0 6px rgba(110, 231, 183, 0.6); }
+  50% { box-shadow: 0 0 30px 9px rgba(74, 222, 128, 0.85), 0 0 12px rgba(110, 231, 183, 0.9); }
+}
 /* Diener, der diesen Zug schon angegriffen hat (oder frisch beschworen): ausgegraut */
 .minion-exhausted {
   filter: grayscale(0.7) brightness(0.72);

@@ -183,6 +183,74 @@ export function screenFlash(strength = 1): void {
   a.onfinish = () => d.remove();
 }
 
+// EPISCHER Helden-Tod: dunkler Bildschirm-Puls + Schockwelle + Splitter + grosser Totenkopf.
+// Wird ausgeloest, wenn ein Held auf 0 faellt (der entscheidende Schlag).
+export function heroDeathExplosion(el: HTMLElement | null): void {
+  if (reduceMotion()) {
+    // Wenigstens ein kurzer Flash fuer Reduced-Motion.
+    screenFlash(1);
+    return;
+  }
+  const root = getRoot();
+  const r = el ? el.getBoundingClientRect() : null;
+  const cx = r ? r.left + r.width / 2 : window.innerWidth / 2;
+  const cy = r ? r.top + r.height / 2 : window.innerHeight / 2;
+
+  // 1) Dunkler, blutroter Vollbild-Puls
+  const veil = document.createElement("div");
+  veil.style.cssText =
+    `position:absolute;inset:0;background:radial-gradient(120% 90% at ${cx}px ${cy}px, rgba(140,8,8,0.85), rgba(20,2,2,0.7) 55%, rgba(0,0,0,0.85));`;
+  root.appendChild(veil);
+  veil.animate([{ opacity: 0 }, { opacity: 1, offset: 0.18 }, { opacity: 0.85, offset: 0.6 }, { opacity: 0 }], { duration: 1600, easing: "ease-out" }).onfinish = () => veil.remove();
+
+  // 2) Mehrere Schockwellen-Ringe
+  for (let i = 0; i < 3; i++) {
+    const ring = document.createElement("div");
+    ring.style.cssText =
+      `position:absolute;left:${cx}px;top:${cy}px;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;` +
+      `border:3px solid rgba(255,${90 - i * 20},${40},0.9);box-shadow:0 0 24px rgba(255,70,40,0.9);`;
+    root.appendChild(ring);
+    ring.animate(
+      [{ transform: "scale(0.2)", opacity: 0.95 }, { transform: `scale(${7 + i * 2})`, opacity: 0 }],
+      { duration: 900 + i * 220, easing: "cubic-bezier(.2,.7,.3,1)", delay: i * 120 }
+    ).onfinish = () => ring.remove();
+  }
+
+  // 3) Splitter radial (Knochen/Glut)
+  const N = 18;
+  for (let i = 0; i < N; i++) {
+    const sh = document.createElement("div");
+    const ang = (Math.PI * 2 * i) / N + (i % 2 ? 0.3 : 0);
+    const dist = 90 + (i % 4) * 40;
+    const col = i % 2 ? "#ffd089" : "#ff4a2d";
+    sh.style.cssText =
+      `position:absolute;left:${cx}px;top:${cy}px;width:4px;height:16px;margin:-8px 0 0 -2px;border-radius:2px;` +
+      `background:linear-gradient(${col},#7a1010);box-shadow:0 0 10px ${col};`;
+    root.appendChild(sh);
+    sh.animate(
+      [{ transform: `rotate(${ang}rad) translateY(0) scale(1)`, opacity: 1 }, { transform: `rotate(${ang}rad) translateY(-${dist}px) scale(0.3)`, opacity: 0 }],
+      { duration: 700 + (i % 4) * 120, easing: "ease-out" }
+    ).onfinish = () => sh.remove();
+  }
+
+  // 4) Grosser Totenkopf, der hochskaliert und vergeht
+  const skull = document.createElement("div");
+  skull.textContent = "💀";
+  skull.style.cssText =
+    `position:absolute;left:${cx}px;top:${cy}px;transform:translate(-50%,-50%);font-size:54px;` +
+    `filter:drop-shadow(0 0 18px rgba(255,60,40,0.95));`;
+  root.appendChild(skull);
+  skull.animate(
+    [
+      { transform: "translate(-50%,-50%) scale(0.2) rotate(-12deg)", opacity: 0 },
+      { transform: "translate(-50%,-50%) scale(1.5) rotate(0deg)", opacity: 1, offset: 0.3 },
+      { transform: "translate(-50%,-90%) scale(1.7) rotate(6deg)", opacity: 1, offset: 0.7 },
+      { transform: "translate(-50%,-130%) scale(1.3) rotate(10deg)", opacity: 0 },
+    ],
+    { duration: 1500, easing: "cubic-bezier(.2,.8,.3,1)" }
+  ).onfinish = () => skull.remove();
+}
+
 // Angreifer-Lunge: die Figur holt aus, stoesst zum Ziel und federt zurueck.
 export function lungeAttack(
   attackerEl: HTMLElement | null,

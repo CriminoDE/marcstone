@@ -7,6 +7,19 @@ Format: `## [Version] - Datum` mit Kategorien Hinzugefuegt / Geaendert / Behoben
 
 ---
 
+## [2.9.1] - FFA-Lobby-Fix + hellerer Mana-Glow + epischer Todes-Moment
+
+### Behoben
+- **FFA-Lobby-Haenger (kritisch):** Nach einem Free-for-All kam man nicht zurueck in die Lobby - egal was man klickte, es zog einen zurueck in den (beendeten) Raum. Ursache: der verlassende Spieler blieb Broadcast-Mitglied + nachzuegelnde Updates zogen zurueck. Fix: Server entfernt den Sitz beim Verlassen in JEDER Phase, Client ignoriert Raum-Updates nach bewusstem Verlassen (`hasLeftRoomRef`). Browser-getestet.
+
+### Geaendert
+- **Mana-Glow deutlich heller:** Spielbare Handkarten leuchten jetzt kraeftig gruen + pulsieren + heller; nicht spielbare sind klar abgedunkelt (mehr Kontrast). Henry-Feedback: "muss hell leuchten".
+
+### Hinzugefuegt
+- **Epischer Todes-Moment:** Wenn ein Held auf 0 faellt, gibt es jetzt eine fette Explosion (Schockwellen + Splitter + Totenkopf + blutroter Bildschirm-Puls) + tiefen Untergangs-Boom-Sound.
+- **"So endete es":** Der Sieg-Bildschirm (Duell + FFA) zeigt jetzt die letzten Log-Zeilen, damit man sieht, was der entscheidende Zug war.
+- (Offen/naechste Session: voller Zeitlupen-Replay des letzten Zuges mit Karten-Praesentation - siehe docs/RESUME.md.)
+
 ## [2.9.0] - Klassen-Identitaet, echtes Einfrieren, Sichtbarkeit + Balance
 
 ### Hinzugefuegt

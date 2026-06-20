@@ -2097,18 +2097,14 @@ function handleGameAction(connectionId: string, action: ClientAction) {
         const seats = ffaSeats(room);
         const seat = seats.find(p => p.id === connectionId);
         if (seat) {
-          if (room.phase === "lobby") {
-            // In der Lobby: Sitz ganz entfernen + Sitze neu nummerieren.
-            room.players = seats.filter(p => p.id !== connectionId).map((p, i) => ({ ...p, seat: i }));
-            addLog(room, `${seat.name} hat das Free-for-All verlassen.`);
-          } else {
-            // Im Spiel: als ausgeschieden markieren (gibt den Rest frei).
-            seat.isEliminated = true;
-            seat.health = 0;
-            seat.board = [];
-            addLog(room, `${seat.name} hat aufgegeben und scheidet aus.`);
-            checkFfaVictory(room);
-            if (room.turn === connectionId && room.phase === "playing") advanceFfaTurn(room, connectionId);
+          // Sitz in JEDER Phase ganz entfernen (auch nach Sieg!), sonst bleibt der Leaver
+          // Broadcast-Mitglied und wird zurueck in den Raum gezogen (Lobby-Haenger).
+          const wasTheirTurn = room.phase === "playing" && room.turn === connectionId;
+          room.players = seats.filter(p => p.id !== connectionId).map((p, i) => ({ ...p, seat: i }));
+          addLog(room, `${seat.name} hat das Free-for-All verlassen.`);
+          if (room.phase === "playing") {
+            if (wasTheirTurn) advanceFfaTurn(room, connectionId);
+            else checkFfaVictory(room);
           }
         }
         if ((room.players?.length ?? 0) === 0) rooms.delete(roomId);

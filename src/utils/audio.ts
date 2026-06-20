@@ -27,7 +27,7 @@ function noiseBurst(ctx: AudioContext, dur: number): AudioBufferSourceNode {
   return src;
 }
 
-export function playSound(type: "play_card" | "attack" | "spell" | "heal" | "victory" | "loss" | "countdown_warning" | "countdown_urgent" | "hit" | "hurt") {
+export function playSound(type: "play_card" | "attack" | "spell" | "heal" | "victory" | "loss" | "countdown_warning" | "countdown_urgent" | "hit" | "hurt" | "hero_death") {
   try {
     const ctx = getAudioContext();
     const now = ctx.currentTime;
@@ -262,6 +262,42 @@ export function playSound(type: "play_card" | "attack" | "spell" | "heal" | "vic
         nGain.connect(destination);
         noise.start(now);
         noise.stop(now + 0.12);
+        break;
+      }
+
+      case "hero_death": {
+        // Entscheidender Schlag: tiefer, langer Untergangs-Boom + abfallender Heulton + Explosion-Rausch.
+        const boom = ctx.createOscillator();
+        const bGain = ctx.createGain();
+        boom.type = "sine";
+        boom.frequency.setValueAtTime(140, now);
+        boom.frequency.exponentialRampToValueAtTime(28, now + 0.9);
+        bGain.gain.setValueAtTime(0.001, now);
+        bGain.gain.exponentialRampToValueAtTime(0.5, now + 0.04);
+        bGain.gain.exponentialRampToValueAtTime(0.01, now + 1.0);
+        boom.connect(bGain); bGain.connect(destination);
+        boom.start(now); boom.stop(now + 1.05);
+
+        const wail = ctx.createOscillator();
+        const wGain = ctx.createGain();
+        wail.type = "sawtooth";
+        wail.frequency.setValueAtTime(520, now);
+        wail.frequency.exponentialRampToValueAtTime(70, now + 0.8);
+        wGain.gain.setValueAtTime(0.12, now);
+        wGain.gain.exponentialRampToValueAtTime(0.01, now + 0.85);
+        wail.connect(wGain); wGain.connect(destination);
+        wail.start(now); wail.stop(now + 0.9);
+
+        const ex = noiseBurst(ctx, 0.5);
+        const exGain = ctx.createGain();
+        const exFilt = ctx.createBiquadFilter();
+        exFilt.type = "lowpass";
+        exFilt.frequency.setValueAtTime(2400, now);
+        exFilt.frequency.exponentialRampToValueAtTime(300, now + 0.5);
+        exGain.gain.setValueAtTime(0.3, now);
+        exGain.gain.exponentialRampToValueAtTime(0.01, now + 0.55);
+        ex.connect(exFilt); exFilt.connect(exGain); exGain.connect(destination);
+        ex.start(now); ex.stop(now + 0.55);
         break;
       }
     }
