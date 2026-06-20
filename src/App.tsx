@@ -306,9 +306,9 @@ export default function App() {
 
             // Identify my player slot (by current id or by name) and keep connectionId fresh.
             // Matching by name is what makes reconnect work: after a rejoin the server hands us a new id.
-            // FFA: das eigene Seat steckt in players[] (nicht player1/player2).
+            // FFA/2v2: das eigene Seat steckt in players[] (nicht player1/player2).
             const mine =
-              updatedRoom.mode === "ffa"
+              updatedRoom.mode === "ffa" || updatedRoom.mode === "2v2"
                 ? (updatedRoom.players || []).find(p => p.id === connectionIdRef.current || p.name === myName) || null
                 : updatedRoom.player1 && (updatedRoom.player1.id === connectionIdRef.current || updatedRoom.player1.name === myName)
                 ? updatedRoom.player1
@@ -492,13 +492,15 @@ export default function App() {
   };
 
   // 1. Core Lobby Buttons
-  const handleCreateRoom = (vsAI: boolean = false, mode: "duel" | "ffa" = "duel", maxPlayers?: number) => {
+  const handleCreateRoom = (vsAI: boolean = false, mode: "duel" | "ffa" | "2v2" = "duel", maxPlayers?: number) => {
     setErrorMsg(null);
     hasLeftRoomRef.current = false; // absichtlich Raum betreten -> Updates wieder annehmen
     sendAction({
       type: "CREATE_ROOM",
       payload: mode === "ffa"
         ? { playerName, heroClass: selectedClass, mode: "ffa", maxPlayers }
+        : mode === "2v2"
+        ? { playerName, heroClass: selectedClass, mode: "2v2", maxPlayers: 4 }
         : { playerName, heroClass: selectedClass, playAgainstAI: vsAI },
     });
   };
@@ -1047,8 +1049,8 @@ export default function App() {
     );
   }
 
-  // FFA (Free-for-All): komplett eigener Render-Pfad, lässt die Duell-UI unangetastet.
-  if (room.mode === "ffa") {
+  // FFA + 2v2: komplett eigener Render-Pfad (FfaGame), lässt die Duell-UI unangetastet.
+  if (room.mode === "ffa" || room.mode === "2v2") {
     return (
       <FfaGame
         room={room}

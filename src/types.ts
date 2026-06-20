@@ -43,9 +43,13 @@ export interface PlayerState {
   selectedHeroPowerIndex?: number; // 0, 1, or 2 (undefined means they still need to choose)
   isEliminated?: boolean; // FFA: Held tot -> raus aus der Zug-Rotation, Brett geleert
   seat?: number; // FFA: Sitzplatz-Index (0 = Ersteller), bestimmt Anordnung im Dreieck/Kreis
+  team?: Team; // 2v2: Team A oder B
+  isBot?: boolean; // FFA/2v2: KI-gesteuerter Sitz (Holgar-artig, kein echter Client)
 }
 
-export type GameMode = "duel" | "ffa"; // duel = 1v1 (Haupt), ffa = Free-for-All 3-4 Spieler (Spassmodus)
+export type GameMode = "duel" | "ffa" | "2v2"; // duel = 1v1 (Haupt), ffa = Free-for-All 3-4, 2v2 = Teams (auf FFA-Infra)
+
+export type Team = "A" | "B";
 
 // Der entscheidende Schlag (letzte Aktion, die einen Helden auf 0 brachte).
 // Wird vom Server beim Sieg gesetzt -> Client spielt daraus ein Zeitlupen-Kino ab.
@@ -83,6 +87,7 @@ export interface RoomState {
   maxPlayers?: number; // FFA: 3 oder 4
   isAIGame?: boolean;
   winnerId: string | null;
+  winnerTeam?: Team | "DRAW" | null; // 2v2: welches Team gewonnen hat
   history: string[]; // server action log e.g., "Player A summoned Boulderfist Ogre"
   messages: ChatMessage[];
   creatorId?: string; // Socket ID of room creator
@@ -132,5 +137,6 @@ export type ClientAction =
   | { type: "ROLL_FORGE_DICE"; payload: { roomId: string } }
   | { type: "LEAVE_ROOM"; payload: { roomId: string } }
   | { type: "REGISTER_NAME"; payload: { name: string } }
-  | { type: "ADD_BOT"; payload: { roomId: string } }
+  | { type: "ADD_BOT"; payload: { roomId: string; team?: Team } }
+  | { type: "SET_TEAM"; payload: { roomId: string; team: Team } }
   | { type: "DELETE_ROOM"; payload: { roomId: string } };

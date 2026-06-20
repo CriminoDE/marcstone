@@ -113,7 +113,7 @@ function broadcastToRoom(roomId: string, message: GameEvent) {
 
 // Single source of truth for the lobby room cards (handles duel + ffa display).
 function buildRoomInfo(r: RoomState) {
-  if (r.mode === "ffa") {
+  if (isFfaLike(r)) {
     const seats = r.players ?? [];
     return {
       roomId: r.roomId,
@@ -593,15 +593,16 @@ function beginGamePhase(room: RoomState) {
   room.finisher = null;
   setActiveFx(null);
 
-  // FFA: eigener Start (erster Sitz beginnt, Mana-Ramp + 5. Karte via beginFfaTurn).
-  if (room.mode === "ffa") {
+  // FFA/2v2: eigener Start (erster Sitz beginnt, Mana-Ramp + 5. Karte via beginFfaTurn).
+  if (isFfaLike(room)) {
     room.phase = "playing";
     room.heroSelectionEndTime = undefined;
     ffaSeats(room).forEach(p => { if (p.selectedHeroPowerIndex === undefined) p.selectedHeroPowerIndex = 0; });
     const first = ffaSeats(room).find(p => p.id === room.turn) || ffaAlive(room)[0];
-    addLog(room, `⚔️ Free-for-All beginnt! ${first?.name ?? "Niemand"} eröffnet.`);
+    addLog(room, room.mode === "2v2" ? `⚔️ 2v2 beginnt! ${first?.name ?? "Niemand"} eröffnet.` : `⚔️ Free-for-All beginnt! ${first?.name ?? "Niemand"} eröffnet.`);
     if (first) beginFfaTurn(room, first);
     broadcastToRoom(room.roomId, { type: "ROOM_STATE_UPDATE", payload: room });
+    if (room.phase === "playing" && first?.isBot) playFfaBotTurn(room, first);
     return;
   }
 
@@ -635,7 +636,7 @@ setInterval(() => {
   const now = Date.now();
   rooms.forEach((room) => {
     if (room.phase === "playing" && room.turn && room.turnEndTime && now >= room.turnEndTime) {
-      if (room.mode === "ffa") advanceFfaTurn(room, room.turn);
+      if (isFfaLike(room)) advanceFfaTurn(room, room.turn);
       else processEndTurn(room, room.turn);
     } else if (room.phase === "hero_selection" && room.heroSelectionEndTime && now >= room.heroSelectionEndTime) {
       beginGamePhase(room);
@@ -653,7 +654,27 @@ setInterval(() => {
 function ffaSeats(room: RoomState): PlayerState[] { return room.players ?? []; }
 function ffaAlive(room: RoomState): PlayerState[] { return ffaSeats(room).filter(p => !p.isEliminated && p.health > 0); }
 function ffaActor(room: RoomState, connId: string): PlayerState | undefined { return ffaSeats(room).find(p => p.id === connId); }
-function ffaOpponents(room: RoomState, actor: PlayerState): PlayerState[] { return ffaAlive(room).filter(p => p.id !== actor.id); }
+
+// --- Team-Modus (2v2) ---
+function isTeamMode(room: RoomState): boolean { return room.mode === "2v2"; }
+// FFA-Infra greift fuer Free-for-All UND 2v2 (beide nutzen room.players[]).
+function isFfaLike(room: RoomState): boolean { return room.mode === "ffa" || room.mode === "2v2"; }
+function sameTeam(a: PlayerState, b: PlayerState): boolean { return !!a.team && a.team === b.team; }
+// Gegner = im 2v2 nur das Feind-Team, sonst alle ausser dem Akteur. Steuert AoE/Random/Sieg.
+function ffaOpponents(room: RoomState, actor: PlayerState): PlayerState[] {
+  return ffaAlive(room).filter(p => p.id !== actor.id && (!isTeamMode(room) || !sameTeam(p, actor)));
+}
+// Verbuendete (2v2): lebende Team-Kameraden ohne den Akteur selbst.
+function ffaAllies(room: RoomState, actor: PlayerState): PlayerState[] {
+  if (!isTeamMode(room)) return [];
+  return ffaAlive(room).filter(p => p.id !== actor.id && sameTeam(p, actor));
+}
+// Darf "actor" dieses Ziel mit Schaden/Angriff treffen? (im 2v2 nie Verbuendete/sich selbst)
+function isEnemyTarget(room: RoomState, actor: PlayerState, target: PlayerState): boolean {
+  if (target.id === actor.id) return false;
+  if (isTeamMode(room) && sameTeam(target, actor)) return false;
+  return true;
+}
 function ffaHeroById(room: RoomState, playerId?: string): PlayerState | undefined {
   if (!playerId) return undefined;
   return ffaSeats(room).find(p => p.id === playerId && !p.isEliminated);
@@ -686,13 +707,18 @@ function ffaHitMinion(room: RoomState, owner: PlayerState, minion: Card, amount:
   owner.board = owner.board.filter(m => m.health > 0);
 }
 // Einzelziel-Schaden (Zauber/Heldenkräfte): Held via targetPlayerId, Diener via Besitzer-Suche.
-function ffaDamageTarget(room: RoomState, amount: number, src: string, targetPlayerId?: string, targetId?: string, isTargetHero?: boolean) {
+// caster (optional): im 2v2 wird Schaden auf Verbuendete/sich selbst blockiert (Friendly Fire aus).
+function ffaDamageTarget(room: RoomState, amount: number, src: string, targetPlayerId?: string, targetId?: string, isTargetHero?: boolean, caster?: PlayerState) {
   if (isTargetHero) {
     const t = ffaHeroById(room, targetPlayerId);
-    if (t) ffaHitHero(room, t, amount, src);
+    if (!t) return;
+    if (caster && !isEnemyTarget(room, caster, t)) return; // kein Schaden auf eigenes Team
+    ffaHitHero(room, t, amount, src);
   } else if (targetId) {
     const found = ffaFindMinion(room, targetId);
-    if (found) ffaHitMinion(room, found.owner, found.minion, amount, src);
+    if (!found) return;
+    if (caster && !isEnemyTarget(room, caster, found.owner)) return; // kein Schaden auf Team-Diener
+    ffaHitMinion(room, found.owner, found.minion, amount, src);
   }
 }
 function ffaHealTarget(room: RoomState, caster: PlayerState, amount: number, targetPlayerId?: string, targetId?: string, isTargetHero?: boolean) {
@@ -752,13 +778,36 @@ function checkFfaVictory(room: RoomState): boolean {
     }
   });
   const alive = ffaAlive(room);
+
+  // 2v2: Sieg, sobald ein Team komplett gefallen ist (oder beide gleichzeitig = Unentschieden).
+  if (isTeamMode(room)) {
+    const aAlive = alive.filter(p => p.team === "A").length;
+    const bAlive = alive.filter(p => p.team === "B").length;
+    if (aAlive > 0 && bAlive > 0) return false; // beide Teams leben -> weiter
+    room.phase = "victory";
+    if (aAlive === 0 && bAlive === 0) {
+      room.winnerTeam = "DRAW";
+      room.winnerId = "DRAW";
+      addLog(room, `💀 Beide Teams ausgelöscht. Unentschieden!`);
+    } else {
+      const wt: "A" | "B" = aAlive > 0 ? "A" : "B";
+      room.winnerTeam = wt;
+      const winners = ffaSeats(room).filter(p => p.team === wt);
+      room.winnerId = winners[0]?.id ?? null; // Repraesentant (Client nutzt winnerTeam)
+      addLog(room, `👑 Team ${wt} gewinnt Marcgard! (${winners.map(w => w.name).join(" & ")})`);
+      winners.filter(w => !w.isBot).forEach(w => recordWin(w.name));
+    }
+    broadcastLobbyState();
+    return true;
+  }
+
   if (alive.length <= 1) {
     room.phase = "victory";
     const winner = alive[0] || null;
     room.winnerId = winner ? winner.id : "DRAW";
     if (winner) {
       addLog(room, `👑 ${winner.name} ist der letzte Überlebende und gewinnt Marcgard!`);
-      recordWin(winner.name);
+      if (!winner.isBot) recordWin(winner.name);
     } else {
       addLog(room, `💀 Alle gefallen. Unentschieden!`);
     }
@@ -784,7 +833,7 @@ function advanceFfaTurn(room: RoomState, fromConnId: string) {
   for (let step = 1; step <= seats.length; step++) {
     const cand = seats[(idx + step) % seats.length];
     if (!cand || cand.isEliminated || cand.health <= 0) continue;
-    if (!clients.has(cand.id)) continue; // offline überspringen
+    if (!cand.isBot && !clients.has(cand.id)) continue; // offline überspringen (Bots haben keinen Client)
     next = cand;
     break;
   }
@@ -801,6 +850,118 @@ function advanceFfaTurn(room: RoomState, fromConnId: string) {
 
   checkFfaVictory(room);
   broadcastToRoom(room.roomId, { type: "ROOM_STATE_UPDATE", payload: room });
+
+  // Wenn der neue Spieler ein Bot ist: KI-Zug starten.
+  if (room.phase === "playing" && room.turn === next.id && next.isBot) playFfaBotTurn(room, next);
+}
+
+// FFA/2v2-Bot: heuristischer KI-Zug (kein externer API-Call). Spielt Karten, nutzt
+// eine offensive Heldenkraft, greift dann an. Team-aware ueber ffaOpponents (trifft im
+// 2v2 nur das Feind-Team). Beendet den Zug selbst via advanceFfaTurn.
+async function playFfaBotTurn(room: RoomState, bot: PlayerState) {
+  if (!bot.isBot) return;
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  const weakestEnemyHero = (): PlayerState | null =>
+    ffaOpponents(room, bot).slice().sort((a, b) => a.health - b.health)[0] || null;
+
+  try {
+    await sleep(1100);
+    if (room.phase !== "playing" || room.turn !== bot.id) return;
+
+    // 1) Karten spielen, solange bezahlbar (Diener zuerst, dann Zauber).
+    for (let guard = 0; guard < 25; guard++) {
+      if (room.phase !== "playing" || room.turn !== bot.id) break;
+      const affordable = bot.hand.filter((c) => c.cost <= bot.mana);
+      if (affordable.length === 0) break;
+      let pick = bot.board.length < 7 ? affordable.find((c) => c.type === "minion") : undefined;
+      if (!pick) pick = affordable.find((c) => c.type === "spell");
+      if (!pick) break;
+
+      bot.mana -= pick.cost;
+      bot.hand.splice(bot.hand.indexOf(pick), 1);
+
+      if (pick.type === "minion") {
+        pick.isReady = pick.hasCharge || false;
+        bot.board.push(pick);
+        addLog(room, `🛡️ ${bot.name} stellt ${pick.name} auf (${pick.attack}/${pick.health}).`);
+        const enemy = weakestEnemyHero();
+        if (pick.templateId === "alexstrasza") {
+          const healSelf = bot.health < 15;
+          resolveFfaBattlecry(room, bot, pick, healSelf ? bot.id : enemy?.id, undefined, true);
+        } else {
+          resolveFfaBattlecry(room, bot, pick, enemy?.id, undefined, true);
+        }
+      } else {
+        const enemy = weakestEnemyHero();
+        const tpl = pick.templateId;
+        const targetedDmg = ["arc_shot", "fireball", "meteor", "pyroblast"].includes(tpl) || (tpl === "custom_magic" && pick.spellEffect === "damage");
+        const healing = tpl === "heal_touch" || (tpl === "custom_magic" && pick.spellEffect === "heal");
+        if (targetedDmg && enemy) resolveFfaSpell(room, bot, pick, enemy.id, undefined, true);
+        else if (healing) resolveFfaSpell(room, bot, pick, bot.id, undefined, true);
+        else if (tpl === "mind_control") {
+          const strongest = ffaOpponents(room, bot).flatMap((o) => o.board).slice().sort((a, b) => b.attack - a.attack)[0];
+          if (strongest) resolveFfaSpell(room, bot, pick, undefined, strongest.id, false);
+          else resolveFfaSpell(room, bot, pick);
+        } else {
+          resolveFfaSpell(room, bot, pick); // AoE / Draw / Buff
+        }
+      }
+      checkFfaVictory(room);
+    }
+
+    // 2) Offensive Heldenkraft (Sicherer Schuss / Feuerstoss) aufs schwaechste Feind-Gesicht.
+    if (room.phase === "playing" && room.turn === bot.id && !bot.heroPowerUsed && bot.mana >= HERO_POWER_COST) {
+      const idx = bot.selectedHeroPowerIndex ?? 0;
+      const enemy = weakestEnemyHero();
+      if (enemy && idx === 0 && (bot.heroClass === "Hunter" || bot.heroClass === "Mage")) {
+        bot.mana -= HERO_POWER_COST;
+        bot.heroPowerUsed = true;
+        const power = HERO_POWERS_LIST[bot.heroClass][0];
+        setActiveFx({ actorName: bot.name, kind: "power", name: power.name, emoji: "✨" });
+        addLog(room, `${bot.name} nutzt Heldenkraft: ${power.name}.`);
+        ffaHitHero(room, enemy, bot.heroClass === "Hunter" ? 2 : 1, power.name);
+        checkFfaVictory(room);
+      }
+    }
+
+    // 3) Mit allen bereiten Dienern angreifen (Feind-Spott zuerst, sonst schwaechstes Feind-Gesicht).
+    if (room.phase === "playing" && room.turn === bot.id) {
+      for (const attacker of [...bot.board]) {
+        if (room.phase !== "playing" || room.turn !== bot.id) break;
+        if (!bot.board.includes(attacker) || !attacker.isReady) continue;
+        const enemies = ffaOpponents(room, bot);
+        if (enemies.length === 0) break;
+
+        const taunts = enemies.flatMap((o) => o.board.filter((m) => m.hasTaunt).map((m) => ({ owner: o, minion: m })));
+        if (taunts.length > 0) {
+          const tgt = taunts.sort((a, b) => a.minion.health - b.minion.health)[0];
+          const defender = tgt.minion;
+          if (defender.hasDivineShield) defender.hasDivineShield = false; else defender.health -= attacker.attack;
+          if (attacker.hasDivineShield) attacker.hasDivineShield = false; else attacker.health -= defender.attack;
+          attacker.isReady = false;
+          addLog(room, `⚔️ ${attacker.name} prallt auf ${defender.name}.`);
+          if (defender.health <= 0) triggerRageChat(room, tgt.owner, "minion_died");
+          bot.board = bot.board.filter((m) => m.health > 0);
+          tgt.owner.board = tgt.owner.board.filter((m) => m.health > 0);
+        } else {
+          const tgtHero = enemies.slice().sort((a, b) => a.health - b.health)[0];
+          tgtHero.health -= attacker.attack;
+          setActiveFx({ actorName: bot.name, kind: "attack", name: attacker.name, emoji: attacker.emoji, cardType: "minion", templateId: attacker.templateId, attack: attacker.attack });
+          recordHeroBlow(room, tgtHero, attacker.attack);
+          attacker.isReady = false;
+          addLog(room, `⚔️ ${attacker.name} trifft ${tgtHero.name} für ${attacker.attack}.`);
+          if (attacker.attack >= 4) triggerRageChat(room, tgtHero, "high_damage");
+        }
+        checkFfaVictory(room);
+      }
+    }
+  } catch (err) {
+    console.error("FFA-Bot-Zug-Fehler", err);
+  } finally {
+    broadcastToRoom(room.roomId, { type: "ROOM_STATE_UPDATE", payload: room });
+    await sleep(800);
+    if (room.phase === "playing" && room.turn === bot.id) advanceFfaTurn(room, bot.id);
+  }
 }
 
 // FFA-Battlecries: AoE trifft ALLE Gegner, Random quer über alle Gegner, alexstrasza zielbar.
@@ -867,10 +1028,10 @@ function resolveFfaSpell(room: RoomState, actor: PlayerState, card: Card, target
     addLog(room, `${card.name} trifft alle gegnerischen Diener für ${dmg}.`);
   };
 
-  if (t === "arc_shot") ffaDamageTarget(room, 2, card.name, targetPlayerId, targetId, isTargetHero);
-  else if (t === "fireball") ffaDamageTarget(room, 6, card.name, targetPlayerId, targetId, isTargetHero);
-  else if (t === "meteor") ffaDamageTarget(room, 8, card.name, targetPlayerId, targetId, isTargetHero);
-  else if (t === "pyroblast") ffaDamageTarget(room, 10, card.name, targetPlayerId, targetId, isTargetHero);
+  if (t === "arc_shot") ffaDamageTarget(room, 2, card.name, targetPlayerId, targetId, isTargetHero, actor);
+  else if (t === "fireball") ffaDamageTarget(room, 6, card.name, targetPlayerId, targetId, isTargetHero, actor);
+  else if (t === "meteor") ffaDamageTarget(room, 8, card.name, targetPlayerId, targetId, isTargetHero, actor);
+  else if (t === "pyroblast") ffaDamageTarget(room, 10, card.name, targetPlayerId, targetId, isTargetHero, actor);
   else if (t === "heal_touch") ffaHealTarget(room, actor, 6, targetPlayerId, targetId, isTargetHero);
   else if (t === "consecration") aoe(2);
   else if (t === "flamestrike") aoe(4);
@@ -886,9 +1047,12 @@ function resolveFfaSpell(room: RoomState, actor: PlayerState, card: Card, target
       o.board.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 2; });
       o.board = o.board.filter(m => m.health > 0);
     });
-    actor.health = Math.min(actor.maxHealth || 30, actor.health + 2);
-    actor.board.forEach(m => m.health = Math.min(m.maxHealth, m.health + 2));
-    addLog(room, `🌟 Heilige Nova: 2 an Feinden, +2 fuer deine Seite.`);
+    const friends = [actor, ...ffaAllies(room, actor)];
+    friends.forEach(fr => {
+      fr.health = Math.min(fr.maxHealth || 30, fr.health + 2);
+      fr.board.forEach(m => m.health = Math.min(m.maxHealth, m.health + 2));
+    });
+    addLog(room, `🌟 Heilige Nova: 2 an Feinden, +2 für deine Seite.`);
   }
   else if (t === "multi_shot") {
     for (let k = 0; k < 2; k++) {
@@ -906,7 +1070,7 @@ function resolveFfaSpell(room: RoomState, actor: PlayerState, card: Card, target
   else if (t === "mind_control") {
     if (!isTargetHero && targetId) {
       const found = ffaFindMinion(room, targetId);
-      if (found && found.owner.id !== actor.id) {
+      if (found && isEnemyTarget(room, actor, found.owner)) {
         found.owner.board = found.owner.board.filter(m => m.id !== targetId);
         if (actor.board.length < 7) {
           found.minion.isReady = false;
@@ -918,7 +1082,7 @@ function resolveFfaSpell(room: RoomState, actor: PlayerState, card: Card, target
       }
     }
   } else if (t === "custom_magic") {
-    if (card.spellEffect === "damage") ffaDamageTarget(room, card.spellValue || 1, card.name, targetPlayerId, targetId, isTargetHero);
+    if (card.spellEffect === "damage") ffaDamageTarget(room, card.spellValue || 1, card.name, targetPlayerId, targetId, isTargetHero, actor);
     else if (card.spellEffect === "heal") ffaHealTarget(room, actor, card.spellValue || 1, targetPlayerId, targetId, isTargetHero);
     else if (card.spellEffect === "draw") { addLog(room, `📖 Alchemie-Zauber zieht ${card.spellValue || 1} Karten.`); drawN(card.spellValue || 1); }
   }
@@ -959,7 +1123,8 @@ function handleFfaAttack(room: RoomState, actor: PlayerState, payload: any, ws: 
 
   if (isTargetHero) {
     const target = ffaHeroById(room, targetPlayerId);
-    if (!target || target.id === actor.id) return;
+    if (!target) return;
+    if (!isEnemyTarget(room, actor, target)) { ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Das ist dein Verbündeter - greif das Feind-Team an!" } })); return; }
     if (target.board.some(m => m.hasTaunt)) { ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Dieser Gegner hat Spott - greif zuerst einen Spott-Diener an!" } })); return; }
     target.health -= attacker.attack;
     setActiveFx({ actorName: actor.name, kind: "attack", name: attacker.name, emoji: attacker.emoji, cardType: "minion", templateId: attacker.templateId, attack: attacker.attack });
@@ -969,7 +1134,8 @@ function handleFfaAttack(room: RoomState, actor: PlayerState, payload: any, ws: 
     if (attacker.attack >= 4) triggerRageChat(room, target, "high_damage");
   } else if (targetCardId) {
     const found = ffaFindMinion(room, targetCardId);
-    if (!found || found.owner.id === actor.id) return;
+    if (!found) return;
+    if (!isEnemyTarget(room, actor, found.owner)) { ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Das ist ein Diener deines Teams!" } })); return; }
     const { owner, minion: defender } = found;
     if (owner.board.some(m => m.hasTaunt) && !defender.hasTaunt) { ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Du musst einen Spott-Diener angreifen!" } })); return; }
 
@@ -1012,9 +1178,9 @@ function handleFfaHeroPower(room: RoomState, actor: PlayerState, payload: any, w
   };
 
   if (pClass === "Mage") {
-    if (powerIdx === 0) ffaDamageTarget(room, 1, power.name, targetPlayerId, targetId, isTargetHero);
+    if (powerIdx === 0) ffaDamageTarget(room, 1, power.name, targetPlayerId, targetId, isTargetHero, actor);
     else if (powerIdx === 1) {
-      ffaDamageTarget(room, 1, power.name, targetPlayerId, targetId, isTargetHero);
+      ffaDamageTarget(room, 1, power.name, targetPlayerId, targetId, isTargetHero, actor);
       if (targetId && !isTargetHero) { const f = ffaFindMinion(room, targetId); if (f) { f.minion.isReady = false; f.minion.frozen = true; addLog(room, `❄️ ${f.minion.name} ist eingefroren und überspringt seinen nächsten Angriff!`); } }
     } else {
       const enemyMinions = ffaOpponents(room, actor).flatMap(o => o.board.map(m => ({ owner: o, minion: m })));
@@ -1027,7 +1193,7 @@ function handleFfaHeroPower(room: RoomState, actor: PlayerState, payload: any, w
       if (targetId) { const m = actor.board.find(x => x.id === targetId); if (m) { m.health += 2; m.maxHealth += 2; addLog(room, `✨ Power Infusion gibt ${m.name} +2 Leben.`); } }
       else { actor.health = Math.min(30, actor.health + 2); addLog(room, `✨ ${actor.name} heilt sich um 2.`); }
     } else {
-      ffaDamageTarget(room, 1, power.name, targetPlayerId, targetId, isTargetHero);
+      ffaDamageTarget(room, 1, power.name, targetPlayerId, targetId, isTargetHero, actor);
       if (targetId && !isTargetHero) { const f = ffaFindMinion(room, targetId); if (f) { const b = f.minion.attack; f.minion.attack = Math.max(0, f.minion.attack - 1); f.minion.tempAttackDebuff = (f.minion.tempAttackDebuff || 0) + (b - f.minion.attack); addLog(room, `🔮 Mind Spike senkt ${f.minion.name}s Angriff vorübergehend um 1.`); } }
     }
   } else if (pClass === "Hunter") {
@@ -1052,7 +1218,22 @@ function setupFfaGame(room: RoomState) {
   room.phase = "hero_selection";
   room.heroSelectionEndTime = Date.now() + 10000;
   room.winnerId = null;
+  room.winnerTeam = null;
+  room.finisher = null;
   room.history = [];
+
+  // 2v2: Sitze team-abwechselnd ordnen (A,B,A,B), damit die Zugfolge fair alterniert.
+  if (isTeamMode(room) && room.players) {
+    const aTeam = room.players.filter(p => p.team === "A");
+    const bTeam = room.players.filter(p => p.team === "B");
+    const interleaved: PlayerState[] = [];
+    for (let i = 0; i < Math.max(aTeam.length, bTeam.length); i++) {
+      if (aTeam[i]) interleaved.push(aTeam[i]);
+      if (bTeam[i]) interleaved.push(bTeam[i]);
+    }
+    room.players = interleaved;
+  }
+
   const seats = ffaSeats(room);
   seats.forEach((p, i) => {
     p.deck = generateClassDeck(p.heroClass);
@@ -1094,25 +1275,29 @@ function handleGameAction(connectionId: string, action: ClientAction) {
         return;
       }
 
-      // FFA-Raum: eigener Pfad (room.players[] statt player1/player2).
-      if (mode === "ffa") {
-        const cap = maxPlayers === 4 ? 4 : 3;
+      // FFA/2v2-Raum: eigener Pfad (room.players[] statt player1/player2).
+      if (mode === "ffa" || mode === "2v2") {
+        const isTeams = mode === "2v2";
+        const cap = isTeams ? 4 : (maxPlayers === 4 ? 4 : 3);
         const ffaRoomId = generateRoomCode();
         const seat0: PlayerState = {
           id: connectionId, name: playerName || "Spike", heroClass: heroClass || "Mage",
           health: 30, maxHealth: 30, mana: 0, maxMana: 0, deck: [], hand: [], board: [],
           heroPowerUsed: false, isReady: false, isOnline: true, seat: 0,
+          ...(isTeams ? { team: "A" as const } : {}),
         };
         const ffaRoom: RoomState = {
           roomId: ffaRoomId, player1: null, player2: null, turn: null, phase: "lobby",
-          mode: "ffa", maxPlayers: cap, players: [seat0],
-          winnerId: null, history: [], messages: [], creatorId: connectionId,
+          mode, maxPlayers: cap, players: [seat0],
+          winnerId: null, winnerTeam: null, history: [], messages: [], creatorId: connectionId,
           createdAt: Date.now(), lastActiveAt: Date.now(),
         };
         rooms.set(ffaRoomId, ffaRoom);
         clientRooms.set(connectionId, ffaRoomId);
         if (playerName) onlinePlayerNames.set(connectionId, playerName.trim());
-        addLog(ffaRoom, `${seat0.name} eröffnet ein Free-for-All (bis ${cap} Spieler)! Teilt den Code: ${ffaRoomId}`);
+        addLog(ffaRoom, isTeams
+          ? `${seat0.name} eröffnet ein 2v2 (Team A)! Teilt den Code: ${ffaRoomId}`
+          : `${seat0.name} eröffnet ein Free-for-All (bis ${cap} Spieler)! Teilt den Code: ${ffaRoomId}`);
         ws.send(JSON.stringify({ type: "ROOM_STATE_UPDATE", payload: ffaRoom }));
         broadcastLobbyState();
         return;
@@ -1204,7 +1389,7 @@ function handleGameAction(connectionId: string, action: ClientAction) {
       }
 
       // FFA-Beitritt: eigener Pfad (Sitz in players[] belegen oder per Name reconnecten).
-      if (room.mode === "ffa") {
+      if (isFfaLike(room)) {
         const normFfa = (playerName || "").trim().toLowerCase();
         const seats = ffaSeats(room);
         const existing = seats.find(p => p.name.trim().toLowerCase() === normFfa);
@@ -1233,15 +1418,25 @@ function handleGameAction(connectionId: string, action: ClientAction) {
           ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Dieser Raum ist voll!" } }));
           return;
         }
+        // 2v2: automatisch ins kleinere Team (kann im Warteraum per SET_TEAM gewechselt werden).
+        let joinTeam: "A" | "B" | undefined = undefined;
+        if (isTeamMode(room)) {
+          const aCount = seats.filter(p => p.team === "A").length;
+          const bCount = seats.filter(p => p.team === "B").length;
+          joinTeam = aCount <= bCount ? "A" : "B";
+        }
         const seat: PlayerState = {
           id: connectionId, name: playerName || `Spieler ${seats.length + 1}`, heroClass: heroClass || "Mage",
           health: 30, maxHealth: 30, mana: 0, maxMana: 0, deck: [], hand: [], board: [],
           heroPowerUsed: false, isReady: false, isOnline: true, seat: seats.length,
+          ...(joinTeam ? { team: joinTeam } : {}),
         };
         seats.push(seat);
         clientRooms.set(connectionId, cleanRoomId);
         if (playerName) onlinePlayerNames.set(connectionId, playerName.trim());
-        addLog(room, `🛡️ ${seat.name} (${seat.heroClass}) betritt das Free-for-All! (${seats.length}/${room.maxPlayers})`);
+        addLog(room, isTeamMode(room)
+          ? `🛡️ ${seat.name} (${seat.heroClass}) tritt Team ${joinTeam} bei! (${seats.length}/${room.maxPlayers})`
+          : `🛡️ ${seat.name} (${seat.heroClass}) betritt das Free-for-All! (${seats.length}/${room.maxPlayers})`);
         ws.send(JSON.stringify({ type: "ROOM_STATE_UPDATE", payload: room }));
         broadcastToRoom(cleanRoomId, { type: "ROOM_STATE_UPDATE", payload: room });
         broadcastLobbyState();
@@ -1366,10 +1561,20 @@ function handleGameAction(connectionId: string, action: ClientAction) {
       const room = rooms.get(roomId);
       if (!room) return;
 
-      // FFA-Start: nur der Ersteller (Sitz 0) darf starten, mind. 3 Spieler.
-      if (room.mode === "ffa") {
+      // FFA/2v2-Start: nur der Ersteller (Sitz 0) darf starten.
+      if (isFfaLike(room)) {
         if (ffaSeats(room)[0]?.id !== connectionId) { ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Nur der Ersteller kann starten." } })); return; }
-        if (ffaSeats(room).length < 3) { ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Free-for-All braucht mindestens 3 Spieler!" } })); return; }
+        if (isTeamMode(room)) {
+          const seats = ffaSeats(room);
+          const aCount = seats.filter(p => p.team === "A").length;
+          const bCount = seats.filter(p => p.team === "B").length;
+          if (seats.length !== 4 || aCount !== 2 || bCount !== 2) {
+            ws.send(JSON.stringify({ type: "ERROR", payload: { message: "2v2 braucht genau 2 gegen 2. Füllt leere Plätze mit Bots oder verschiebt Teams." } }));
+            return;
+          }
+        } else if (ffaSeats(room).length < 3) {
+          ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Free-for-All braucht mindestens 3 Spieler!" } })); return;
+        }
         setupFfaGame(room);
         broadcastToRoom(roomId, { type: "ROOM_STATE_UPDATE", payload: room });
         broadcastLobbyState();
@@ -1450,7 +1655,7 @@ function handleGameAction(connectionId: string, action: ClientAction) {
       const room = rooms.get(roomId);
       if (!room || room.phase !== "playing" || room.turn !== connectionId) return;
 
-      if (room.mode === "ffa") {
+      if (isFfaLike(room)) {
         const actor = ffaActor(room, connectionId);
         if (actor && !actor.isEliminated) handleFfaPlayCard(room, actor, action.payload, ws);
         break;
@@ -1630,7 +1835,7 @@ function handleGameAction(connectionId: string, action: ClientAction) {
       const room = rooms.get(roomId);
       if (!room || room.phase !== "playing" || room.turn !== connectionId) return;
 
-      if (room.mode === "ffa") {
+      if (isFfaLike(room)) {
         const actor = ffaActor(room, connectionId);
         if (actor && !actor.isEliminated) handleFfaAttack(room, actor, action.payload, ws);
         break;
@@ -1721,7 +1926,7 @@ function handleGameAction(connectionId: string, action: ClientAction) {
       const room = rooms.get(roomId);
       if (!room || room.phase !== "playing" || room.turn !== connectionId) return;
 
-      if (room.mode === "ffa") {
+      if (isFfaLike(room)) {
         const actor = ffaActor(room, connectionId);
         if (actor && !actor.isEliminated) handleFfaHeroPower(room, actor, action.payload, ws);
         break;
@@ -1927,7 +2132,7 @@ function handleGameAction(connectionId: string, action: ClientAction) {
       const room = rooms.get(roomId);
       if (!room || room.phase !== "hero_selection") return;
 
-      const player = room.mode === "ffa"
+      const player = isFfaLike(room)
         ? ffaActor(room, connectionId)
         : (room.player1?.id === connectionId ? room.player1 : room.player2);
       if (!player) return;
@@ -1954,7 +2159,7 @@ function handleGameAction(connectionId: string, action: ClientAction) {
       const room = rooms.get(roomId);
       if (!room) return;
 
-      const player = room.mode === "ffa"
+      const player = isFfaLike(room)
         ? ffaActor(room, connectionId)
         : (room.player1?.id === connectionId ? room.player1 : room.player2);
       if (!player) return;
@@ -2021,7 +2226,7 @@ function handleGameAction(connectionId: string, action: ClientAction) {
       const room = rooms.get(roomId);
       if (!room || room.phase !== "playing" || room.turn !== connectionId) return;
 
-      const player = room.mode === "ffa"
+      const player = isFfaLike(room)
         ? ffaActor(room, connectionId)
         : (room.player1?.id === connectionId ? room.player1 : room.player2);
       if (!player) return;
@@ -2055,7 +2260,7 @@ function handleGameAction(connectionId: string, action: ClientAction) {
       const room = rooms.get(roomId);
       if (!room || room.phase !== "playing" || room.turn !== connectionId) return;
 
-      if (room.mode === "ffa") advanceFfaTurn(room, room.turn);
+      if (isFfaLike(room)) advanceFfaTurn(room, room.turn);
       else processEndTurn(room, room.turn);
       break;
     }
@@ -2065,7 +2270,7 @@ function handleGameAction(connectionId: string, action: ClientAction) {
       const room = rooms.get(roomId);
       if (!room) return;
 
-      const senderState = room.mode === "ffa"
+      const senderState = isFfaLike(room)
         ? ffaActor(room, connectionId)
         : (room.player1?.id === connectionId ? room.player1 : room.player2);
       if (!senderState) return;
@@ -2095,11 +2300,13 @@ function handleGameAction(connectionId: string, action: ClientAction) {
       const room = rooms.get(roomId);
       if (!room) return;
 
-      // FFA: zurück in die Lobby, Sitze behalten (Ersteller startet neu).
-      if (room.mode === "ffa") {
+      // FFA/2v2: zurück in die Lobby, Sitze behalten (Ersteller startet neu).
+      if (isFfaLike(room)) {
         room.phase = "lobby";
         room.turn = null;
         room.winnerId = null;
+        room.winnerTeam = null;
+        room.finisher = null;
         room.history = [];
         room.messages = [];
         ffaSeats(room).forEach(p => {
@@ -2150,7 +2357,7 @@ function handleGameAction(connectionId: string, action: ClientAction) {
     case "LEAVE_ROOM": {
       const { roomId } = action.payload;
       const room = rooms.get(roomId);
-      if (room && room.mode === "ffa") {
+      if (room && isFfaLike(room)) {
         const seats = ffaSeats(room);
         const seat = seats.find(p => p.id === connectionId);
         if (seat) {
@@ -2202,9 +2409,47 @@ function handleGameAction(connectionId: string, action: ClientAction) {
     }
 
     case "ADD_BOT": {
-      const { roomId } = action.payload;
+      const { roomId, team } = action.payload;
       const room = rooms.get(roomId);
       if (!room) return;
+
+      // FFA/2v2: Host (Sitz 0) fuellt einen freien Platz mit einem KI-Bot.
+      if (isFfaLike(room)) {
+        const seats = ffaSeats(room);
+        if (seats[0]?.id !== connectionId) { ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Nur der Ersteller kann Bots hinzufügen." } })); return; }
+        if (room.phase !== "lobby") return;
+        if (seats.length >= (room.maxPlayers ?? 3)) { ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Der Raum ist voll!" } })); return; }
+
+        let botTeam: "A" | "B" | undefined = undefined;
+        if (isTeamMode(room)) {
+          const aCount = seats.filter(p => p.team === "A").length;
+          const bCount = seats.filter(p => p.team === "B").length;
+          const want = team === "A" || team === "B" ? team : (aCount <= bCount ? "A" : "B");
+          // Gewuenschtes Team voll -> ins andere; beide voll -> abbrechen.
+          if (want === "A" && aCount >= 2) botTeam = bCount < 2 ? "B" : undefined;
+          else if (want === "B" && bCount >= 2) botTeam = aCount < 2 ? "A" : undefined;
+          else botTeam = want;
+          if (!botTeam) { ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Beide Teams sind voll." } })); return; }
+        }
+
+        const FFA_BOT_NAMES = ["Holgar", "Brakka", "Sigrun", "Vidar", "Frostbjörn", "Greta"];
+        const FFA_BOT_CLASSES: HeroClass[] = ["Mage", "Priest", "Hunter", "Paladin"];
+        const botName = FFA_BOT_NAMES[seats.length % FFA_BOT_NAMES.length];
+        const botClass = FFA_BOT_CLASSES[Math.floor(Math.random() * FFA_BOT_CLASSES.length)];
+        const botSeat: PlayerState = {
+          id: `bot-${Math.random().toString(36).substring(2, 8)}`,
+          name: `${botName} (Bot)`, heroClass: botClass,
+          health: 30, maxHealth: 30, mana: 0, maxMana: 0, deck: [], hand: [], board: [],
+          heroPowerUsed: false, isReady: false, isOnline: true, isBot: true, seat: seats.length,
+          selectedHeroPowerIndex: 0, ...(botTeam ? { team: botTeam } : {}),
+        };
+        seats.push(botSeat);
+        addLog(room, isTeamMode(room) ? `🤖 ${botSeat.name} (${botClass}) tritt Team ${botTeam} bei!` : `🤖 ${botSeat.name} (${botClass}) betritt das Free-for-All!`);
+        broadcastToRoom(roomId, { type: "ROOM_STATE_UPDATE", payload: room });
+        broadcastLobbyState();
+        break;
+      }
+
       // Only the host of an empty, not-yet-started room may add the practice bot.
       if (!room.player1 || room.player1.id !== connectionId) return;
       if (room.player2 || room.phase !== "lobby") return;
@@ -2228,6 +2473,23 @@ function handleGameAction(connectionId: string, action: ClientAction) {
       room.isAIGame = true;
       addLog(room, "🛡️ Holgar der Übungsgegner betritt die Halle!");
 
+      broadcastToRoom(roomId, { type: "ROOM_STATE_UPDATE", payload: room });
+      broadcastLobbyState();
+      break;
+    }
+
+    case "SET_TEAM": {
+      const { roomId, team } = action.payload;
+      const room = rooms.get(roomId);
+      if (!room || !isTeamMode(room) || room.phase !== "lobby") return;
+      const seats = ffaSeats(room);
+      const me = seats.find(p => p.id === connectionId);
+      if (!me) return;
+      if (me.team === team) break; // schon drin
+      const otherCount = seats.filter(p => p.id !== connectionId && p.team === team).length;
+      if (otherCount >= 2) { ws.send(JSON.stringify({ type: "ERROR", payload: { message: `Team ${team} ist schon voll (2).` } })); return; }
+      me.team = team;
+      addLog(room, `🔁 ${me.name} wechselt zu Team ${team}.`);
       broadcastToRoom(roomId, { type: "ROOM_STATE_UPDATE", payload: room });
       broadcastLobbyState();
       break;
@@ -2362,7 +2624,7 @@ function handleCleanDisconnect(connectionId: string, manualRoomId?: string) {
 
   let anyChange = false;
 
-  if (room.mode === "ffa") {
+  if (isFfaLike(room)) {
     const seat = ffaSeats(room).find(p => p.id === connectionId);
     if (seat) {
       seat.isOnline = false;

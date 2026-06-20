@@ -10,7 +10,7 @@ interface LobbyProps {
   setSelectedClass: (heroClass: HeroClass) => void;
   roomIdInput: string;
   setRoomIdInput: (room: string) => void;
-  onCreateRoom: (vsAI: boolean, mode?: "duel" | "ffa", maxPlayers?: number) => void;
+  onCreateRoom: (vsAI: boolean, mode?: "duel" | "ffa" | "2v2", maxPlayers?: number) => void;
   onJoinRoom: () => void;
   errorMsg: string | null;
   openRooms: OpenRoomInfo[];
@@ -173,6 +173,18 @@ export function Lobby({
           </div>
         </div>
 
+        {/* 2v2 (Teams, Bots erlaubt) */}
+        <div className="mt-3">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-mg-fog font-display mb-1.5 text-center">2v2 · Team gegen Team · Bots erlaubt</div>
+          <button
+            type="button"
+            onClick={() => onCreateRoom(false, "2v2", 4)}
+            className="w-full py-2.5 rounded-xl font-display font-bold text-xs uppercase tracking-wide bg-mg-slate-raised text-mg-frost-text border border-emerald-500/40 hover:border-emerald-400 hover:bg-emerald-950/20 cursor-pointer transition-all"
+          >
+            🛡️ 2v2 erstellen · Teams + Bots
+          </button>
+        </div>
+
         {/* Join by code */}
         <div className="mt-3 flex gap-2">
           <input
@@ -209,9 +221,11 @@ export function Lobby({
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-display font-bold text-xs text-mg-bronze tracking-widest">{r.roomId}</span>
-                    {r.mode === "ffa" ? (
+                    {(r.mode === "ffa" || r.mode === "2v2") ? (
                       <span className="text-[10px] text-mg-blood-bright font-bold">
-                        {r.phase === "lobby" ? `🔺 FFA · ${r.playerCount}/${r.maxPlayers}` : "💥 FFA läuft"}
+                        {r.phase === "lobby"
+                          ? `${r.mode === "2v2" ? "🛡️ 2v2" : "🔺 FFA"} · ${r.playerCount}/${r.maxPlayers}`
+                          : (r.mode === "2v2" ? "🛡️ 2v2 läuft" : "💥 FFA läuft")}
                       </span>
                     ) : (
                       <span className="text-[10px] text-mg-fog">
@@ -221,7 +235,7 @@ export function Lobby({
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-mg-frost-text/90 truncate mt-0.5">
                     <span className={`w-1.5 h-1.5 rounded-full ${r.p1Online ? "bg-mg-poison" : "bg-mg-blood-bright"}`} />
-                    {r.mode === "ffa" ? (
+                    {(r.mode === "ffa" || r.mode === "2v2") ? (
                       <span className="truncate">{r.p1Name}{r.p2Name ? `, ${r.p2Name}` : ""}{(r.playerCount ?? 0) > 2 ? ` +${(r.playerCount ?? 0) - 2}` : ""}</span>
                     ) : (
                       <>
@@ -236,10 +250,10 @@ export function Lobby({
                   <button
                     type="button"
                     onClick={() => onQuickJoin(r.roomId)}
-                    disabled={r.mode === "ffa" && r.phase !== "lobby"}
+                    disabled={(r.mode === "ffa" || r.mode === "2v2") && r.phase !== "lobby"}
                     className="text-[11px] font-display font-bold uppercase tracking-wide bg-mg-bronze hover:bg-mg-bronze-bright text-mg-void py-1.5 px-3 rounded-lg cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    {r.mode === "ffa" ? (r.phase === "lobby" ? "Mitspielen" : "Läuft") : r.p2Name ? "Zurückkehren" : "Beitreten"}
+                    {(r.mode === "ffa" || r.mode === "2v2") ? (r.phase === "lobby" ? "Mitspielen" : "Läuft") : r.p2Name ? "Zurückkehren" : "Beitreten"}
                   </button>
                   <button
                     type="button"
@@ -265,7 +279,15 @@ export function Lobby({
           </h3>
           <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
             <div>
-              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.10 · Todesstoß in Zeitlupe 🎬</div>
+              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.11 · 2v2 + Bots 🛡️</div>
+              <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
+                <li><b>Neuer 2v2-Modus:</b> Team gegen Team. Im Warteraum Team A/B wählen, leere Plätze mit <b>Bots</b> füllen - ihr braucht also keine 4 echten Leute.</li>
+                <li>Schaden trifft nur das Feind-Team, Heilung/Heilige Nova wirkt auf Verbündete. Verbündeten-Panel zeigt den Partner, Sieg = letztes Team steht.</li>
+                <li><b>Bots auch im Free-for-All:</b> Übungsgegner lassen sich jetzt auch in FFA dazuholen.</li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-[11px] font-display font-bold text-mg-fog">v2.10 · Todesstoß in Zeitlupe 🎬</div>
               <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
                 <li><b>Sieg-Replay in Zeitlupe:</b> Wenn ein Held fällt, präsentiert sich die tödliche Karte groß und schlägt in Slow-Mo zu - riesige Schadenszahl, dann epische Todes-Explosion + Boom.</li>
                 <li>Funktioniert für Diener-Angriffe, Zauber, Heldenkräfte und Battlecries - im Duell <b>und</b> im Free-for-All.</li>

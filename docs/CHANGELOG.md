@@ -7,6 +7,18 @@ Format: `## [Version] - Datum` mit Kategorien Hinzugefuegt / Geaendert / Behoben
 
 ---
 
+## [2.11.0] - 2v2-Team-Modus + Bots
+
+### Hinzugefuegt
+- **2v2-Team-Modus (auf der FFA-Infra):** Team A gegen Team B. Eigener Lobby-Button "2v2 erstellen". Im Warteraum waehlt man sein Team (A/B-Buttons) und der Ersteller fuellt leere Plaetze mit **Bots** - so spielbar ohne 4 echte Leute (z.B. du + Marc vs 2 Bots, oder du vs Marc je mit Bot-Partner, oder 4 Menschen). Start nur bei genau 2 gegen 2; Sitze werden zum Start team-abwechselnd geordnet (faire Zugfolge A,B,A,B).
+- **FFA-taugliche KI (`playFfaBotTurn`):** Bots spielen Karten, nutzen offensive Heldenkraefte und greifen an - team-aware (treffen im 2v2 nur das Feind-Team). Headless gegen ein komplettes Spiel getestet (Team-Sieg sauber erkannt).
+- **Bots auch im Free-for-All:** Der Uebungsgegner laesst sich jetzt auch in FFA-Raeumen dazuholen (vorher nur im 1v1).
+- **Verbuendeten-Panel:** Im 2v2 wird der Partner separat (gruen) gezeigt - heil- und buffbar, nicht angreifbar.
+
+### Geaendert
+- **Friendly Fire ist aus (2v2):** Schaden, Angriffe, AoE, Gedankenkontrolle und Random-Treffer (Ragnaros/Dr. Marc/Mehrfachschuss) gehen nur aufs Feind-Team. Heilung + Heilige Nova wirken auf die ganze eigene Seite. Die Ziel-Auswahl im UI bietet entsprechend nur gueltige Ziele an.
+- **Sieg team-aware:** `room.winnerTeam` (A/B/Unentschieden); Sieg-Screen + Zeitlupen-Kino zeigen Team-Ausgang. Bots zaehlen nicht in die Ruhmeshalle.
+
 ## [2.10.0] - Todesstoß in Zeitlupe (Sieg-Replay)
 
 ### Hinzugefuegt

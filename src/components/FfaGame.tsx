@@ -76,6 +76,13 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
   const isMyTurn = room.phase === "playing" && !!me && !me.isEliminated && room.turn === myId;
   const power = me ? (HERO_POWERS_LIST[me.heroClass]?.[me.selectedHeroPowerIndex ?? 0]) : undefined;
 
+  // --- 2v2 / Team-Modus ---
+  const isTeams = room.mode === "2v2";
+  const myTeam = me?.team;
+  const allies = isTeams ? opponents.filter(o => o.team === myTeam) : [];
+  const enemies = isTeams ? opponents.filter(o => o.team !== myTeam) : opponents;
+  const modeLabel = isTeams ? "2v2" : "Free-for-All";
+
   // --- Kampf-FX (gleiche Engine wie das Duell, von React entkoppelt) ---
   const prevHpRef = useRef<Map<string, { hp: number; rect: DOMRect | null }>>(new Map());
   const prevPhaseRef = useRef<string | null>(null);
@@ -145,8 +152,9 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
   useEffect(() => {
     const prev = prevCinePhaseRef.current;
     if (room.phase === "victory" && prev && prev !== "victory" && room.finisher) {
-      const outcome: "win" | "loss" | "draw" =
-        room.winnerId === "DRAW" ? "draw" : room.winnerId === myId ? "win" : "loss";
+      const outcome: "win" | "loss" | "draw" = isTeams
+        ? (room.winnerTeam === "DRAW" ? "draw" : room.winnerTeam === myTeam ? "win" : "loss")
+        : (room.winnerId === "DRAW" ? "draw" : room.winnerId === myId ? "win" : "loss");
       runFinisher(room.finisher, outcome);
     }
     prevCinePhaseRef.current = room.phase ?? null;
@@ -217,21 +225,59 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
   const endTurn = () => { if (isMyTurn) sendAction({ type: "END_TURN", payload: { roomId: room.roomId } }); };
   const restart = () => sendAction({ type: "RESTART_GAME", payload: { roomId: room.roomId } });
 
+  // Wirkt die gerade gewählte Aktion auf Feinde, auf das eigene Team, oder egal?
+  // (Nur im 2v2 relevant - filtert, was anklickbar ist, damit man nicht das eigene Team nukt.)
+  const targetingIntent = (): "enemy" | "friendly" | "any" => {
+    const { mode, sourceId } = targeting;
+    if (mode === "attack") return "enemy";
+    if (mode === "battlecry") return "any"; // Marc's Breath: jeder Held (auf 15)
+    if (mode === "spell") {
+      const card = me?.hand.find(c => c.id === sourceId);
+      if (!card) return "enemy";
+      if (card.templateId === "heal_touch" || (card.templateId === "custom_magic" && card.spellEffect === "heal")) return "friendly";
+      return "enemy";
+    }
+    if (mode === "heropower" && me) {
+      const idx = me.selectedHeroPowerIndex ?? 0;
+      if (me.heroClass === "Priest" && (idx === 0 || idx === 1)) return "friendly";
+      if (me.heroClass === "Paladin" && idx === 1) return "friendly";
+      return "enemy";
+    }
+    return "any";
+  };
+
   // Darf ein Held/Diener gerade als Ziel angeklickt werden?
   const heroTargetable = (p: PlayerState): boolean => {
     if (targeting.mode === "none" || p.isEliminated) return false;
-    if (targeting.mode === "attack") return p.id !== myId && !p.board.some(m => m.hasTaunt);
-    return true; // spell/heropower/battlecry: jeder Held wählbar
+    if (targeting.mode === "attack") {
+      if (p.id === myId) return false;
+      if (isTeams && p.team === myTeam) return false; // Verbündeter
+      return !p.board.some(m => m.hasTaunt);
+    }
+    if (isTeams) {
+      const intent = targetingIntent();
+      const onMyTeam = p.team === myTeam; // schliesst mich selbst ein
+      if (intent === "enemy" && onMyTeam) return false;
+      if (intent === "friendly" && !onMyTeam) return false;
+    }
+    return true;
   };
   const minionTargetable = (owner: PlayerState, minion: Card): boolean => {
     if (targeting.mode === "none" || owner.isEliminated) return false;
     if (targeting.mode === "battlecry") return false; // nur Helden
     if (targeting.mode === "attack") {
       if (owner.id === myId) return false;
+      if (isTeams && owner.team === myTeam) return false; // eigener Team-Diener
       const hasTaunt = owner.board.some(m => m.hasTaunt);
       return hasTaunt ? !!minion.hasTaunt : true;
     }
-    return true; // spell/heropower: jeder Diener
+    if (isTeams) {
+      const intent = targetingIntent();
+      const onMyTeam = owner.team === myTeam;
+      if (intent === "enemy" && onMyTeam) return false;
+      if (intent === "friendly" && !onMyTeam) return false;
+    }
+    return true;
   };
 
   // ---- Sub-Renders ----
@@ -239,7 +285,7 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
     <div className="flex items-center justify-between gap-3 max-w-6xl mx-auto w-full mb-3">
       <div className="flex items-center gap-2">
         <span className="font-display text-2xl tracking-wide text-mg-frost-text">Marc<span className="text-mg-bronze">gard</span></span>
-        <span className="text-[10px] uppercase tracking-widest font-mono px-2 py-0.5 rounded-full bg-mg-blood/20 border border-mg-blood-bright/40 text-mg-frost-text">Free-for-All</span>
+        <span className="text-[10px] uppercase tracking-widest font-mono px-2 py-0.5 rounded-full bg-mg-blood/20 border border-mg-blood-bright/40 text-mg-frost-text">{modeLabel}</span>
       </div>
       <div className="flex items-center gap-2">
         <button onClick={copyCode} className="text-[11px] font-mono px-2.5 py-1 rounded-lg border border-mg-stone bg-mg-void/60 text-mg-fog hover:border-mg-bronze/60">
@@ -252,6 +298,74 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
 
   // === WARTERAUM (Lobby) ===
   if (room.phase === "lobby") {
+    // 2v2: zwei Team-Spalten mit Team-Wahl + Bot-Auffüllung.
+    if (isTeams) {
+      const teamMembers = (tm: "A" | "B") => seats.filter(p => p.team === tm);
+      const a = teamMembers("A"), b = teamMembers("B");
+      const balanced = seats.length === 4 && a.length === 2 && b.length === 2;
+      const TeamCol = ({ tm, members }: { tm: "A" | "B"; members: PlayerState[] }) => (
+        <div className={`flex-1 rounded-2xl border p-4 ${tm === myTeam ? "border-emerald-500/50 bg-emerald-950/20" : "border-mg-blood-bright/40 bg-mg-blood/10"}`}>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-serif font-black text-white uppercase tracking-wide">Team {tm}{tm === myTeam ? " (deins)" : ""}</h3>
+            <span className="text-[10px] font-mono text-mg-fog">{members.length}/2</span>
+          </div>
+          <div className="space-y-2">
+            {members.map(p => (
+              <div key={p.id} className="flex items-center justify-between px-3 py-2 rounded-xl bg-mg-void/50 border border-mg-stone">
+                <span className="font-bold text-sm text-white">{p.isBot ? "🤖 " : seats[0]?.id === p.id ? "👑 " : ""}{p.name}{p.id === myId ? " (du)" : ""}</span>
+                <span className="text-[11px] font-mono text-mg-fog">{p.heroClass}</span>
+              </div>
+            ))}
+            {Array.from({ length: Math.max(0, 2 - members.length) }).map((_, i) => (
+              <div key={`e-${tm}-${i}`} className="px-3 py-2 rounded-xl bg-mg-void/30 border border-dashed border-mg-stone text-center text-[11px] text-mg-fog font-mono">leerer Platz…</div>
+            ))}
+          </div>
+          <div className="mt-3 flex gap-2">
+            {myTeam !== tm && members.length < 2 && (
+              <button onClick={() => sendAction({ type: "SET_TEAM", payload: { roomId: room.roomId, team: tm } })}
+                className="flex-1 text-[11px] font-bold uppercase tracking-wide py-1.5 rounded-lg border border-mg-bronze/50 bg-mg-void/60 text-mg-bronze-bright hover:bg-mg-slate/60">
+                Hierher wechseln
+              </button>
+            )}
+            {isCreator && members.length < 2 && (
+              <button onClick={() => sendAction({ type: "ADD_BOT", payload: { roomId: room.roomId, team: tm } })}
+                className="flex-1 text-[11px] font-bold uppercase tracking-wide py-1.5 rounded-lg border border-mg-stone bg-mg-void/60 text-mg-fog hover:border-mg-bronze/60">
+                🤖 Bot dazu
+              </button>
+            )}
+          </div>
+        </div>
+      );
+      return (
+        <div className="min-h-screen text-mg-frost-text flex flex-col py-6 px-4 font-body">
+          <Atmosphere onRaven={playRaven} />
+          <MusicToggle />
+          <TopBar />
+          <div className="max-w-3xl mx-auto w-full mt-6 bg-mg-slate/60 rounded-3xl border border-mg-stone p-6 shadow-xl">
+            <h2 className="text-xl font-serif font-black text-white text-center uppercase tracking-wide">2v2 Warteraum</h2>
+            <p className="text-xs text-mg-fog text-center mt-1">Code <span className="font-mono text-mg-bronze-bright">{room.roomId}</span> teilen. Wähle dein Team oder fülle Plätze mit Bots. Start bei genau 2 gegen 2.</p>
+            <div className="mt-5 flex flex-col md:flex-row gap-4">
+              <TeamCol tm="A" members={a} />
+              <div className="self-center font-serif font-black text-mg-fog text-lg">VS</div>
+              <TeamCol tm="B" members={b} />
+            </div>
+            <div className="mt-6">
+              {isCreator ? (
+                <button onClick={() => sendAction({ type: "START_GAME", payload: { roomId: room.roomId } })} disabled={!balanced}
+                  className={`w-full py-3 rounded-xl font-bold tracking-wide uppercase text-sm transition-all ${!balanced ? "bg-mg-slate/40 text-mg-fog cursor-not-allowed border border-mg-stone" : "bg-mg-bronze text-mg-void hover:scale-[1.02] shadow-lg"}`}>
+                  {balanced ? "2v2 starten" : "Teams müssen 2 gegen 2 sein"}
+                </button>
+              ) : (
+                <div className="py-3 rounded-xl bg-mg-slate/40 border border-mg-stone text-center text-sm text-mg-fog">Warte, bis der Ersteller startet…</div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // FFA: einfache Liste + Bot-Auffüllung.
+    const canAddBot = isCreator && seats.length < (room.maxPlayers ?? 3);
     return (
       <div className="min-h-screen text-mg-frost-text flex flex-col py-6 px-4 font-body">
         <Atmosphere onRaven={playRaven} />
@@ -263,7 +377,7 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
           <div className="mt-5 space-y-2">
             {seats.map((p, i) => (
               <div key={p.id} className="flex items-center justify-between px-3 py-2 rounded-xl bg-mg-void/50 border border-mg-stone">
-                <span className="font-bold text-sm text-white">{i === 0 ? "👑 " : ""}{p.name}{p.id === myId ? " (du)" : ""}</span>
+                <span className="font-bold text-sm text-white">{p.isBot ? "🤖 " : i === 0 ? "👑 " : ""}{p.name}{p.id === myId ? " (du)" : ""}</span>
                 <span className="text-[11px] font-mono text-mg-fog">{p.heroClass} · {p.isOnline === false ? "🔴 offline" : "🟢"}</span>
               </div>
             ))}
@@ -272,6 +386,12 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
             ))}
           </div>
           <div className="mt-6 flex flex-col gap-2">
+            {canAddBot && (
+              <button onClick={() => sendAction({ type: "ADD_BOT", payload: { roomId: room.roomId } })}
+                className="py-2 rounded-xl text-xs font-bold uppercase tracking-wide border border-mg-stone bg-mg-void/60 text-mg-fog hover:border-mg-bronze/60">
+                🤖 Bot hinzufügen
+              </button>
+            )}
             {isCreator ? (
               <button onClick={() => sendAction({ type: "START_GAME", payload: { roomId: room.roomId } })} disabled={seats.length < 3}
                 className={`py-3 rounded-xl font-bold tracking-wide uppercase text-sm transition-all ${seats.length < 3 ? "bg-mg-slate/40 text-mg-fog cursor-not-allowed border border-mg-stone" : "bg-mg-bronze text-mg-void hover:scale-[1.02] shadow-lg"}`}>
@@ -336,9 +456,9 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
       <div className="px-4 py-4 flex flex-col gap-3 flex-1">
         <TopBar />
 
-        {/* GEGNER-REIHE (Dreieck/Kreuz) */}
-        <div className={`grid gap-3 max-w-6xl mx-auto w-full ${opponents.length >= 3 ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
-          {opponents.map(opp => {
+        {/* GEGNER-REIHE (im 2v2 nur das Feind-Team; sonst alle Gegner) */}
+        <div className={`grid gap-3 max-w-6xl mx-auto w-full ${enemies.length >= 3 ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
+          {enemies.map(opp => {
             const oppTurn = room.turn === opp.id;
             return (
               <div key={opp.id} className={`rounded-2xl border p-2.5 transition-all ${opp.isEliminated ? "opacity-40 border-mg-stone bg-mg-void/40" : oppTurn ? "border-mg-bronze bg-mg-slate/40 shadow-[0_0_14px_rgba(234,179,8,0.18)]" : "border-mg-stone bg-mg-void/50"}`}>
@@ -370,6 +490,32 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
             {recentLog.map((l, i) => <div key={i} className="truncate">{l}</div>)}
           </div>
         </div>
+
+        {/* VERBÜNDETER (2v2): heilbar/buffbar, nicht angreifbar */}
+        {isTeams && allies.length > 0 && (
+          <div className="max-w-3xl mx-auto w-full">
+            {allies.map(ally => {
+              const allyTurn = room.turn === ally.id;
+              return (
+                <div key={ally.id} className={`rounded-2xl border p-2.5 ${ally.isEliminated ? "opacity-40 border-mg-stone bg-mg-void/40" : "border-emerald-600/50 bg-emerald-950/15"}`}>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[11px] font-mono text-emerald-300/90">🤝 Verbündeter · {ally.name}{ally.isBot ? " (Bot)" : ""}</span>
+                    {ally.isEliminated ? <span className="text-[10px] font-mono text-red-400 uppercase">☠️ gefallen</span> : allyTurn ? <span className="text-[10px] font-mono text-mg-bronze-bright uppercase animate-pulse">am Zug</span> : ally.isOnline === false ? <span className="text-[10px] font-mono text-red-400">offline</span> : null}
+                  </div>
+                  <HeroState player={ally} isActiveTurn={allyTurn} canBeTargeted={heroTargetable(ally)} onHeroClick={() => sendAtTarget(ally.id, true)} />
+                  <div className="flex flex-wrap gap-1 justify-center mt-2 min-h-[3rem]">
+                    {ally.board.map(m => (
+                      <CardItem key={m.id} card={m} isOwner={false}
+                        className={`w-14 ${minionTargetable(ally, m) ? "ring-2 ring-emerald-400 cursor-pointer scale-105" : ""}`}
+                        onClick={() => { if (minionTargetable(ally, m)) sendAtTarget(ally.id, false, m.id); }} />
+                    ))}
+                    {ally.board.length === 0 && !ally.isEliminated && <span className="text-[10px] text-mg-fog/60 self-center">kein Diener</span>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* MEIN BEREICH */}
         <div className="max-w-5xl mx-auto w-full mt-auto">
@@ -445,13 +591,19 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
       )}
 
       {/* SIEG */}
-      {room.phase === "victory" && !cinematicActive && (
+      {room.phase === "victory" && !cinematicActive && (() => {
+        const isDrawV = isTeams ? room.winnerTeam === "DRAW" : room.winnerId === "DRAW";
+        const iWon = isTeams ? (!!myTeam && room.winnerTeam === myTeam) : (room.winnerId === myId);
+        const title = isDrawV ? "Unentschieden" : isTeams ? `Team ${room.winnerTeam} gewinnt!` : `${winner?.name ?? "?"} gewinnt!`;
+        const subtitle = isDrawV ? "Beide Seiten ausgelöscht." : iWon
+          ? (isTeams ? "Dein Team siegt. Marcgard gehört euch." : "Letzter Überlebender. Marcgard gehört dir.")
+          : (isTeams ? "Dein Team ist gefallen." : "Gefallen im Free-for-All.");
+        const replayOutcome: "win" | "loss" | "draw" = isDrawV ? "draw" : iWon ? "win" : "loss";
+        return (
         <div className="fixed inset-0 bg-mg-void/85 backdrop-blur-md flex flex-col items-center justify-center z-50 p-6 text-center">
-          <div className="text-6xl mb-4">{room.winnerId === myId ? "👑" : "☠️"}</div>
-          <h2 className="text-3xl font-serif font-black text-white uppercase tracking-wide animate-fade-in">
-            {room.winnerId === "DRAW" ? "Unentschieden" : `${winner?.name ?? "?"} gewinnt!`}
-          </h2>
-          <p className="text-sm text-mg-fog mt-2">{room.winnerId === myId ? "Letzter Überlebender. Marcgard gehört dir." : "Gefallen im Free-for-All."}</p>
+          <div className="text-6xl mb-4">{iWon ? "👑" : isDrawV ? "🧪" : "☠️"}</div>
+          <h2 className="text-3xl font-serif font-black text-white uppercase tracking-wide animate-fade-in">{title}</h2>
+          <p className="text-sm text-mg-fog mt-2">{subtitle}</p>
           {/* Letzter Moment: so endete es (history ist neueste-zuerst -> slice(0,4)) */}
           <div className="mt-4 max-w-md w-full bg-mg-void/60 border border-mg-stone rounded-xl p-3 text-left">
             <div className="text-[10px] uppercase tracking-widest text-mg-bronze font-mono mb-1">So endete es</div>
@@ -461,10 +613,7 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
           </div>
           {room.finisher && (
             <button
-              onClick={() => {
-                const outcome: "win" | "loss" | "draw" = room.winnerId === "DRAW" ? "draw" : room.winnerId === myId ? "win" : "loss";
-                runFinisher(room.finisher!, outcome);
-              }}
+              onClick={() => runFinisher(room.finisher!, replayOutcome)}
               className="mt-4 px-5 py-2.5 rounded-xl bg-mg-slate border border-mg-bronze/60 text-mg-bronze-bright font-bold uppercase tracking-wider text-xs hover:bg-mg-stone"
             >
               🎬 Todesstoß in Zeitlupe ansehen
@@ -475,7 +624,8 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
             <button onClick={onLeave} className="px-5 py-2.5 rounded-xl border border-mg-stone bg-mg-void/60 text-mg-fog font-bold">Zur Lobby</button>
           </div>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
