@@ -24,7 +24,17 @@ Marcgard = Browser-Kartenduell (Hearthstone-artig), 1v1 online ueber Link, fuer 
 ## Testen ohne zweiten Spieler
 Raum erstellen -> Warteraum -> "Uebungsgegner hinzufuegen" -> lokaler Bot "Holgar" (kein Gemini, kostenlos). WS-Testskripte: `/tmp/wstest.mjs` (Reconnect), `/tmp/bottest.mjs` (Bot) - bei Bedarf neu schreiben.
 
-## STAND (Stand: 2026-06-20, **v2.8 LIVE auf https://marcgard.onrender.com**)
+## STAND (Stand: 2026-06-20, **v2.9 LIVE auf https://marcgard.onrender.com**)
+
+### v2.9 deployed (Commit e054d7d) - Klassen-Identitaet + echtes Einfrieren + Sichtbarkeit + Balance
+- **Klassen-Decks endlich verschieden:** Mage Frost/Feuer, Priest Heilung/Schatten, Hunter Bestien, Paladin Licht. 8 neue Karten (4 Signatur-Zauber blizzard/holy_nova/multi_shot/divine_storm + 4 Diener), alle ziellos verdrahtet (Duell PLAY_CARD + botPlaySpell + FFA resolveFfaSpell + SPELL_ELEMENT-Maps). Legendaere nicht mehr ueberall.
+- **Einfrieren echt:** `frozen`-Flag + `readyUpBoard()` (geteilt Duell/FFA) ueberspringt naechstes Bereitmachen. Mind Spike `tempAttackDebuff` (temporaer). types.ts Card: frozen + tempAttackDebuff.
+- **Sichtbarkeit:** Mana-Glow (spielbare Handkarten gruener Ring + Lift, nicht spielbar abgedunkelt; `inHand`-Prop in CardItem), Keyword-Emoji-Chips immer sichtbar (🛡️⚡✨❄️), Gottesschild goldener Ring, eingefroren blaue Eis-Optik.
+- **Balance (docs/BALANCE-CHANGES.md):** m_champion 5->6, Dr.Marc Boom 1->2, Holy Light 1->2, Wuerfel tier*2. Alles leicht aenderbar, Henry kann vetoen.
+- **next-wave Branch ist nach main gemergt** (== main). Naechste Arbeit auf neuem Branch.
+- **OFFEN / naechste Schritte:** Wave 4 = **2v2-Modus** (auf FFA-Infra, Teams + geteilter Sieg). Dann evtl. weitere Karten/Balance nach Henrys Playtest-Feedback.
+
+### Aelterer Stand (Referenz):
 
 ### v2.7 + v2.8 deployed (Commit a2eff8e, live verifiziert)
 - **v2.7:** Bot loest Battlecries aus (resolveBattlecry geteilt) + Schmiede server-autoritativ (computeForgeCost, kein 0-Mana-10/10-Cheat) + Lobby-Tagline (Seher-Lore + "Game Design: Marc Haevernick").
