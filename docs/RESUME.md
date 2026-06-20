@@ -24,7 +24,7 @@ Marcgard = Browser-Kartenduell (Hearthstone-artig), 1v1 online ueber Link, fuer 
 ## Testen ohne zweiten Spieler
 Raum erstellen -> Warteraum -> "Uebungsgegner hinzufuegen" -> lokaler Bot "Holgar" (kein Gemini, kostenlos). WS-Testskripte: `/tmp/wstest.mjs` (Reconnect), `/tmp/bottest.mjs` (Bot) - bei Bedarf neu schreiben.
 
-## STAND (Stand: 2026-06-20)
+## STAND (Stand: 2026-06-20, **v2.6 live**)
 
 ### FERTIG + LIVE
 - **Phase 1 Fundament:** Auto-Reconnect+Rejoin, Server-Heartbeat, Endzug-Halten, lautes Timer-Ticken, KI-aus, Render-Hosting, Wach-Ping.
@@ -33,20 +33,26 @@ Raum erstellen -> Warteraum -> "Uebungsgegner hinzufuegen" -> lokaler Bot "Holga
 - **Kampf-FX (`src/utils/combatFx.ts`, von React entkoppelt: Overlay an body + WAAPI):** Angreifer-Lunge, Treffer-Wackeln + roter Flash + Schadenszahl, Tod-Rauch, Bildschirm-Flash beim eigenen Helden, **Rundenstart-Schwerter**, **Element-Zauber-VFX** (Runenkreis+Pentagramm+Partikel), **Projektile** (`castProjectile`, Komet/Pfeil Held->Ziel). Treffer-Sounds prozedural in `utils/audio.ts` ("hit"/"hurt").
 - **Kampflog-Klarheit:** `resolveDamage` + m_firelord/dr_boom nennen Quelle + Betrag + HP-Differenz.
 - **Karten-Vorschau (`previewCardId` in App.tsx):** Handkarte antippen -> grosse Vorschau (Werte + Kodex/Keyword-Erklaerungen) -> erst "Beschwoeren/Wirken" spielt. `playCardNow` ersetzt direktes Klick-Spielen.
-- **Lokaler Uebungsgegner-Bot.**
+- **v2.4 Goetter-Wuerfel** (`ROLL_FORGE_DICE` + `rollForgedCard` in server.ts): IN der Alchemie-Schmiede (ein "Schmiede"-Knopf oeffnet Modal: Wuerfel oben + Selber-Bauen darunter). Zufallskarte ~1 Stufe ueber Einsatz, mehrfach, steigende Mana-Kosten (`forgeDiceCount`, resettet in START_GAME/RESTART_GAME). Manuelles Bauen 1x/Spiel.
+- **v2.4 Marc's Breath zielbar** (`battlecry_target`-Modus): Diener-Battlecry mit Ziel -> du waehlst welchen Helden auf 15 (auch dich selbst).
+- **v2.5 Komplett Deutsch** (~95 Strings) + **Handy-Angriff-Fixes:** Ziel-Toast `pointer-events-none` (blockiert Helden-Tap nicht mehr), angriffsbereite Diener gruenes Puls-Leuchten (`glow-attackable`), erschoepfte ausgegraut (`minion-exhausted`), Zug-Timer 30->45s, Gegner-Kartenrueckseiten am Handy ausgeblendet.
+- **v2.6 Karten-Fixes:** `meteor` + `mind_control` waren tote Karten (fehlten in targetSpells) -> jetzt zielbar; Reentrancy-Guard in `processEndTurn` (kein Doppel-Zugwechsel); Leaderboard-Filter (Bot raus).
+- **Lokaler Uebungsgegner-Bot "Holgar".**
 
-### OFFEN (naechste Bloecke, Prio von oben)
-1. **Marc's Breath (alexstrasza) zielbar:** aktuell setzt der Battlecry hart `opponent.health=15` ohne Wahl. Soll "beliebiger Held auf 15" werden -> braucht einen NEUEN Battlecry-Ziel-Flow fuer Diener (Diener werden sonst sofort ohne Ziel gespielt) + sichtbarer Effekt. Server: `server.ts` Battlecry-Block ~715.
-2. **Alchemie-Schmiede Goetter-Wuerfel** (ENTSCHIEDEN mit Henry): zusaetzlich zum manuellen Bauen (bleibt **1x/Spiel**) ein **Zufalls-Wuerfel**: sichtbare Wuerfel-Animation aufs Brett, Ergebnis = gebalancter Zufall **immer ~1 Stufe ueber dem Mana-Einsatz** (nie Muell, kein Cherry-Picking weil random), **mehrfach nutzbar mit steigenden Mana-Kosten** (z.B. 1->2->3...). Manuelles Bauen ist der OP-Vektor -> bleibt 1x/Spiel.
-3. **Schmiede-Inhalte aufbohren:** aktuell nur basic Effekte (damage/heal/draw). Henry will ein paar coole Basics, spaeter wilde Karten.
-4. **FX beidseitig (Phase B):** Projektile/Quell-Label erscheinen nur beim Castenden. Fuer "Gegner sieht auch was fliegt" braucht es ein leichtes Server-FX-Event neben ROOM_STATE_UPDATE (z.B. `room.lastFx`), das beide Clients animieren.
-5. **Gameplay-Bugs (Henry-Entscheidung offen):** Freeze (Mage "Chilled Arcana") ist nur kosmetisch (kein echtes Einfrieren); **Bot loest keine Battlecries aus** (`server.ts` ~273, eigener Bot-Minion-Pfad ohne Battlecry-Block) -> Holger zu schwach. Beides bewusst nicht blind geaendert (Balance).
-6. **Kampf-Sounds erweitern:** Kriegstrommeln (bei knapper Zeit hoch), Wolfsgeheul, Wasser-Ambiente. Quellen Pixabay (PHASE2-DESIGN.md 2.5), lokale MP3 nach `public/audio/` + CREDITS.md. (Treffer-Boom/Aua sind schon da, prozedural.)
-7. **Eagle-Stein-Glyphen** als Faehigkeits-Icons (statt T/C/S) - Asset-Map PHASE2-DESIGN.md 2.
-8. **Phase 4 (spaeter):** Login/Profile/Level/Deckbau via EIGENES neues Supabase-Projekt (Henrys DBs NICHT anfassen). Loest auch State-Verlust bei Neustart.
+### OFFEN -> PRIMAERE QUELLE: `docs/BALANCE-REVIEW.md`
+Der Balance-/Bug-Review-Agent hat eine priorisierte Liste erstellt - **das ist die Bau-Anleitung fuer die naechste Session.** Dort abgehakt was nachts schon gefixt wurde (meteor/mind_control, Zug-Race, Leaderboard). Kurz die naechsten Brocken:
+
+1. **Bot fair machen** (HOCH-Spass): Holgar loest keine Battlecries aus (`server.ts` Bot-Minion-Pfad ~325). Battlecry-Logik aus PLAY_CARD in `resolveBattlecry(...)` auslagern + im Bot aufrufen.
+2. **Schmiede-Server-Trust-Luecke** (HOCH Fairness): manuelle Karten-Kosten werden CLIENTSEITIG berechnet (`App.tsx` ~819), Server nimmt sie fast ungeprueft -> Kostenformel auf den Server ziehen.
+3. **Balance-Welle (mit Henry):** Goetter-Wuerfel-Tuning, `m_champion`-Nerf (5 Mana 4/5 Schild+Ansturm = OP), Paladin-Heldenkraefte aufwerten (schwaechste Klasse).
+4. **Freeze + Mind Spike sauber** (temp-Effekt-Felder in types + Reset im Zugstart) - aktuell Freeze kosmetisch, Mind-Spike-Debuff permanent.
+5. **FX beidseitig:** Projektile/Quell-Label nur beim Castenden -> Server-FX-Event (`room.lastFx`) neben ROOM_STATE_UPDATE, beide Clients animieren.
+6. **A4/A5 Handy-UX (mit Henry gegentesten):** Heldenkraft am Handy lesbar (Tap-Info), Brett-Diener antippbar fuer Vorschau (Tap-Kollision mit Angriff beachten -> nur bei `targetingMode==="none"`).
+7. **Klassen-Identitaet (Phase B):** pro Klasse 2-3 exklusive Signatur-Karten in `STANDARD_CLASS_CARDS` (reine constants.ts-Aenderung). Designer-Entscheidung: KEINE Waffen, Identitaet ueber Deckbau.
+8. **Phase C (HENRY macht das selbst):** Google-OAuth + Profil + Sammlung + Deckbau via EIGENES neues Supabase-Projekt (Henrys Title-Tool-DBs NICHT anfassen). Datenmodell-Skizze in BALANCE-REVIEW.md/Plan. **Ich lege NICHTS in Supabase an.**
 
 ### DECK-DESIGN (Befund)
-Aktuell sind alle 4 Klassen ~80% identischer Neutral-Stapel; nur paar Karten je Klasse anders -> die **Heldenkraft ist quasi der einzige echte Unterschied**. Falls echte Klassen-Identitaet gewuenscht: pro Klasse eigene Schluesselkarten definieren (`STANDARD_CLASS_CARDS` in constants.ts).
+Alle 4 Klassen ~80% identischer Neutral-Stapel -> die **Heldenkraft ist quasi der einzige echte Unterschied**. Hebel: pro Klasse eigene Schluesselkarten in `STANDARD_CLASS_CARDS` (constants.ts). Designer-Empfehlung: KEINE Waffen, Klassen-Identitaet ueber Deckbau (Phase B/C).
 
 ### GESTOERTE IDEEN / SPAETER (niedrige Prio, Henrys Wunschliste)
 - **Ragnarök-Modus:** 3-4 Spieler Free-for-all, im Dreieck/Kreis arrangiert, feste Zugreihenfolge, random Start, man kann JEDEN angreifen. Voraussetzung: sauberes Targeting - Zauber die aktuell hart 1 Gegner setzen oder "random enemy" treffen muessen multiplayer-tauglich werden (Ziel-Spieler waehlbar). Erst nach solidem Grundspiel + sauberem Code. Ganz am Ende.
