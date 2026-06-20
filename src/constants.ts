@@ -331,6 +331,87 @@ export const CARD_TEMPLATES = {
     hasDivineShield: true,
     hasCharge: true,
   },
+
+  // === Klassen-Signaturkarten (Wave: Klassen-Identitaet) - alle ziellos, kein neues Targeting noetig ===
+  // Mage - Frost & Kontrolle
+  "blizzard": {
+    name: "Blizzard",
+    type: "spell",
+    cost: 5,
+    attack: 0,
+    health: 0,
+    emoji: "🌨️",
+    description: "🌨️ Füge allen gegnerischen Dienern 2 Schaden zu und friere sie ein.",
+  },
+  "frost_ele": {
+    name: "Wasserelementar",
+    type: "minion",
+    cost: 4,
+    attack: 3,
+    health: 6,
+    emoji: "💧",
+    description: "Eiskalte Mauer aus dem Nordmeer. Zäh und kalt.",
+  },
+  // Priest - Heilung & Schatten
+  "holy_nova": {
+    name: "Heilige Nova",
+    type: "spell",
+    cost: 5,
+    attack: 0,
+    health: 0,
+    emoji: "🌟",
+    description: "🌟 2 Schaden an allen Gegner-Dienern. +2 Leben für deinen Helden und alle eigenen Diener.",
+  },
+  "temple_guard": {
+    name: "Tempelwächter",
+    type: "minion",
+    cost: 4,
+    attack: 3,
+    health: 6,
+    emoji: "🛐",
+    description: "🛡️ Spott. Wacht über die Gefallenen.",
+    hasTaunt: true,
+  },
+  // Hunter - Bestien & Aggro
+  "multi_shot": {
+    name: "Mehrfachschuss",
+    type: "spell",
+    cost: 4,
+    attack: 0,
+    health: 0,
+    emoji: "🎯",
+    description: "🎯 Füge zwei zufälligen gegnerischen Zielen je 3 Schaden zu.",
+  },
+  "dire_wolf": {
+    name: "Schreckenswolf",
+    type: "minion",
+    cost: 2,
+    attack: 3,
+    health: 2,
+    emoji: "🐺",
+    description: "⚡ Ansturm. Reißt sofort zu.",
+    hasCharge: true,
+  },
+  // Paladin - Licht & Breite
+  "divine_storm": {
+    name: "Göttlicher Sturm",
+    type: "spell",
+    cost: 5,
+    attack: 0,
+    health: 0,
+    emoji: "✨",
+    description: "✨ Gib allen befreundeten Dienern +1/+1.",
+  },
+  "silver_knight": {
+    name: "Silberhand-Ritter",
+    type: "minion",
+    cost: 4,
+    attack: 4,
+    health: 4,
+    emoji: "⚜️",
+    description: "🌟 Gottesschild. Streiter des Lichts.",
+    hasDivineShield: true,
+  },
 } as const;
 
 export function createCardInstance(templateId: string, instanceId: string): Card {
@@ -368,7 +449,7 @@ export const HERO_POWERS_LIST = {
     },
     {
       name: "Chilled Arcana",
-      description: "Füge einem Diener 1 Schaden zu und friere ihn ein.",
+      description: "Füge einem Diener 1 Schaden zu und friere ihn ein - er überspringt seinen nächsten Angriff.",
       emoji: "❄️",
     },
     {
@@ -390,7 +471,7 @@ export const HERO_POWERS_LIST = {
     },
     {
       name: "Mind Spike",
-      description: "Füge einem beliebigen Ziel 1 Schaden zu. Ist es ein Diener, senke seinen Angriff bis zu deinem nächsten Zug um 1.",
+      description: "Füge einem beliebigen Ziel 1 Schaden zu. Ein getroffener Diener verliert bis zu seinem nächsten Zug 1 Angriff.",
       emoji: "🔮",
     }
   ],
@@ -437,27 +518,35 @@ export const HERO_POWERS = {
   Paladin: HERO_POWERS_LIST.Paladin[0],
 } as const;
 
+// Klassen-Identitaet: jede Klasse hat einen eigenen Themen-Stapel + 2 exklusive Signaturkarten.
+// Mage = Frost/Feuer-Burn, Priest = Heilung/Schatten/Geist, Hunter = Bestien/Aggro,
+// Paladin = Licht/Gottesschild/breit. Die Legendaeren sind absichtlich NICHT mehr ueberall gleich.
 export const STANDARD_CLASS_CARDS: Record<string, string[]> = {
+  // FROST & FEUER: viel Direktschaden, Blizzard + Wasserelementar exklusiv. Wenig Heilung.
   Mage: [
-    "b_murloc", "arc_shot", "fireball", "consecration", "flamestrike", "pyroblast", "meteor",
-    "g_footman", "annoy_tron", "crocolisk", "c_yeti", "s_shieldmasta", "b_ogre",
-    "s_slime", "heal_touch", "s_tank", "s_crusader", "w_rider", "s_belcher", "sunwalker", "lich_king",
-    "m_firelord", "m_squire", "dr_boom", "pot_greed", "alexstrasza", "m_champion", "mind_control"
+    "arc_shot", "fireball", "meteor", "pyroblast", "blizzard", "flamestrike",
+    "frost_ele", "c_yeti", "s_tank", "crocolisk", "s_slime", "s_belcher", "b_ogre", "annoy_tron",
+    "ragnaros", "dr_boom", "m_firelord", "deathwing",
+    "m_squire", "pot_greed", "m_champion", "lich_king"
   ],
+  // HEILUNG & SCHATTEN: Heilige Nova + Tempelwaechter exklusiv, Gedankenkontrolle + Sylvanas, zaehe Koerper.
   Priest: [
-    "s_slime", "heal_touch", "g_footman", "annoy_tron", "crocolisk", "c_yeti", "s_shieldmasta", "b_ogre",
-    "b_murloc", "arc_shot", "fireball", "flamestrike", "mind_control", "sylvanas",
-    "s_tank", "s_crusader", "w_rider", "s_belcher", "sunwalker", "lich_king", "deathwing", "pyroblast",
-    "m_firelord", "m_squire", "dr_boom", "pot_greed", "alexstrasza", "m_champion"
+    "holy_nova", "heal_touch", "temple_guard", "mind_control", "sylvanas",
+    "s_slime", "crocolisk", "annoy_tron", "s_shieldmasta", "s_belcher", "sunwalker", "b_ogre", "c_yeti",
+    "alexstrasza", "lich_king", "deathwing", "m_firelord",
+    "m_squire", "pot_greed", "m_champion", "arc_shot", "g_footman"
   ],
+  // BESTIEN & AGGRO: Mehrfachschuss + Schreckenswolf exklusiv, viel Ansturm, schnelle Bedrohungen.
   Hunter: [
-    "b_murloc", "arc_shot", "b_warrior", "w_rider", "crocolisk", "c_yeti", "s_shieldmasta", "b_ogre", "meteor",
-    "g_footman", "s_slime", "annoy_tron", "s_tank", "s_crusader", "s_belcher", "sunwalker", "lich_king",
-    "m_firelord", "m_squire", "dr_boom", "pot_greed", "alexstrasza", "m_champion", "ragnaros"
+    "multi_shot", "dire_wolf", "b_murloc", "b_warrior", "w_rider", "arc_shot", "fireball",
+    "crocolisk", "s_tank", "c_yeti", "s_crusader", "s_shieldmasta", "b_ogre",
+    "ragnaros", "dr_boom", "m_firelord",
+    "m_squire", "pot_greed", "m_champion", "s_belcher", "annoy_tron", "meteor"
   ],
+  // LICHT & BREITE: Goettlicher Sturm + Silberhand-Ritter exklusiv, Gottesschilde + Spott + Weihe, go-wide.
   Paladin: [
-    "g_footman", "annoy_tron", "s_crusader", "sunwalker", "consecration", "lich_king", "sylvanas",
-    "s_slime", "crocolisk", "c_yeti", "s_shieldmasta", "b_ogre", "b_murloc", "heal_touch", "s_tank", "w_rider", "s_belcher",
-    "m_firelord", "m_squire", "dr_boom", "pot_greed", "alexstrasza", "m_champion", "ragnaros"
+    "divine_storm", "silver_knight", "consecration", "s_crusader", "sunwalker", "annoy_tron", "g_footman",
+    "lich_king", "alexstrasza", "s_shieldmasta", "s_belcher", "c_yeti", "crocolisk", "s_slime", "heal_touch",
+    "m_firelord", "m_squire", "pot_greed", "m_champion", "b_ogre", "s_tank", "w_rider"
   ]
 };

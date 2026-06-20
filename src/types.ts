@@ -15,6 +15,8 @@ export interface Card {
   hasCharge?: boolean;
   hasDivineShield?: boolean;
   battlecryNeedsTarget?: boolean; // Diener-Battlecry braucht ein Ziel (z.B. Marc's Breath -> Held)
+  frozen?: boolean; // eingefroren: ueberspringt das naechste Bereitmachen (taut dann auf)
+  tempAttackDebuff?: number; // temporaer gesenkter Angriff, wird beim naechsten Bereitmachen zurueckgegeben
   isReady?: boolean; // can attack this turn
   spellEffect?: "damage" | "heal" | "draw";
   spellValue?: number;

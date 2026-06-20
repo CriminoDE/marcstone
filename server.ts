@@ -243,6 +243,16 @@ function triggerRageChat(room: RoomState, offendingPlayer: PlayerState, triggerT
   }
 }
 
+// Bereitmachen am Zugstart: eingefrorene Diener bleiben diesen Zug exhausted und tauen dann auf,
+// temporaere Angriffs-Debuffs (Mind Spike) werden zurueckgegeben. Geteilt von Duell + FFA.
+function readyUpBoard(board: Card[]) {
+  board.forEach(m => {
+    if (m.frozen) { m.isReady = false; m.frozen = false; }
+    else m.isReady = true;
+    if (m.tempAttackDebuff) { m.attack += m.tempAttackDebuff; m.tempAttackDebuff = 0; }
+  });
+}
+
 function processEndTurn(room: RoomState, currentTurnConnectionId: string) {
   const player = room.player1?.id === currentTurnConnectionId ? room.player1 : room.player2;
   const opponent = player === room.player1 ? room.player2 : room.player1;
@@ -278,10 +288,8 @@ function processEndTurn(room: RoomState, currentTurnConnectionId: string) {
     addLog(room, `💀 ${opponent.name} hat KEINE Karten mehr! 2 Erschöpfungsschaden.`);
   }
 
-  // Ready up all minions of the active opponent
-  opponent.board.forEach(m => {
-    m.isReady = true;
-  });
+  // Ready up all minions of the active opponent (Freeze + Temp-Debuff beachten)
+  readyUpBoard(opponent.board);
 
   addLog(room, `⏳ Die Zeit ist abgelaufen oder Zug wurde beendet! Nun ist ${opponent.name} am Zug!`);
 
@@ -661,7 +669,7 @@ function beginFfaTurn(room: RoomState, p: PlayerState) {
     p.health -= 2;
     addLog(room, `💀 ${p.name} hat keine Karten mehr! 2 Erschöpfungsschaden.`);
   }
-  p.board.forEach(m => { m.isReady = true; });
+  readyUpBoard(p.board);
   room.turn = p.id;
   room.turnEndTime = Date.now() + 45000;
   addLog(room, `⏳ ${p.name} ist am Zug!`);
@@ -909,7 +917,7 @@ function handleFfaHeroPower(room: RoomState, actor: PlayerState, payload: any, w
     if (powerIdx === 0) ffaDamageTarget(room, 1, power.name, targetPlayerId, targetId, isTargetHero);
     else if (powerIdx === 1) {
       ffaDamageTarget(room, 1, power.name, targetPlayerId, targetId, isTargetHero);
-      if (targetId && !isTargetHero) { const f = ffaFindMinion(room, targetId); if (f) { f.minion.isReady = false; addLog(room, `❄️ ${f.minion.name} ist eingefroren!`); } }
+      if (targetId && !isTargetHero) { const f = ffaFindMinion(room, targetId); if (f) { f.minion.isReady = false; f.minion.frozen = true; addLog(room, `❄️ ${f.minion.name} ist eingefroren und überspringt seinen nächsten Angriff!`); } }
     } else {
       const enemyMinions = ffaOpponents(room, actor).flatMap(o => o.board.map(m => ({ owner: o, minion: m })));
       if (enemyMinions.length > 0) { const pick = enemyMinions[Math.floor(Math.random() * enemyMinions.length)]; ffaHitMinion(room, pick.owner, pick.minion, Math.floor(Math.random() * 3) + 1, power.name); }
@@ -922,7 +930,7 @@ function handleFfaHeroPower(room: RoomState, actor: PlayerState, payload: any, w
       else { actor.health = Math.min(30, actor.health + 2); addLog(room, `✨ ${actor.name} heilt sich um 2.`); }
     } else {
       ffaDamageTarget(room, 1, power.name, targetPlayerId, targetId, isTargetHero);
-      if (targetId && !isTargetHero) { const f = ffaFindMinion(room, targetId); if (f) { f.minion.attack = Math.max(0, f.minion.attack - 1); addLog(room, `🔮 Mind Spike senkt ${f.minion.name}s Angriff um 1.`); } }
+      if (targetId && !isTargetHero) { const f = ffaFindMinion(room, targetId); if (f) { const b = f.minion.attack; f.minion.attack = Math.max(0, f.minion.attack - 1); f.minion.tempAttackDebuff = (f.minion.tempAttackDebuff || 0) + (b - f.minion.attack); addLog(room, `🔮 Mind Spike senkt ${f.minion.name}s Angriff vorübergehend um 1.`); } }
     }
   } else if (pClass === "Hunter") {
     if (powerIdx === 0) { const t = ffaHeroById(room, targetPlayerId); if (t && t.id !== actor.id) { ffaHitHero(room, t, 2, power.name); } else { ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Wähle einen gegnerischen Helden!" } })); actor.heroPowerUsed = false; actor.mana += HERO_POWER_COST; return; } }
@@ -1615,13 +1623,14 @@ function handleGameAction(connectionId: string, action: ClientAction) {
           // Fireblast: deal 1 damage to any target
           resolveDamage(room, player, opponent, 1, targetId, isTargetHero, activePower.name);
         } else if (powerIdx === 1) {
-          // Chilled Arcana: deal 1 damage and Freeze it
+          // Chilled Arcana: 1 Schaden + echtes Einfrieren (ueberspringt naechsten Angriff)
           resolveDamage(room, player, opponent, 1, targetId, isTargetHero, activePower.name);
           if (targetId && !isTargetHero) {
             const minion = opponent.board.find(m => m.id === targetId) || player.board.find(m => m.id === targetId);
             if (minion) {
               minion.isReady = false;
-              addLog(room, `❄️ ${minion.name} is Frozen!`);
+              minion.frozen = true;
+              addLog(room, `❄️ ${minion.name} ist eingefroren und überspringt seinen nächsten Angriff!`);
             }
           }
         } else {
@@ -1660,13 +1669,15 @@ function handleGameAction(connectionId: string, action: ClientAction) {
             addLog(room, `✨ Power Infusion healed ${player.name} for 2 Health.`);
           }
         } else {
-          // Mind Spike: deal 1 damage to any target. If it's a minion, reduce its attack by 1.
+          // Mind Spike: 1 Schaden + temporaerer Angriffs-Debuff (-1 bis zum naechsten Zug des Diener)
           resolveDamage(room, player, opponent, 1, targetId, isTargetHero, activePower.name);
           if (targetId && !isTargetHero) {
             const minion = opponent.board.find(m => m.id === targetId);
             if (minion) {
+              const before = minion.attack;
               minion.attack = Math.max(0, minion.attack - 1);
-              addLog(room, `🔮 Mind Spike reduced ${minion.name}'s Attack by 1.`);
+              minion.tempAttackDebuff = (minion.tempAttackDebuff || 0) + (before - minion.attack);
+              addLog(room, `🔮 Mind Spike senkt ${minion.name}s Angriff vorübergehend um 1.`);
             }
           }
         }
