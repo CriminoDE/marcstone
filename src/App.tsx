@@ -4,9 +4,10 @@ import { CardItem } from "./components/CardItem";
 import { HeroState } from "./components/HeroState";
 import { ChatPanel } from "./components/ChatPanel";
 import { EndTurnButton } from "./components/EndTurnButton";
+import { Atmosphere } from "./components/Atmosphere";
 import { Card, RoomState, HeroClass, ClientAction, GameEvent, OpenRoomInfo, OnlinePlayerInfo } from "./types";
 import { HERO_POWER_COST, HERO_POWERS, HERO_POWERS_LIST } from "./constants";
-import { playSound } from "./utils/audio";
+import { playSound, playRaven } from "./utils/audio";
 
 export default function App() {
   // Connection states
@@ -659,22 +660,22 @@ export default function App() {
     const classPowers = HERO_POWERS_LIST[me.heroClass] || [];
 
     return (
-      <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-6 z-40 rounded-3xl border-2 border-amber-500/30">
+      <div className="absolute inset-0 bg-mg-void/95 backdrop-blur-md flex flex-col items-center justify-center p-6 z-40 rounded-3xl border-2 border-mg-bronze/30">
         
         {/* Large Countdown Timer */}
         <div className="absolute top-8 left-1/2 -translate-x-1/2 flex flex-col items-center animate-fade-in">
-          <span className="text-[10px] text-amber-500/80 font-mono tracking-widest uppercase mb-1">Time Remaining</span>
-          <span className={`text-6xl font-black font-mono tracking-tighter ${heroSelectionTimeRemaining <= 3 ? 'text-red-500 animate-pulse drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]' : 'text-amber-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.6)]'}`}>
+          <span className="text-[10px] text-mg-bronze/80 font-mono tracking-widest uppercase mb-1">Time Remaining</span>
+          <span className={`text-6xl font-black font-mono tracking-tighter ${heroSelectionTimeRemaining <= 3 ? 'text-red-500 animate-pulse drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]' : 'text-mg-bronze-bright drop-shadow-[0_0_15px_rgba(251,191,36,0.6)]'}`}>
             {heroSelectionTimeRemaining}s
           </span>
         </div>
 
         <div className="text-center max-w-xl mx-auto mb-8 mt-16">
-          <span className="text-[10px] uppercase tracking-widest text-amber-500 font-mono font-bold px-2 py-0.5 bg-amber-500/10 rounded-full border border-amber-500/20">💎 Legendary Specialization 💎</span>
+          <span className="text-[10px] uppercase tracking-widest text-mg-bronze font-mono font-bold px-2 py-0.5 bg-mg-bronze/10 rounded-full border border-mg-bronze/20">💎 Legendary Specialization 💎</span>
           <h2 className="text-2xl md:text-3xl font-serif font-black text-white mt-3 mb-2 tracking-wide uppercase">
             Choose Your Specialized Power
           </h2>
-          <p className="text-xs text-slate-400 font-sans leading-relaxed">
+          <p className="text-xs text-mg-fog font-sans leading-relaxed">
             Your deck is ready for battle! Settle on one of three dynamic hero abilities to command for the rest of this Marcgard duel.
           </p>
         </div>
@@ -689,18 +690,18 @@ export default function App() {
                   payload: { roomId: room.roomId, powerIndex: idx }
                 });
               }}
-              className="flex flex-col items-center text-center p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-amber-400 hover:bg-slate-900/50 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)] transition-all group hover:-translate-y-1 cursor-pointer"
+              className="flex flex-col items-center text-center p-6 rounded-2xl bg-mg-slate border border-mg-stone hover:border-mg-bronze-bright hover:bg-mg-slate/50 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)] transition-all group hover:-translate-y-1 cursor-pointer"
             >
-              <div className="w-14 h-14 rounded-full bg-amber-500/10 border border-amber-500/20 text-3xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <div className="w-14 h-14 rounded-full bg-mg-bronze/10 border border-mg-bronze/20 text-3xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 {power.emoji}
               </div>
-              <h3 className="font-serif font-bold text-white text-md tracking-tight group-hover:text-amber-400 transition-colors">
+              <h3 className="font-serif font-bold text-white text-md tracking-tight group-hover:text-mg-bronze-bright transition-colors">
                 {power.name}
               </h3>
-              <p className="text-[10px] text-slate-400 mt-2 font-sans leading-normal antialiased">
+              <p className="text-[10px] text-mg-fog mt-2 font-sans leading-normal antialiased">
                 {power.description}
               </p>
-              <span className="text-[9px] uppercase tracking-wide font-mono text-amber-500 font-extrabold mt-4 px-2 py-1 bg-amber-500/10 border border-amber-500/20 rounded-xl group-hover:bg-amber-500 group-hover:text-slate-950 transition-colors">
+              <span className="text-[9px] uppercase tracking-wide font-mono text-mg-bronze font-extrabold mt-4 px-2 py-1 bg-mg-bronze/10 border border-mg-bronze/20 rounded-xl group-hover:bg-mg-bronze group-hover:text-mg-void transition-colors">
                 Unlock Power
               </span>
             </button>
@@ -713,9 +714,10 @@ export default function App() {
   // Lobby UI View
   if (!room) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-amber-500 selection:text-slate-900">
+      <div className="min-h-screen text-mg-frost-text font-body selection:bg-mg-bronze selection:text-mg-void">
+        <Atmosphere onRaven={playRaven} />
         {/* Banner */}
-        <div className="bg-gradient-to-r from-amber-600 to-amber-550 py-1.5 px-4 text-center text-xs font-mono font-bold text-slate-950 flex items-center justify-center gap-1.5 shadow-md">
+        <div className="bg-gradient-to-r from-mg-bronze to-mg-bronze py-1.5 px-4 text-center text-xs font-mono font-bold text-mg-void flex items-center justify-center gap-1.5 shadow-md">
           <span>{isConnected ? "🟢 Server Live & Active" : "🟡 Reconnecting to server..."}</span>
           <span className="opacity-80">| Ready for instant mobile-desktop play!</span>
         </div>
@@ -743,22 +745,23 @@ export default function App() {
   // Pre-match game room Lobby View
   if (room.phase === "lobby") {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between py-6 px-4">
+      <div className="min-h-screen text-mg-frost-text flex flex-col justify-between py-6 px-4">
+        <Atmosphere onRaven={playRaven} />
         {/* Header bar */}
-        <div className="max-w-4xl mx-auto w-full bg-slate-900/60 rounded-3xl border border-slate-800 p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="max-w-4xl mx-auto w-full bg-mg-slate/60 rounded-3xl border border-mg-stone p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col gap-1.5 text-center md:text-left">
-            <span className="text-[10px] font-mono tracking-widest text-amber-500 uppercase font-bold">Marcgard Matchmaker</span>
+            <span className="text-[10px] font-mono tracking-widest text-mg-bronze uppercase font-bold">Marcgard Matchmaker</span>
             <h2 className="text-2xl font-extrabold text-white uppercase tracking-wider">Room Lobby Lounge</h2>
           </div>
 
           {/* Code Board */}
-          <div className="flex items-center gap-3 bg-slate-950 border border-slate-800 px-4 py-3 rounded-2xl">
-            <span className="text-xs font-mono text-slate-500 uppercase">Room ID:</span>
-            <span className="text-lg font-mono font-bold text-amber-500 select-all tracking-widest">{room.roomId}</span>
+          <div className="flex items-center gap-3 bg-mg-void border border-mg-stone px-4 py-3 rounded-2xl">
+            <span className="text-xs font-mono text-mg-fog uppercase">Room ID:</span>
+            <span className="text-lg font-mono font-bold text-mg-bronze select-all tracking-widest">{room.roomId}</span>
             <button
               onClick={copyRoomCode}
               type="button"
-              className="px-3 py-1 bg-amber-500/10 text-amber-400 hover:bg-amber-500 hover:text-slate-950 rounded-xl text-xs font-mono transition-all font-bold cursor-pointer"
+              className="px-3 py-1 bg-mg-bronze/10 text-mg-bronze-bright hover:bg-mg-bronze hover:text-mg-void rounded-xl text-xs font-mono transition-all font-bold cursor-pointer"
             >
               {copiedCode ? "Copied!" : "Share Link"}
             </button>
@@ -768,21 +771,21 @@ export default function App() {
         {/* Both Duelists profiles cards */}
         <div className="max-w-4xl mx-auto w-full my-8 grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Player 1 Card */}
-          <div className="relative p-6 rounded-3xl border border-slate-800 bg-slate-900/30 flex flex-col items-center justify-between h-56 shadow-lg overflow-hidden">
-            <div className="absolute top-0 inset-x-0 h-1 bg-amber-500" />
-            <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest mb-2">Host Player (1)</span>
+          <div className="relative p-6 rounded-3xl border border-mg-stone bg-mg-slate/30 flex flex-col items-center justify-between h-56 shadow-lg overflow-hidden">
+            <div className="absolute top-0 inset-x-0 h-1 bg-mg-bronze" />
+            <span className="text-[10px] font-mono font-bold text-mg-fog uppercase tracking-widest mb-2">Host Player (1)</span>
             {room.player1 ? (
               <div className="text-center space-y-2">
                 <span className="text-5xl">
                   {room.player1.heroClass === "Mage" ? "🧙‍♀️" : room.player1.heroClass === "Priest" ? "🩹" : room.player1.heroClass === "Hunter" ? "🏹" : "🫡"}
                 </span>
                 <h3 className="text-xl font-black text-white">{room.player1.name}</h3>
-                <span className="inline-block px-3 py-1 rounded bg-slate-800 text-xs font-mono font-bold text-amber-400">
+                <span className="inline-block px-3 py-1 rounded bg-mg-stone text-xs font-mono font-bold text-mg-bronze-bright">
                   {room.player1.heroClass}
                 </span>
               </div>
             ) : (
-              <div className="text-slate-600 text-xs italic">Empty slot. Waiting for host...</div>
+              <div className="text-mg-fog text-xs italic">Empty slot. Waiting for host...</div>
             )}
             <div className="text-[10px] text-emerald-400 font-mono mt-2 flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500" /> Ready
@@ -790,23 +793,23 @@ export default function App() {
           </div>
 
           {/* Player 2 Card */}
-          <div className="relative p-6 rounded-3xl border border-slate-800 bg-slate-900/30 flex flex-col items-center justify-between h-56 shadow-lg overflow-hidden">
+          <div className="relative p-6 rounded-3xl border border-mg-stone bg-mg-slate/30 flex flex-col items-center justify-between h-56 shadow-lg overflow-hidden">
             <div className="absolute top-0 inset-x-0 h-1 bg-indigo-500" />
-            <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest mb-2">Challenger Player (2)</span>
+            <span className="text-[10px] font-mono font-bold text-mg-fog uppercase tracking-widest mb-2">Challenger Player (2)</span>
             {room.player2 ? (
               <div className="text-center space-y-2">
                 <span className="text-5xl">
                   {room.player2.heroClass === "Mage" ? "🧙‍♀️" : room.player2.heroClass === "Priest" ? "🩹" : room.player2.heroClass === "Hunter" ? "🏹" : "🫡"}
                 </span>
                 <h3 className="text-xl font-black text-white">{room.player2.name}</h3>
-                <span className="inline-block px-3 py-1 rounded bg-slate-800 text-xs font-mono font-bold text-indigo-400">
+                <span className="inline-block px-3 py-1 rounded bg-mg-stone text-xs font-mono font-bold text-indigo-400">
                   {room.player2.heroClass}
                 </span>
               </div>
             ) : (
               <div className="text-center space-y-3">
-                <div className="text-slate-500 text-xs italic">Waiting for challenger invite...</div>
-                <div className="text-[9px] font-mono text-slate-600 py-1 px-3 bg-slate-950 rounded-full border border-slate-900">
+                <div className="text-mg-fog text-xs italic">Waiting for challenger invite...</div>
+                <div className="text-[9px] font-mono text-mg-fog py-1 px-3 bg-mg-void rounded-full border border-mg-slate">
                   Code: {room.roomId}
                 </div>
               </div>
@@ -829,12 +832,12 @@ export default function App() {
             <button
               onClick={handleStartGame}
               type="button"
-              className="px-10 py-4 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 scale-102 hover:scale-105 font-bold font-sans text-sm uppercase tracking-widest rounded-2xl shadow-lg cursor-pointer transition-all"
+              className="px-10 py-4 bg-gradient-to-r from-mg-bronze to-mg-bronze hover:from-mg-bronze-bright hover:to-mg-bronze-bright text-mg-void scale-102 hover:scale-105 font-bold font-sans text-sm uppercase tracking-widest rounded-2xl shadow-lg cursor-pointer transition-all"
             >
               🚀 Duel Battle Start!
             </button>
           ) : (
-            <div className="text-xs text-slate-500 max-w-sm text-center leading-relaxed">
+            <div className="text-xs text-mg-fog max-w-sm text-center leading-relaxed">
               Send the Room Code to your brother's phone or desktop to begin the card duel. Once he joins, you can initiate match.
             </div>
           )}
@@ -842,14 +845,14 @@ export default function App() {
           <button
             onClick={handleLeaveRoom}
             type="button"
-            className="text-xs text-slate-500 hover:text-white transition-colors cursor-pointer border-b border-dashed border-slate-800 hover:border-slate-500 pt-1 mt-2"
+            className="text-xs text-mg-fog hover:text-white transition-colors cursor-pointer border-b border-dashed border-mg-stone hover:border-mg-fog pt-1 mt-2"
           >
             Leave lobby & return to Main Entrance
           </button>
         </div>
 
         {/* Live Lobby chat and logging box so brothers can chat before game starts! */}
-        <div className="max-w-4xl mx-auto w-full mt-8 bg-slate-900/30 rounded-3xl border border-slate-800/80 p-4">
+        <div className="max-w-4xl mx-auto w-full mt-8 bg-mg-slate/30 rounded-3xl border border-mg-stone/80 p-4">
           <ChatPanel room={room} connectionId={connectionId} onSendMessage={handleSendChat} />
         </div>
       </div>
@@ -864,17 +867,18 @@ export default function App() {
   return (
     <div
       onClick={handleCancelTargeting}
-      className={`min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between py-4 px-2 select-none relative overflow-x-hidden ${
-        targetingMode !== "none" ? "bg-slate-900 cursor-crosshair" : ""
+      className={`min-h-screen text-mg-frost-text flex flex-col justify-between py-4 px-2 select-none relative overflow-x-hidden ${
+        targetingMode !== "none" ? "cursor-crosshair" : ""
       }`}
     >
+      <Atmosphere onRaven={playRaven} />
       {/* 1. Global Game HUD Status Bar */}
-      <header className="max-w-7xl mx-auto w-full bg-slate-900/90 border border-slate-800 rounded-2xl p-3 shadow-lg flex flex-wrap gap-4 items-center justify-between z-20">
+      <header className="max-w-7xl mx-auto w-full bg-mg-slate/90 border border-mg-stone rounded-2xl p-3 shadow-lg flex flex-wrap gap-4 items-center justify-between z-20">
         <div className="flex items-center gap-3">
-          <h1 className="text-sm font-black text-amber-500 uppercase tracking-widest font-sans">
+          <h1 className="text-sm font-black text-mg-bronze uppercase tracking-widest font-sans">
             Marcgard Arena
           </h1>
-          <span className="text-[10px] bg-slate-800/80 border border-slate-700 font-mono text-slate-400 px-2 py-0.5 rounded-full">
+          <span className="text-[10px] bg-mg-stone/80 border border-mg-stone-light font-mono text-mg-fog px-2 py-0.5 rounded-full">
             Code: {room.roomId}
           </span>
         </div>
@@ -887,12 +891,12 @@ export default function App() {
                 🛡️ Your Action Turn!
               </span>
             ) : (
-              <span className="text-slate-400 bg-slate-950/60 px-3 py-1 rounded-xl">
+              <span className="text-mg-fog bg-mg-void/60 px-3 py-1 rounded-xl">
                 ⏳ Waiting for {opponent?.name || "Opponent"}...
               </span>
             )
           ) : (
-            <span className="text-yellow-400 uppercase tracking-wider font-sans font-black">
+            <span className="text-mg-bronze-bright uppercase tracking-wider font-sans font-black">
               ⚔️ Post-Match Chronicles
             </span>
           )}
@@ -903,7 +907,7 @@ export default function App() {
           <button
             onClick={handleLeaveRoom}
             type="button"
-            className="text-slate-400 hover:text-rose-400 text-xs px-3 py-1 rounded-xl bg-slate-950 border border-slate-850 hover:border-rose-900 transition-all font-sans"
+            className="text-mg-fog hover:text-rose-400 text-xs px-3 py-1 rounded-xl bg-mg-void border border-mg-stone hover:border-rose-900 transition-all font-sans"
           >
             Leave Match
           </button>
@@ -930,13 +934,13 @@ export default function App() {
       <main className="flex-1 w-full mx-auto grid grid-cols-1 lg:grid-cols-4 gap-2 lg:gap-4 mt-2 lg:mt-4 relative px-1 lg:px-4">
         
         {/* Interactive duel arena dashboard (3 Columns) */}
-        <div className="lg:col-span-3 flex flex-col justify-between min-h-0 bg-slate-950 rounded-2xl md:rounded-3xl border border-slate-850 p-1 md:p-3 shadow-inner relative gap-2 md:gap-4">
+        <div className="lg:col-span-3 flex flex-col justify-between min-h-0 bg-mg-void rounded-2xl md:rounded-3xl border border-mg-stone p-1 md:p-3 shadow-inner relative gap-2 md:gap-4">
           
           {/* Chosen Specialization Modal Overlay Trigger */}
           {room && room.phase === "hero_selection" && me && typeof me.selectedHeroPowerIndex !== "number" && renderSubclassSelection()}
 
           {/* A. ENEMY OVERHERO AREA */}
-          <div className="flex justify-between items-center bg-slate-900/10 p-1 md:p-2 rounded-xl md:rounded-2xl border border-transparent">
+          <div className="flex justify-between items-center bg-mg-slate/10 p-1 md:p-2 rounded-xl md:rounded-2xl border border-transparent">
             {opponent ? (
               <HeroState
                 player={opponent}
@@ -946,13 +950,13 @@ export default function App() {
                 onHeroClick={() => handleTargetSelection(opponent.id, true)}
               />
             ) : (
-              <div className="text-[10px] md:text-xs text-slate-600 italic">No opponent joined yet.</div>
+              <div className="text-[10px] md:text-xs text-mg-fog italic">No opponent joined yet.</div>
             )}
 
             {/* Opponent Card count & deck summary */}
             {opponent && (
-              <div className="flex gap-1 md:gap-2 items-center bg-slate-900/40 p-1 md:p-2 rounded-lg md:rounded-xl border border-slate-850 text-right font-mono">
-                <div className="flex flex-col text-[8px] md:text-[10px] text-slate-400 leading-tight">
+              <div className="flex gap-1 md:gap-2 items-center bg-mg-slate/40 p-1 md:p-2 rounded-lg md:rounded-xl border border-mg-stone text-right font-mono">
+                <div className="flex flex-col text-[8px] md:text-[10px] text-mg-fog leading-tight">
                   <span>Hand: {opponent.hand.length}/10</span>
                   <span>Deck: {opponent.deck.length}</span>
                   <span className="flex items-center justify-end gap-1 font-bold">
@@ -968,7 +972,7 @@ export default function App() {
                     <div key={i} className="w-3 h-4 md:w-5 md:h-7 rounded-sm md:rounded border border-indigo-900 bg-indigo-950 shadow shadow-indigo-500/10" />
                   ))}
                   {opponent.hand.length > 6 && (
-                    <span className="text-[8px] md:text-[10px] font-mono text-slate-500 flex items-center justify-center p-0.5 md:p-1 font-bold">+</span>
+                    <span className="text-[8px] md:text-[10px] font-mono text-mg-fog flex items-center justify-center p-0.5 md:p-1 font-bold">+</span>
                   )}
                 </div>
               </div>
@@ -976,15 +980,15 @@ export default function App() {
           </div>
 
           {/* B. BATTLEFIELD BOARD (MIDDLE SPAN) */}
-          <div className="flex-1 rounded-xl md:rounded-2xl bg-slate-900/20 border border-slate-900 p-1 md:p-2 flex flex-col justify-evenly gap-2 md:gap-6 relative min-h-[160px] md:min-h-[220px] transition-all overflow-visible">
+          <div className="flex-1 rounded-xl md:rounded-2xl bg-mg-slate/20 border border-mg-slate p-1 md:p-2 flex flex-col justify-evenly gap-2 md:gap-6 relative min-h-[160px] md:min-h-[220px] transition-all overflow-visible">
             
             {/* Visual targeting guidelines in center banner */}
             {targetingMode !== "none" && (
-              <div className="absolute inset-0 bg-yellow-950/20 rounded-xl md:rounded-2xl border-2 border-dashed border-yellow-500/50 flex flex-col items-center justify-center pointer-events-none z-30">
-                <span className="text-[10px] md:text-xs font-mono text-yellow-300 font-extrabold uppercase animate-pulse px-2 text-center">
+              <div className="absolute inset-0 bg-mg-slate/20 rounded-xl md:rounded-2xl border-2 border-dashed border-mg-bronze/50 flex flex-col items-center justify-center pointer-events-none z-30">
+                <span className="text-[10px] md:text-xs font-mono text-mg-bronze-bright font-extrabold uppercase animate-pulse px-2 text-center">
                   🎯 Targets Active: Choose any minion or Hero portrait!
                 </span>
-                <span className="text-[8px] md:text-[9px] text-slate-400 font-sans mt-0.5 md:mt-1 px-4 text-center">
+                <span className="text-[8px] md:text-[9px] text-mg-fog font-sans mt-0.5 md:mt-1 px-4 text-center">
                   Click on any empty board section to cancel target.
                 </span>
               </div>
@@ -992,10 +996,10 @@ export default function App() {
 
             {/* 1. Opposition Row Deployed Minions */}
             <div className="flex flex-col items-center gap-0.5 md:gap-1.5 w-full">
-              <span className="text-[6px] md:text-[8px] font-mono font-bold text-slate-600 tracking-widest uppercase">Opposition Deployment (Max 7)</span>
+              <span className="text-[6px] md:text-[8px] font-mono font-bold text-mg-fog tracking-widest uppercase">Opposition Deployment (Max 7)</span>
               <div className="flex flex-row flex-nowrap md:flex-wrap justify-center gap-1 md:gap-3 w-full overflow-visible">
                 {opponent && opponent.board.length === 0 ? (
-                  <div className="text-[8px] md:text-[10px] text-slate-700 italic py-2 md:py-4 font-mono">Board is empty and clear.</div>
+                  <div className="text-[8px] md:text-[10px] text-mg-stone-light italic py-2 md:py-4 font-mono">Board is empty and clear.</div>
                 ) : (
                   opponent?.board.map((card) => {
                     const isTauntTargetNeeded = opponent.board.some(m => m.hasTaunt) && !card.hasTaunt;
@@ -1012,7 +1016,7 @@ export default function App() {
                             handleTargetSelection(card.id, false);
                           }
                         }}
-                        className={canOpponentTarget ? "glow-selected ring-1 md:ring-2 ring-yellow-400 scale-102 cursor-pointer" : ""}
+                        className={canOpponentTarget ? "glow-selected ring-1 md:ring-2 ring-mg-bronze-bright scale-102 cursor-pointer" : ""}
                       />
                     );
                   })
@@ -1021,18 +1025,18 @@ export default function App() {
             </div>
 
             {/* Divider lines representing tactical front line */}
-            <div className="border-t border-slate-900 relative my-0.5 md:my-1">
-              <span className="absolute left-1/2 -translate-x-1/2 -top-1 md:-top-2 bg-slate-950 px-2 md:px-3 text-[6px] md:text-[8px] font-mono text-slate-600 tracking-widest uppercase z-10">
+            <div className="border-t border-mg-slate relative my-0.5 md:my-1">
+              <span className="absolute left-1/2 -translate-x-1/2 -top-1 md:-top-2 bg-mg-void px-2 md:px-3 text-[6px] md:text-[8px] font-mono text-mg-fog tracking-widest uppercase z-10">
                 ⚔️ Front-Line Range ⚔️
               </span>
             </div>
 
             {/* 2. Player Row Deployed Minions */}
             <div className="flex flex-col items-center gap-0.5 md:gap-1.5 w-full">
-              <span className="text-[6px] md:text-[8px] font-mono font-bold text-slate-600 tracking-widest uppercase">Your Friendly Deployed Units</span>
+              <span className="text-[6px] md:text-[8px] font-mono font-bold text-mg-fog tracking-widest uppercase">Your Friendly Deployed Units</span>
               <div className="flex flex-row flex-nowrap md:flex-wrap justify-center gap-1 md:gap-3 w-full overflow-visible">
                 {me && me.board.length === 0 ? (
-                  <div className="text-[8px] md:text-[10px] text-slate-700 italic py-2 md:py-4 font-mono">No units deployed. Play minion from your hand.</div>
+                  <div className="text-[8px] md:text-[10px] text-mg-stone-light italic py-2 md:py-4 font-mono">No units deployed. Play minion from your hand.</div>
                 ) : (
                   me?.board.map((card) => {
                     const isSelected = selectedAttackerId === card.id;
@@ -1052,7 +1056,7 @@ export default function App() {
                             handleFriendlyMinionClick(card);
                           }
                         }}
-                        className={isTargetableByCurrentSpell ? "glow-selected scale-102 cursor-pointer border-yellow-400" : ""}
+                        className={isTargetableByCurrentSpell ? "glow-selected scale-102 cursor-pointer border-mg-bronze-bright" : ""}
                       />
                     );
                   })
@@ -1062,9 +1066,9 @@ export default function App() {
           </div>
 
           {/* C. PLAYER ROW CARD HAND OVERVIEW */}
-          <div className="flex flex-col gap-2 bg-slate-900/15 p-2 rounded-2xl border border-slate-850">
+          <div className="flex flex-col gap-2 bg-mg-slate/15 p-2 rounded-2xl border border-mg-stone">
             {me && (
-              <div className="flex justify-between items-center flex-wrap gap-2 pb-1 border-b border-slate-900">
+              <div className="flex justify-between items-center flex-wrap gap-2 pb-1 border-b border-mg-slate">
                 <HeroState
                   player={me}
                   isActiveTurn={isActiveTurn ?? false}
@@ -1076,7 +1080,7 @@ export default function App() {
 
                 {/* Hand control counts & End Turn Action buttons */}
                 <div className="flex items-center gap-4 flex-wrap">
-                  <div className="text-right font-mono text-[10px] text-slate-500">
+                  <div className="text-right font-mono text-[10px] text-mg-fog">
                     <span>Your Hand: {me.hand.length}/10 Cards</span>
                     <br />
                     <span>Library Deck: {me.deck.length} remaining</span>
@@ -1096,7 +1100,7 @@ export default function App() {
                       type="button"
                       className={`px-4 py-3 font-bold font-sans text-xs tracking-wide uppercase rounded-xl transition-all shadow-md ${
                         me.hasForgedThisGame
-                          ? "bg-slate-800 text-slate-500 opacity-60 cursor-not-allowed"
+                          ? "bg-mg-stone text-mg-fog opacity-60 cursor-not-allowed"
                           : "bg-gradient-to-r from-purple-800 to-indigo-800 hover:from-purple-700 hover:to-indigo-700 text-purple-100 cursor-pointer shadow-purple-950/20"
                       }`}
                     >
@@ -1110,10 +1114,10 @@ export default function App() {
                     <button
                       disabled
                       type="button"
-                      className="px-6 py-3 bg-slate-900 text-slate-500 border border-slate-800 font-bold font-sans text-xs tracking-wider uppercase rounded-xl cursor-not-allowed opacity-60 flex items-center gap-2"
+                      className="px-6 py-3 bg-mg-slate text-mg-fog border border-mg-stone font-bold font-sans text-xs tracking-wider uppercase rounded-xl cursor-not-allowed opacity-60 flex items-center gap-2"
                     >
                       <span>⏳ Opponent</span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] bg-slate-800 font-mono text-amber-500/80">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] bg-mg-stone font-mono text-mg-bronze/80">
                         {timeRemaining}s
                       </span>
                     </button>
@@ -1126,7 +1130,7 @@ export default function App() {
             {me && (
               <div className="flex gap-4 overflow-x-auto py-3 px-1">
                 {me.hand.length === 0 ? (
-                  <div className="text-xs text-slate-600 italic py-4 pl-4">Your hand is empty. End turn to draw cards!</div>
+                  <div className="text-xs text-mg-fog italic py-4 pl-4">Your hand is empty. End turn to draw cards!</div>
                 ) : (
                   me.hand.map((card) => {
                     const isPlayedSelected = selectedCardId === card.id;
@@ -1162,15 +1166,15 @@ export default function App() {
 
       {/* D. GAME OVER VICTORY / LOSS SCANNABLE MODAL OVERLAY */}
       {room.phase === "victory" && (
-        <div className="fixed inset-0 bg-slate-950/95 z-50 flex items-center justify-center p-4">
-          <div className="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-amber-500 rounded-3xl p-8 max-w-lg w-full text-center space-y-6 shadow-2xl sh-glow flex flex-col items-center">
+        <div className="fixed inset-0 bg-mg-void/95 z-50 flex items-center justify-center p-4">
+          <div className="bg-gradient-to-b from-mg-slate to-mg-void border-2 border-mg-bronze rounded-3xl p-8 max-w-lg w-full text-center space-y-6 shadow-2xl sh-glow flex flex-col items-center">
             
             {isWinnerMe && (
               <>
                 <span className="text-7xl animate-bounce">👑</span>
-                <span className="text-xs font-mono font-bold tracking-widest text-amber-500 uppercase">Victory Accomplished!</span>
+                <span className="text-xs font-mono font-bold tracking-widest text-mg-bronze uppercase">Victory Accomplished!</span>
                 <h2 className="text-4xl font-extrabold text-white uppercase tracking-tight">Champion Duelist</h2>
-                <p className="text-slate-300 text-sm max-w-sm">
+                <p className="text-mg-fog text-sm max-w-sm">
                   Congratulations <strong>{me?.name}</strong>! You successfully outwitted and vanquished {opponent?.name || "your brother"} in the card battle. Well played!
                 </p>
               </>
@@ -1181,7 +1185,7 @@ export default function App() {
                 <span className="text-7xl">💀</span>
                 <span className="text-xs font-mono font-bold tracking-widest text-indigo-400 uppercase">Defeat Suffered</span>
                 <h2 className="text-4xl font-extrabold text-white uppercase tracking-tight">Match Defeated</h2>
-                <p className="text-slate-300 text-sm max-w-sm">
+                <p className="text-mg-fog text-sm max-w-sm">
                   Tough luck! <strong>{opponent?.name}</strong> successfully wiped your hero down. Refine your deck selections and take revenge!
                 </p>
               </>
@@ -1190,9 +1194,9 @@ export default function App() {
             {isDraw && (
               <>
                 <span className="text-7xl">🧪</span>
-                <span className="text-xs font-mono font-bold tracking-widest text-slate-400 uppercase">Mutual Annihilation</span>
+                <span className="text-xs font-mono font-bold tracking-widest text-mg-fog uppercase">Mutual Annihilation</span>
                 <h2 className="text-4xl font-extrabold text-white uppercase tracking-tight">Tie Duel</h2>
-                <p className="text-slate-300 text-sm max-w-sm">
+                <p className="text-mg-fog text-sm max-w-sm">
                   Both heroes perished simultaneously! The battlefield remains in absolute silence. Play another duel to break the tie!
                 </p>
               </>
@@ -1202,14 +1206,14 @@ export default function App() {
               <button
                 onClick={handleRestartGame}
                 type="button"
-                className="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-3 rounded-xl shadow-md cursor-pointer transition-all uppercase tracking-wider"
+                className="flex-1 bg-mg-bronze hover:bg-mg-bronze-bright text-mg-void font-bold text-xs py-3 rounded-xl shadow-md cursor-pointer transition-all uppercase tracking-wider"
               >
                 🔄 Play Again
               </button>
               <button
                 onClick={handleLeaveRoom}
                 type="button"
-                className="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs py-3 rounded-xl shadow-md cursor-pointer transition-all uppercase tracking-wider"
+                className="flex-1 bg-mg-stone hover:bg-mg-stone-light text-white font-bold text-xs py-3 rounded-xl shadow-md cursor-pointer transition-all uppercase tracking-wider"
               >
                 🚪 Back to Lobby
               </button>
@@ -1220,10 +1224,10 @@ export default function App() {
 
       {/* Alchemy Forge Crafting Modal */}
       {showAlchemyForge && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-mg-void/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <form
             onSubmit={handleForgeSubmit}
-            className="bg-slate-900 border-2 border-purple-500/40 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 animate-fade-in text-slate-200"
+            className="bg-mg-slate border-2 border-purple-500/40 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 animate-fade-in text-mg-frost-text"
           >
             <div className="border-b border-purple-950 pb-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -1236,7 +1240,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setShowAlchemyForge(false)}
-                className="text-slate-400 hover:text-white font-black text-sm p-1 cursor-pointer"
+                className="text-mg-fog hover:text-white font-black text-sm p-1 cursor-pointer"
               >
                 ✕
               </button>
@@ -1245,24 +1249,24 @@ export default function App() {
             {/* Inputs Grid */}
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block text-[10px] uppercase font-mono text-slate-400 mb-1">Card Name</label>
+                <label className="block text-[10px] uppercase font-mono text-mg-fog mb-1">Card Name</label>
                 <input
                   type="text"
                   value={forgeName}
                   onChange={(e) => setForgeName(e.target.value)}
                   placeholder="e.g. Flame-branded Squire"
-                  className="w-full bg-slate-955 border border-slate-800 rounded-xl px-3 py-2 text-white focus:border-purple-500 focus:outline-none"
+                  className="w-full bg-mg-void border border-mg-stone rounded-xl px-3 py-2 text-white focus:border-purple-500 focus:outline-none"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] uppercase font-mono text-slate-400 mb-1">Card Type</label>
+                  <label className="block text-[10px] uppercase font-mono text-mg-fog mb-1">Card Type</label>
                   <select
                     value={forgeType}
                     onChange={(e) => setForgeType(e.target.value as "minion" | "spell")}
-                    className="w-full bg-slate-955 border border-slate-800 rounded-xl px-3 py-2 text-white focus:border-purple-500 focus:outline-none"
+                    className="w-full bg-mg-void border border-mg-stone rounded-xl px-3 py-2 text-white focus:border-purple-500 focus:outline-none"
                   >
                     <option value="minion">Minion Unit</option>
                     <option value="spell">Spell Scroll</option>
@@ -1270,11 +1274,11 @@ export default function App() {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] uppercase font-mono text-slate-400 mb-1">Emoji Artwork</label>
+                  <label className="block text-[10px] uppercase font-mono text-mg-fog mb-1">Emoji Artwork</label>
                   <select
                     value={forgeEmoji}
                     onChange={(e) => setForgeEmoji(e.target.value)}
-                    className="w-full bg-slate-955 border border-slate-800 rounded-xl px-3 py-2 text-white focus:border-purple-500 focus:outline-none"
+                    className="w-full bg-mg-void border border-mg-stone rounded-xl px-3 py-2 text-white focus:border-purple-500 focus:outline-none"
                   >
                     <option value="⚔️">⚔️ Swordsman</option>
                     <option value="🛡️">🛡️ Shield guardian</option>
@@ -1294,26 +1298,26 @@ export default function App() {
                 {forgeType === "minion" && (
                   <>
                     <div>
-                      <label className="block text-[10px] uppercase font-mono text-slate-400 mb-1">Attack Rating</label>
+                      <label className="block text-[10px] uppercase font-mono text-mg-fog mb-1">Attack Rating</label>
                       <input
                         type="number"
                         min="1"
                         max="10"
                         value={forgeAttack}
                         onChange={(e) => setForgeAttack(e.target.value)}
-                        className="w-full bg-slate-955 border border-slate-800 rounded-xl px-3 py-2 text-white focus:border-purple-500 focus:outline-none text-center"
+                        className="w-full bg-mg-void border border-mg-stone rounded-xl px-3 py-2 text-white focus:border-purple-500 focus:outline-none text-center"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[10px] uppercase font-mono text-slate-400 mb-1">Health Points</label>
+                      <label className="block text-[10px] uppercase font-mono text-mg-fog mb-1">Health Points</label>
                       <input
                         type="number"
                         min="1"
                         max="10"
                         value={forgeHealth}
                         onChange={(e) => setForgeHealth(e.target.value)}
-                        className="w-full bg-slate-955 border border-slate-800 rounded-xl px-3 py-2 text-white focus:border-purple-500 focus:outline-none text-center"
+                        className="w-full bg-mg-void border border-mg-stone rounded-xl px-3 py-2 text-white focus:border-purple-500 focus:outline-none text-center"
                       />
                     </div>
                   </>
@@ -1322,11 +1326,11 @@ export default function App() {
                 {forgeType === "spell" && (
                   <>
                     <div>
-                      <label className="block text-[10px] uppercase font-mono text-slate-400 mb-1">Magischer Effekt</label>
+                      <label className="block text-[10px] uppercase font-mono text-mg-fog mb-1">Magischer Effekt</label>
                       <select
                         value={forgeSpellEffect}
                         onChange={(e) => setForgeSpellEffect(e.target.value as "damage" | "heal" | "draw")}
-                        className="w-full bg-slate-955 border border-slate-800 rounded-xl px-3 py-2 text-white focus:border-purple-500 focus:outline-none"
+                        className="w-full bg-mg-void border border-mg-stone rounded-xl px-3 py-2 text-white focus:border-purple-500 focus:outline-none"
                       >
                         <option value="damage">💥 Schaden verursachen</option>
                         <option value="heal">💖 Leben heilen</option>
@@ -1334,14 +1338,14 @@ export default function App() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[10px] uppercase font-mono text-slate-400 mb-1">Effekt-Stärke</label>
+                      <label className="block text-[10px] uppercase font-mono text-mg-fog mb-1">Effekt-Stärke</label>
                       <input
                         type="number"
                         min="1"
                         max="10"
                         value={forgeSpellValue}
                         onChange={(e) => setForgeSpellValue(e.target.value)}
-                        className="w-full bg-slate-955 border border-slate-800 rounded-xl px-3 py-2 text-white focus:border-purple-500 focus:outline-none text-center"
+                        className="w-full bg-mg-void border border-mg-stone rounded-xl px-3 py-2 text-white focus:border-purple-500 focus:outline-none text-center"
                       />
                     </div>
                   </>
@@ -1349,46 +1353,46 @@ export default function App() {
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase font-mono text-slate-400 mb-1">Beschreibungstext</label>
+                <label className="block text-[10px] uppercase font-mono text-mg-fog mb-1">Beschreibungstext</label>
                 <input
                   type="text"
                   value={forgeDesc}
                   onChange={(e) => setForgeDesc(e.target.value)}
                   placeholder="e.g. Deal 3 damage to any enemy."
-                  className="w-full bg-slate-955 border border-slate-800 rounded-xl px-3 py-2 text-white focus:border-purple-500 focus:outline-none"
+                  className="w-full bg-mg-void border border-mg-stone rounded-xl px-3 py-2 text-white focus:border-purple-500 focus:outline-none"
                 />
               </div>
 
               {forgeType === "minion" && (
-                <div className="bg-slate-950 p-3 rounded-xl border border-slate-850 space-y-2 mt-2">
-                  <span className="block text-[9px] uppercase font-mono text-slate-500 font-bold">Select Defensive Keywords</span>
+                <div className="bg-mg-void p-3 rounded-xl border border-mg-stone space-y-2 mt-2">
+                  <span className="block text-[9px] uppercase font-mono text-mg-fog font-bold">Select Defensive Keywords</span>
                   <div className="flex flex-wrap gap-4">
-                    <label className="flex items-center gap-1.5 cursor-pointer text-[11px] text-slate-300">
+                    <label className="flex items-center gap-1.5 cursor-pointer text-[11px] text-mg-fog">
                       <input
                         type="checkbox"
                         checked={forgeTaunt}
                         onChange={(e) => setForgeTaunt(e.target.checked)}
-                        className="rounded border-slate-800 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                        className="rounded border-mg-stone text-purple-600 focus:ring-purple-500 cursor-pointer"
                       />
                       🛡️ Spott (Taunt)
                     </label>
 
-                    <label className="flex items-center gap-1.5 cursor-pointer text-[11px] text-slate-300">
+                    <label className="flex items-center gap-1.5 cursor-pointer text-[11px] text-mg-fog">
                       <input
                         type="checkbox"
                         checked={forgeCharge}
                         onChange={(e) => setForgeCharge(e.target.checked)}
-                        className="rounded border-slate-800 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                        className="rounded border-mg-stone text-purple-600 focus:ring-purple-500 cursor-pointer"
                       />
                       ⚡ Ansturm (Charge)
                     </label>
 
-                    <label className="flex items-center gap-1.5 cursor-pointer text-[11px] text-slate-300">
+                    <label className="flex items-center gap-1.5 cursor-pointer text-[11px] text-mg-fog">
                       <input
                         type="checkbox"
                         checked={forgeShield}
                         onChange={(e) => setForgeShield(e.target.checked)}
-                        className="rounded border-slate-800 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                        className="rounded border-mg-stone text-purple-600 focus:ring-purple-500 cursor-pointer"
                       />
                       ✨ Gottesschild
                     </label>
@@ -1420,7 +1424,7 @@ export default function App() {
                   type="submit"
                   className={`w-full py-3 mt-4 text-white font-bold tracking-wider uppercase rounded-xl shadow-lg transition-all text-xs flex justify-center items-center gap-2 ${
                     isTooExpensive 
-                      ? "bg-slate-800 cursor-not-allowed opacity-50" 
+                      ? "bg-mg-stone cursor-not-allowed opacity-50" 
                       : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 cursor-pointer active:scale-98"
                   }`}
                   disabled={isTooExpensive}

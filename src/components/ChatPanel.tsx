@@ -44,10 +44,10 @@ export function ChatPanel({ room, connectionId, onSendMessage }: ChatPanelProps)
   return (
     <div className="w-full flex flex-col md:flex-row gap-4 h-64 md:h-[480px]">
       {/* 1. Tactical Logs Section */}
-      <div className="flex-1 flex flex-col bg-stone-900/90 rounded-2xl border border-amber-800/40 p-4 shadow-inner">
-        <h4 className="text-xs font-mono font-bold tracking-widest text-amber-500 uppercase pb-2 border-b border-stone-800 flex items-center justify-between">
+      <div className="flex-1 flex flex-col bg-mg-slate/90 rounded-2xl border border-mg-bronze/40 p-4 shadow-inner">
+        <h4 className="text-xs font-mono font-bold tracking-widest text-mg-bronze uppercase pb-2 border-b border-stone-800 flex items-center justify-between">
           <span>⚔️ Battle Log Chronicles</span>
-          <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full font-mono">
+          <span className="text-[10px] bg-mg-bronze/10 text-mg-bronze-bright px-2 py-0.5 rounded-full font-mono">
             {room.history.length} Actions
           </span>
         </h4>
@@ -71,7 +71,7 @@ export function ChatPanel({ room, connectionId, onSendMessage }: ChatPanelProps)
                   key={index}
                   className={`p-1.5 rounded text-[11px] leading-tight transition-colors border ${
                     isAttack
-                      ? "bg-amber-950/30 border-amber-900/40 text-amber-300"
+                      ? "bg-mg-slate/30 border-mg-bronze/40 text-mg-bronze-bright"
                       : isSpell
                         ? "bg-purple-950/20 border-purple-900/40 text-purple-300"
                         : isDead
@@ -90,10 +90,10 @@ export function ChatPanel({ room, connectionId, onSendMessage }: ChatPanelProps)
       </div>
 
       {/* 2. Interactive Chat Room Section */}
-      <div className="w-full md:w-80 flex flex-col bg-stone-900/90 rounded-2xl border border-amber-800/40 p-4 shadow-inner">
-        <h4 className="text-xs font-mono font-bold tracking-widest text-amber-400 uppercase pb-2 border-b border-stone-800 flex items-center justify-between">
+      <div className="w-full md:w-80 flex flex-col bg-mg-slate/90 rounded-2xl border border-mg-bronze/40 p-4 shadow-inner">
+        <h4 className="text-xs font-mono font-bold tracking-widest text-mg-bronze-bright uppercase pb-2 border-b border-stone-800 flex items-center justify-between">
           <span>💬 Live Trash-Talk Chat</span>
-          <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-mg-bronze animate-pulse" />
         </h4>
 
         {/* Messaging Box */}
@@ -116,7 +116,7 @@ export function ChatPanel({ room, connectionId, onSendMessage }: ChatPanelProps)
                   <div
                     className={`px-3 py-1.5 rounded-2xl text-xs font-sans leading-snug break-words ${
                       isMe
-                        ? "bg-amber-700 text-white rounded-tr-none border border-amber-600"
+                        ? "bg-mg-bronze text-white rounded-tr-none border border-mg-bronze"
                         : "bg-stone-800 text-stone-200 rounded-tl-none border border-stone-700"
                     }`}
                   >
@@ -134,7 +134,7 @@ export function ChatPanel({ room, connectionId, onSendMessage }: ChatPanelProps)
             <button
               key={emote}
               onClick={() => onSendMessage(emote)}
-              className="text-[10px] bg-slate-800/80 hover:bg-slate-700 hover:text-white text-slate-300 px-2 py-1 rounded-lg border border-slate-700/60 cursor-pointer transition-colors"
+              className="text-[10px] bg-mg-stone/80 hover:bg-mg-stone-light hover:text-white text-mg-fog px-2 py-1 rounded-lg border border-mg-stone-light/60 cursor-pointer transition-colors"
             >
               {emote}
             </button>
@@ -149,7 +149,7 @@ export function ChatPanel({ room, connectionId, onSendMessage }: ChatPanelProps)
             onChange={(e) => setInputText(e.target.value)}
             placeholder="Type message..."
             maxLength={100}
-            className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 font-sans"
+            className="flex-1 bg-mg-slate border border-mg-stone-light rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 font-sans"
           />
           <button
             type="submit"

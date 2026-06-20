@@ -185,3 +185,15 @@ export function playSound(type: "play_card" | "attack" | "spell" | "heal" | "vic
     console.warn("Audio Context setup not allowed or failed:", error);
   }
 }
+
+// Real recorded clips for atmosphere/events (raven caw etc.).
+// A fresh element per call so overlapping caws are fine; the browser GCs them.
+export function playRaven() {
+  try {
+    const a = new Audio("/audio/raven.mp3");
+    a.volume = 0.45;
+    a.play().catch(() => {});
+  } catch {
+    // autoplay blocked before first interaction; ignore
+  }
+}

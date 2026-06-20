@@ -7,6 +7,20 @@ Format: `## [Version] - Datum` mit Kategorien Hinzugefuegt / Geaendert / Behoben
 
 ---
 
+## [2.0.0-a] - Phase 2 Start: Marcgard-Rebranding (Optik)
+
+### Hinzugefuegt
+- Neuer Name **Marcgard** (Titel, Lobby-Logo in Cinzel, Arena, metadata).
+- Dunkel-nordisches Design-System: Palette (Stein/Frost/Blut/Bronze) + Fonts Cinzel/Pirata One/Spectral als Tailwind-Tokens.
+- Atmosphaere-Layer: fallender Schnee + gelegentlich fliegende Raben (Canvas), Aurora/Nebel/Vignette (CSS). Respektiert prefers-reduced-motion.
+- **Raben-Geraeusch** beim Raben-Flug (echtes Audio, Wikimedia/Xeno-Canto).
+
+### Geaendert
+- Komplette Lobby + Spiel-UI von Slate/Amber auf die Marcgard-Palette umgestellt.
+
+### In Arbeit (Phase 2/3)
+- Spielbrett + Karten im Tarot-Stil, brennende-Zuendschnur-Timer, mehr Sounds (Musik/Wasser/Trommeln/Wolf), Eagle-Glyphen als Faehigkeits-Icons. Plan: docs/PHASE2-DESIGN.md
+
 ## [1.6.0] - Phase 1: Festung (Fundament + Stabilitaet)
 
 ### Hinzugefuegt

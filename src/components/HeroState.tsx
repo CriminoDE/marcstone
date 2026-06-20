@@ -53,7 +53,7 @@ export function HeroState({
           crystals.push(
             <span
               key={i}
-              className="w-3.5 h-3.5 rounded-full bg-slate-700/80 border border-slate-600 inline-block"
+              className="w-3.5 h-3.5 rounded-full bg-mg-stone-light/80 border border-mg-fog inline-block"
               title="Spent Mana"
             />
           );
@@ -72,17 +72,17 @@ export function HeroState({
       }}
       className={`p-3 rounded-2xl flex items-center justify-between gap-4 transition-all border-2 max-w-sm w-full
         ${isActiveTurn 
-          ? "bg-slate-900 border-amber-500 shadow-[0_0_15px_rgba(234,179,8,0.2)]" 
-          : "bg-slate-950 border-slate-800"
+          ? "bg-mg-slate border-mg-bronze shadow-[0_0_15px_rgba(234,179,8,0.2)]" 
+          : "bg-mg-void border-mg-stone"
         }
-        ${canBeTargeted ? "glow-selected border-yellow-400 cursor-pointer scale-102" : ""}
+        ${canBeTargeted ? "glow-selected border-mg-bronze-bright cursor-pointer scale-102" : ""}
       `}
     >
       <div className="flex gap-3 items-center">
         {/* Hero Portrait Circle */}
         <div 
           className={`w-12 h-12 rounded-full flex items-center justify-center text-3xl select-none relative shadow-md border-2
-            ${isActiveTurn ? "border-amber-400 bg-amber-950/40" : "border-slate-700 bg-slate-900/60"}`}
+            ${isActiveTurn ? "border-mg-bronze-bright bg-mg-slate/40" : "border-mg-stone-light bg-mg-slate/60"}`}
         >
           <span>{CLASS_EMOJIS[player.heroClass] || "🃏"}</span>
           
@@ -101,7 +101,7 @@ export function HeroState({
             <h4 className="font-bold text-white leading-tight font-sans text-sm truncate max-w-[120px]">
               {player.name}
             </h4>
-            <span className="text-[10px] bg-slate-800 px-1.5 py-0.2 rounded font-mono text-slate-300">
+            <span className="text-[10px] bg-mg-stone px-1.5 py-0.2 rounded font-mono text-mg-fog">
               {player.heroClass}
             </span>
           </div>
@@ -113,7 +113,7 @@ export function HeroState({
             </span>
             <div className="flex flex-wrap gap-0.5 mt-1 min-h-[14px]">
               {player.maxMana > 0 ? renderManaCrystals() : (
-                <span className="text-[9px] text-slate-500 uppercase tracking-widest leading-none">Lobby phase</span>
+                <span className="text-[9px] text-mg-fog uppercase tracking-widest leading-none">Lobby phase</span>
               )}
             </div>
           </div>
@@ -125,7 +125,7 @@ export function HeroState({
         {/* HP Pill Indicator */}
         <div className="flex flex-col items-center">
           <div
-            className={`w-10 h-10 rounded-full flex flex-col items-center justify-center relative shadow-md border-2 bg-slate-900
+            className={`w-10 h-10 rounded-full flex flex-col items-center justify-center relative shadow-md border-2 bg-mg-slate
               ${isDanger ? "border-red-500 animate-pulse bg-red-950/20" : isWounded ? "border-orange-500" : "border-emerald-500"}`}
           >
             <span className="text-[10px] font-sans absolute top-1 leading-none">❤️</span>
@@ -145,10 +145,10 @@ export function HeroState({
             disabled={!canUseHeroPower}
             className={`p-1.5 rounded-xl border flex flex-col items-center gap-0.5 transition-all text-center select-none w-20
               ${isHeroPowerSelected 
-                ? "border-amber-400 bg-amber-950/60 text-amber-300 glow-selected scale-105" 
+                ? "border-mg-bronze-bright bg-mg-slate/60 text-mg-bronze-bright glow-selected scale-105" 
                 : canUseHeroPower 
                   ? "border-blue-500/50 bg-blue-950/40 text-blue-200 hover:border-blue-400 hover:scale-103 cursor-pointer" 
-                  : "border-slate-800 bg-slate-900/40 text-slate-500 cursor-not-allowed opacity-60"
+                  : "border-mg-stone bg-mg-slate/40 text-mg-fog cursor-not-allowed opacity-60"
               }`}
             title={`Hero Power: ${classPower.name}. ${classPower.description}`}
           >
@@ -164,9 +164,9 @@ export function HeroState({
 
         {/* Display-only Hero power description for enemies */}
         {isEnemy && (
-          <div className="w-14 p-1 rounded-xl bg-slate-900/60 border border-slate-800 flex flex-col items-center justify-center opacity-75" title={`Enemy Hero Power: ${classPower.name}. ${classPower.description}`}>
+          <div className="w-14 p-1 rounded-xl bg-mg-slate/60 border border-mg-stone flex flex-col items-center justify-center opacity-75" title={`Enemy Hero Power: ${classPower.name}. ${classPower.description}`}>
             <span className="text-sm leading-none">{classPower.emoji}</span>
-            <span className="text-[8px] font-mono font-bold text-slate-400 truncate w-full mt-1 text-center">
+            <span className="text-[8px] font-mono font-bold text-mg-fog truncate w-full mt-1 text-center">
               {classPower.name}
             </span>
           </div>
