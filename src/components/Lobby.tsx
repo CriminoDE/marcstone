@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { HeroClass, OpenRoomInfo, OnlinePlayerInfo } from "../types";
 import { HERO_POWERS_LIST } from "../constants";
 import { generateVikingName } from "../utils/names";
+import { Glossary } from "./Glossary";
 
 interface LobbyProps {
   playerName: string;
@@ -46,9 +47,19 @@ export function Lobby({
   onDeleteRoom,
 }: LobbyProps) {
   const powers = HERO_POWERS_LIST[selectedClass];
+  const [showGlossary, setShowGlossary] = useState(false);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10 md:py-14">
+      {showGlossary && <Glossary onClose={() => setShowGlossary(false)} />}
+      <button
+        type="button"
+        onClick={() => setShowGlossary(true)}
+        className="fixed top-3 right-3 z-40 text-[11px] font-mono px-2.5 py-1 rounded-lg border border-mg-bronze/50 bg-mg-void/70 text-mg-bronze-bright hover:border-mg-bronze cursor-pointer"
+        title="Spielregeln & Begriffe"
+      >
+        📖 Glossar
+      </button>
       {/* Header */}
       <header className="text-center mb-9">
         <h1 className="font-display font-black text-6xl md:text-8xl tracking-[0.05em] uppercase text-mg-frost-text drop-shadow-[0_3px_28px_rgba(95,168,214,0.3)]">

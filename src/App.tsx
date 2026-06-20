@@ -8,6 +8,7 @@ import { FuseTimer } from "./components/FuseTimer";
 import { Atmosphere } from "./components/Atmosphere";
 import { MusicToggle } from "./components/MusicToggle";
 import { FfaGame } from "./components/FfaGame";
+import { Glossary } from "./components/Glossary";
 import { Card, RoomState, HeroClass, ClientAction, GameEvent, OpenRoomInfo, OnlinePlayerInfo, PlayerState, FinishingBlow } from "./types";
 import { HERO_POWER_COST, HERO_POWERS, HERO_POWERS_LIST } from "./constants";
 import { playSound, playRaven } from "./utils/audio";
@@ -78,6 +79,7 @@ export default function App() {
   // Sieg-Zeitlupen-Kino: solange es laeuft, ist der Sieg-Screen ausgeblendet.
   const [cinematicActive, setCinematicActive] = useState<boolean>(false);
   const prevCinePhaseRef = useRef<string | null>(null);
+  const [showGlossary, setShowGlossary] = useState<boolean>(false);
 
   // Alchemy Forge dynamic form states
   const [showAlchemyForge, setShowAlchemyForge] = useState(false);
@@ -1071,6 +1073,8 @@ export default function App() {
       <div className="min-h-screen text-mg-frost-text flex flex-col justify-between py-6 px-4">
         <Atmosphere onRaven={playRaven} />
         <MusicToggle />
+        {showGlossary && <Glossary onClose={() => setShowGlossary(false)} />}
+        <button type="button" onClick={() => setShowGlossary(true)} className="fixed top-3 right-3 z-40 text-[11px] font-mono px-2.5 py-1 rounded-lg border border-mg-bronze/50 bg-mg-void/70 text-mg-bronze-bright hover:border-mg-bronze cursor-pointer" title="Spielregeln & Begriffe">📖 Glossar</button>
         {/* Header bar */}
         <div className="max-w-4xl mx-auto w-full bg-mg-slate/60 rounded-3xl border border-mg-stone p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col gap-1.5 text-center md:text-left">
@@ -1230,6 +1234,8 @@ export default function App() {
       }`}
     >
       <Atmosphere onRaven={playRaven} bloodRain={bloodRain} />
+      {showGlossary && <Glossary onClose={() => setShowGlossary(false)} />}
+      <button type="button" onClick={(e) => { e.stopPropagation(); setShowGlossary(true); }} className="fixed top-3 right-3 z-40 text-[11px] font-mono px-2.5 py-1 rounded-lg border border-mg-bronze/50 bg-mg-void/70 text-mg-bronze-bright hover:border-mg-bronze cursor-pointer" title="Spielregeln & Begriffe">📖 Glossar</button>
       {/* 1. Global Game HUD Status Bar */}
       <header className="max-w-7xl mx-auto w-full bg-mg-slate/90 border border-mg-stone rounded-2xl p-3 shadow-lg flex flex-wrap gap-4 items-center justify-between z-20">
         <div className="flex items-center gap-3">

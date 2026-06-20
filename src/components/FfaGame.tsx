@@ -5,6 +5,7 @@ import { CardItem } from "./CardItem";
 import { Atmosphere } from "./Atmosphere";
 import { MusicToggle } from "./MusicToggle";
 import { FfaForge } from "./FfaForge";
+import { Glossary } from "./Glossary";
 import { HERO_POWER_COST, HERO_POWERS_LIST } from "../constants";
 import { playRaven, playSound } from "../utils/audio";
 import { flashDamage, deathPoof, screenFlash, lungeAttack, spellCast, castProjectile, roundStartFlare, heroDeathExplosion, playFinisherCinematic, type SpellElement } from "../utils/combatFx";
@@ -66,6 +67,7 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
   const [copied, setCopied] = useState(false);
   const [showForge, setShowForge] = useState(false);
   const [cinematicActive, setCinematicActive] = useState(false);
+  const [showGlossary, setShowGlossary] = useState(false);
   const prevCinePhaseRef = useRef<string | null>(null);
 
   const seats = room.players ?? [];
@@ -282,18 +284,22 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
 
   // ---- Sub-Renders ----
   const TopBar = () => (
-    <div className="flex items-center justify-between gap-3 max-w-6xl mx-auto w-full mb-3">
-      <div className="flex items-center gap-2">
-        <span className="font-display text-2xl tracking-wide text-mg-frost-text">Marc<span className="text-mg-bronze">gard</span></span>
-        <span className="text-[10px] uppercase tracking-widest font-mono px-2 py-0.5 rounded-full bg-mg-blood/20 border border-mg-blood-bright/40 text-mg-frost-text">{modeLabel}</span>
+    <>
+      {showGlossary && <Glossary onClose={() => setShowGlossary(false)} />}
+      <div className="flex items-center justify-between gap-3 max-w-6xl mx-auto w-full mb-3">
+        <div className="flex items-center gap-2">
+          <span className="font-display text-2xl tracking-wide text-mg-frost-text">Marc<span className="text-mg-bronze">gard</span></span>
+          <span className="text-[10px] uppercase tracking-widest font-mono px-2 py-0.5 rounded-full bg-mg-blood/20 border border-mg-blood-bright/40 text-mg-frost-text">{modeLabel}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowGlossary(true)} className="text-[11px] font-mono px-2.5 py-1 rounded-lg border border-mg-bronze/50 bg-mg-void/60 text-mg-bronze-bright hover:border-mg-bronze" title="Spielregeln & Begriffe">📖</button>
+          <button onClick={copyCode} className="text-[11px] font-mono px-2.5 py-1 rounded-lg border border-mg-stone bg-mg-void/60 text-mg-fog hover:border-mg-bronze/60">
+            {copied ? "✔ kopiert" : `Code ${room.roomId}`}
+          </button>
+          <button onClick={onLeave} className="text-[11px] font-mono px-2.5 py-1 rounded-lg border border-mg-blood-bright/40 bg-mg-blood/15 text-mg-frost-text hover:border-mg-blood-bright">Verlassen</button>
+        </div>
       </div>
-      <div className="flex items-center gap-2">
-        <button onClick={copyCode} className="text-[11px] font-mono px-2.5 py-1 rounded-lg border border-mg-stone bg-mg-void/60 text-mg-fog hover:border-mg-bronze/60">
-          {copied ? "✔ kopiert" : `Code ${room.roomId}`}
-        </button>
-        <button onClick={onLeave} className="text-[11px] font-mono px-2.5 py-1 rounded-lg border border-mg-blood-bright/40 bg-mg-blood/15 text-mg-frost-text hover:border-mg-blood-bright">Verlassen</button>
-      </div>
-    </div>
+    </>
   );
 
   // === WARTERAUM (Lobby) ===
