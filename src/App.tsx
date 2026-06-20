@@ -11,7 +11,26 @@ import { Card, RoomState, HeroClass, ClientAction, GameEvent, OpenRoomInfo, Onli
 import { HERO_POWER_COST, HERO_POWERS, HERO_POWERS_LIST } from "./constants";
 import { playSound, playRaven } from "./utils/audio";
 import { generateVikingName } from "./utils/names";
-import { flashDamage, deathPoof, screenFlash, lungeAttack } from "./utils/combatFx";
+import { flashDamage, deathPoof, screenFlash, lungeAttack, spellCast, castProjectile, roundStartFlare, type SpellElement } from "./utils/combatFx";
+
+// Zauber/Heldenkraft -> Element fuer die VFX (Runenkreis + Partikel).
+const SPELL_ELEMENT: Record<string, SpellElement> = {
+  arc_shot: "arcane",
+  heal_touch: "heal",
+  fireball: "fire",
+  consecration: "holy",
+  meteor: "fire",
+  flamestrike: "fire",
+  pyroblast: "fire",
+  mind_control: "shadow",
+  pot_greed: "arcane",
+};
+const HERO_POWER_ELEMENT: Record<HeroClass, SpellElement[]> = {
+  Mage: ["fire", "frost", "arcane"],
+  Priest: ["heal", "holy", "arcane"],
+  Hunter: ["arcane", "arcane", "fire"],
+  Paladin: ["holy", "holy", "holy"],
+};
 
 export default function App() {
   // Connection states
@@ -64,6 +83,7 @@ export default function App() {
   // Combat-FX: letzter HP-Stand + Position pro Figur/Held, um Treffer/Tode zu erkennen.
   const prevHpRef = useRef<Map<string, { hp: number; rect: DOMRect | null }>>(new Map());
   const prevPhaseRef = useRef<string | null>(null);
+  const prevTurnRef = useRef<string | null>(null);
 
   // Connection refs for robust auto-reconnect + auto-rejoin
   const wsRef = useRef<WebSocket | null>(null);
@@ -143,6 +163,8 @@ export default function App() {
 
     if (canAnimate) {
       const myHeroKey = me ? `hero-${me.id}` : "";
+      let myHeroHit = false;
+      let anyHit = false;
       // Treffer (HP gesunken, Figur lebt noch)
       cur.forEach((now, key) => {
         const before = prev.get(key);
@@ -150,8 +172,10 @@ export default function App() {
         const dmg = before.hp - now.hp;
         const isHero = key.startsWith("hero-");
         flashDamage(document.getElementById(key), dmg, { big: isHero || dmg >= 5 });
+        anyHit = true;
         if (isHero && key === myHeroKey) {
           screenFlash(0.5 + dmg / 14);
+          myHeroHit = true;
         }
       });
       // Tode (Figur war da, jetzt weg) -> Rauch an letzter Position
@@ -160,11 +184,28 @@ export default function App() {
         const r = before.rect;
         deathPoof(r.left + r.width / 2, r.top + r.height / 2);
       });
+      // Ein Treffer-Geraeusch pro Ereignis (kein Spam bei Flaechenschaden).
+      if (myHeroHit) playSound("hurt");
+      else if (anyHit) playSound("hit");
     }
 
     prevPhaseRef.current = room.phase;
     prevHpRef.current = cur;
   }, [room, me?.id]);
+
+  // Rundenstart: gekreuzte Schwerter, wenn der Zug wechselt (Gold = ich, Rot = Gegner).
+  useEffect(() => {
+    if (!room || room.phase !== "playing") {
+      prevTurnRef.current = room?.turn ?? null;
+      return;
+    }
+    const t = room.turn ?? null;
+    if (t && prevTurnRef.current !== null && prevTurnRef.current !== t) {
+      const mine = t === me?.id;
+      roundStartFlare(mine ? "Dein Zug" : `${opponent?.name || "Gegner"} am Zug`, mine);
+    }
+    prevTurnRef.current = t;
+  }, [room?.turn, room?.phase, me?.id, opponent?.name]);
 
   // Auto save playerName to localStorage + keep ref in sync for the long-lived socket handlers
   useEffect(() => {
@@ -348,6 +389,21 @@ export default function App() {
     setTargetingMode("none");
   };
 
+  // Bildschirm-Mittelpunkt eines Karten-/Helden-DOM-Knotens (fuer Zauber-VFX).
+  const centerOf = (domId: string): { x: number; y: number } | null => {
+    const el = document.getElementById(domId);
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  };
+
+  const spellElementOf = (card: Card): SpellElement => {
+    if (SPELL_ELEMENT[card.templateId]) return SPELL_ELEMENT[card.templateId];
+    if (card.spellEffect === "heal") return "heal";
+    if (card.spellEffect === "draw") return "arcane";
+    return "fire"; // geschmiedeter Schadenszauber
+  };
+
   const showToast = (message: string, type: "info" | "warning" | "success" = "info") => {
     setToast({ message, type });
     setTimeout(() => {
@@ -499,7 +555,13 @@ export default function App() {
         setTargetingMode("spell_target");
         showToast(`Casting ${card.name}! Choose an active minion or either Hero avatar to target!`, "info");
       } else {
-        // Spells like Consecration, Flamestrike (AOE, no targets)
+        // Spells like Consecration, Flamestrike (AOE, no targets) -> Zauber-Flare sofort
+        const el = spellElementOf(card);
+        const friendly = el === "heal" || card.templateId === "pot_greed" || card.spellEffect === "draw";
+        const c = friendly
+          ? centerOf(`hero-${me.id}`)
+          : centerOf(opponent ? `hero-${opponent.id}` : `hero-${me.id}`);
+        if (c) spellCast(c.x, c.y, el);
         sendAction({
           type: "PLAY_CARD",
           payload: { roomId: room.roomId, cardId: card.id },
@@ -550,7 +612,20 @@ export default function App() {
     }
 
     if (!requiresTarget) {
-      // Simple automated cast
+      const el = (HERO_POWER_ELEMENT[hClass] || ["arcane"])[powerIdx] ?? "arcane";
+      // Hunter Steady Shot (idx 0) schiesst einen Pfeil auf den Gegner-Helden.
+      if (hClass === "Hunter" && powerIdx === 0 && opponent) {
+        castProjectile(
+          document.getElementById(`hero-${me.id}`),
+          document.getElementById(`hero-${opponent.id}`),
+          el,
+          true
+        );
+      } else {
+        // Sonst: Zauber-Flare am eigenen Helden (Summons/Zufallseffekte).
+        const c = centerOf(`hero-${me.id}`);
+        if (c) spellCast(c.x, c.y, el);
+      }
       sendAction({
         type: "USE_HERO_POWER",
         payload: { roomId: room.roomId },
@@ -573,6 +648,15 @@ export default function App() {
     if (!room || !me) return;
 
     if (targetingMode === "spell_target" && selectedCardId) {
+      const sc = me.hand.find((c) => c.id === selectedCardId);
+      if (sc) {
+        castProjectile(
+          document.getElementById(`hero-${me.id}`),
+          document.getElementById(isTargetHero ? `hero-${targetId}` : `card-${targetId}`),
+          spellElementOf(sc),
+          sc.templateId === "arc_shot"
+        );
+      }
       sendAction({
         type: "PLAY_CARD",
         payload: {
@@ -618,6 +702,14 @@ export default function App() {
       });
       clearTargeting();
     } else if (targetingMode === "heropower_target") {
+      const idx = me.selectedHeroPowerIndex ?? 0;
+      const el = (HERO_POWER_ELEMENT[me.heroClass] || ["arcane"])[idx] ?? "arcane";
+      castProjectile(
+        document.getElementById(`hero-${me.id}`),
+        document.getElementById(isTargetHero ? `hero-${targetId}` : `card-${targetId}`),
+        el,
+        me.heroClass === "Hunter"
+      );
       sendAction({
         type: "USE_HERO_POWER",
         payload: {

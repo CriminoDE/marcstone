@@ -13,7 +13,21 @@ function getAudioContext(): AudioContext {
   return audioCtx;
 }
 
-export function playSound(type: "play_card" | "attack" | "spell" | "heal" | "victory" | "loss" | "countdown_warning" | "countdown_urgent") {
+// Kurzer Rausch-Impuls (fuer Treffer-Knall). Eigener kleiner Buffer pro Aufruf.
+function noiseBurst(ctx: AudioContext, dur: number): AudioBufferSourceNode {
+  const len = Math.max(1, Math.floor(ctx.sampleRate * dur));
+  const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) {
+    // leicht abklingendes Rauschen
+    data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+  }
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  return src;
+}
+
+export function playSound(type: "play_card" | "attack" | "spell" | "heal" | "victory" | "loss" | "countdown_warning" | "countdown_urgent" | "hit" | "hurt") {
   try {
     const ctx = getAudioContext();
     const now = ctx.currentTime;
@@ -178,6 +192,76 @@ export function playSound(type: "play_card" | "attack" | "spell" | "heal" | "vic
         gain.connect(destination);
         osc.start(now);
         osc.stop(now + 0.8);
+        break;
+      }
+
+      case "hit": {
+        // Kurzer, knackiger Treffer-Boom: tiefer Sinus-Thud + Rausch-Transient.
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(200, now);
+        osc.frequency.exponentialRampToValueAtTime(55, now + 0.16);
+        gain.gain.setValueAtTime(0.28, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+        osc.connect(gain);
+        gain.connect(destination);
+        osc.start(now);
+        osc.stop(now + 0.19);
+
+        const noise = noiseBurst(ctx, 0.09);
+        const nGain = ctx.createGain();
+        const nFilt = ctx.createBiquadFilter();
+        nFilt.type = "lowpass";
+        nFilt.frequency.setValueAtTime(1800, now);
+        nGain.gain.setValueAtTime(0.18, now);
+        nGain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        noise.connect(nFilt);
+        nFilt.connect(nGain);
+        nGain.connect(destination);
+        noise.start(now);
+        noise.stop(now + 0.1);
+        break;
+      }
+
+      case "hurt": {
+        // Eigener Held getroffen: tieferer, etwas laengerer "Aua"-Boom mit Dissonanz.
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(160, now);
+        osc.frequency.exponentialRampToValueAtTime(42, now + 0.26);
+        gain.gain.setValueAtTime(0.34, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.connect(gain);
+        gain.connect(destination);
+        osc.start(now);
+        osc.stop(now + 0.31);
+
+        const sub = ctx.createOscillator();
+        const subGain = ctx.createGain();
+        sub.type = "triangle";
+        sub.frequency.setValueAtTime(90, now);
+        sub.frequency.exponentialRampToValueAtTime(38, now + 0.22);
+        subGain.gain.setValueAtTime(0.22, now);
+        subGain.gain.exponentialRampToValueAtTime(0.01, now + 0.26);
+        sub.connect(subGain);
+        subGain.connect(destination);
+        sub.start(now);
+        sub.stop(now + 0.27);
+
+        const noise = noiseBurst(ctx, 0.12);
+        const nGain = ctx.createGain();
+        const nFilt = ctx.createBiquadFilter();
+        nFilt.type = "lowpass";
+        nFilt.frequency.setValueAtTime(1200, now);
+        nGain.gain.setValueAtTime(0.2, now);
+        nGain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+        noise.connect(nFilt);
+        nFilt.connect(nGain);
+        nGain.connect(destination);
+        noise.start(now);
+        noise.stop(now + 0.12);
         break;
       }
     }

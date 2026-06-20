@@ -215,3 +215,256 @@ export function lungeAttack(
   anim.onfinish = restore;
   anim.oncancel = restore;
 }
+
+// ============================================================
+//  Rundenstart-Schwerter
+// ============================================================
+// Gekreuzte Schwerter fliegen rein, blitzen auf, halten kurz, faden weg.
+// Gold = mein Zug, Blutrot = Gegner am Zug.
+export function roundStartFlare(label: string, mine: boolean): void {
+  if (reduceMotion()) return;
+  const root = getRoot();
+  const accent = mine ? "#E6B358" : "#C0392B";
+
+  const wrap = document.createElement("div");
+  wrap.style.cssText =
+    "position:absolute;inset:0;display:flex;align-items:center;justify-content:center;";
+  root.appendChild(wrap);
+
+  const band = document.createElement("div");
+  band.style.cssText =
+    "position:absolute;left:0;right:0;top:50%;height:120px;transform:translateY(-50%);" +
+    "background:linear-gradient(90deg,transparent,rgba(0,0,0,0.62) 18%,rgba(0,0,0,0.62) 82%,transparent);";
+  wrap.appendChild(band);
+
+  const swords = document.createElement("div");
+  swords.textContent = "⚔️"; // crossed swords
+  swords.style.cssText =
+    `position:relative;font-size:64px;line-height:1;filter:drop-shadow(0 0 14px ${accent});`;
+  wrap.appendChild(swords);
+
+  const clash = document.createElement("div");
+  clash.style.cssText =
+    `position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;` +
+    `border-radius:50%;background:radial-gradient(circle,#fff,${accent} 60%,transparent);`;
+  wrap.appendChild(clash);
+
+  const text = document.createElement("div");
+  text.textContent = label;
+  text.style.cssText =
+    `position:absolute;top:calc(50% + 54px);left:50%;transform:translateX(-50%);` +
+    `font-family:'Cinzel',serif;font-weight:900;letter-spacing:0.18em;text-transform:uppercase;` +
+    `font-size:20px;color:${accent};text-shadow:0 2px 10px rgba(0,0,0,0.92);white-space:nowrap;`;
+  wrap.appendChild(text);
+
+  const dur = 1400;
+  band.animate(
+    [
+      { opacity: 0, transform: "translateY(-50%) scaleX(0.6)" },
+      { opacity: 1, transform: "translateY(-50%) scaleX(1)", offset: 0.2 },
+      { opacity: 1, offset: 0.7 },
+      { opacity: 0 },
+    ],
+    { duration: dur, easing: "ease-out" }
+  );
+  swords.animate(
+    [
+      { opacity: 0, transform: "scale(0.2) rotate(-40deg)" },
+      { opacity: 1, transform: "scale(1.28) rotate(0deg)", offset: 0.22 },
+      { opacity: 1, transform: "scale(1) rotate(0deg)", offset: 0.34 },
+      { opacity: 1, transform: "scale(1) rotate(0deg)", offset: 0.72 },
+      { opacity: 0, transform: "scale(1.12) rotate(8deg)" },
+    ],
+    { duration: dur, easing: "cubic-bezier(.2,.9,.2,1)" }
+  );
+  clash.animate(
+    [
+      { opacity: 0, transform: "scale(0.2)" },
+      { opacity: 0, transform: "scale(0.2)", offset: 0.2 },
+      { opacity: 1, transform: "scale(1)", offset: 0.28 },
+      { opacity: 0, transform: "scale(2.6)", offset: 0.5 },
+      { opacity: 0 },
+    ],
+    { duration: dur, easing: "ease-out" }
+  );
+  const ta = text.animate(
+    [
+      { opacity: 0, transform: "translateX(-50%) translateY(8px)" },
+      { opacity: 1, transform: "translateX(-50%) translateY(0)", offset: 0.3 },
+      { opacity: 1, offset: 0.72 },
+      { opacity: 0 },
+    ],
+    { duration: dur, easing: "ease-out" }
+  );
+  ta.onfinish = () => wrap.remove();
+}
+
+// ============================================================
+//  Element-Zauber-VFX
+// ============================================================
+export type SpellElement = "fire" | "frost" | "arcane" | "holy" | "heal" | "shadow";
+
+interface ElementDef {
+  colors: string[];
+  rune: string;
+  motion: "rise" | "riseSoft" | "orbit" | "drift";
+}
+
+const ELEMENTS: Record<SpellElement, ElementDef> = {
+  fire: { colors: ["#ffd089", "#ff7a2d", "#ff3b2d"], rune: "#ff5a2d", motion: "rise" },
+  frost: { colors: ["#bfeaff", "#7fd0ff", "#e8f6ff"], rune: "#5fa8d6", motion: "drift" },
+  arcane: { colors: ["#d9a7ff", "#a05bff", "#7f3bff"], rune: "#a05bff", motion: "orbit" },
+  holy: { colors: ["#ffe9a8", "#ffd060", "#fff4cf"], rune: "#e6b358", motion: "riseSoft" },
+  heal: { colors: ["#b8ffb0", "#5fe06b", "#d9ffd0"], rune: "#5fe06b", motion: "riseSoft" },
+  shadow: { colors: ["#b48cff", "#6b2db0", "#3a0e4a"], rune: "#9b1bbf", motion: "drift" },
+};
+
+function runeCircle(cx: number, cy: number, color: string): void {
+  const root = getRoot();
+  const size = 122;
+  const ring = document.createElement("div");
+  ring.style.cssText =
+    `position:absolute;left:${cx}px;top:${cy}px;width:${size}px;height:${size}px;` +
+    `margin:${-size / 2}px 0 0 ${-size / 2}px;border-radius:50%;border:2px solid ${color};` +
+    `box-shadow:0 0 22px ${color}, inset 0 0 18px ${color};`;
+  root.appendChild(ring);
+  const ra = ring.animate(
+    [
+      { opacity: 0, transform: "scale(0.4) rotate(0deg)" },
+      { opacity: 0.95, transform: "scale(1) rotate(60deg)", offset: 0.3 },
+      { opacity: 0.8, transform: "scale(1.05) rotate(140deg)", offset: 0.7 },
+      { opacity: 0, transform: "scale(1.2) rotate(200deg)" },
+    ],
+    { duration: 780, easing: "ease-out" }
+  );
+  ra.onfinish = () => ring.remove();
+
+  // Pentagramm-Sigille
+  const star = document.createElement("div");
+  const ss = size * 0.78;
+  star.style.cssText =
+    `position:absolute;left:${cx}px;top:${cy}px;width:${ss}px;height:${ss}px;` +
+    `margin:${-ss / 2}px 0 0 ${-ss / 2}px;background:${color};` +
+    `clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);` +
+    `filter:drop-shadow(0 0 10px ${color});mix-blend-mode:screen;`;
+  root.appendChild(star);
+  const sa = star.animate(
+    [
+      { opacity: 0, transform: "scale(0.5) rotate(0deg)" },
+      { opacity: 0.85, transform: "scale(1) rotate(-40deg)", offset: 0.35 },
+      { opacity: 0.5, transform: "scale(1.02) rotate(-90deg)", offset: 0.7 },
+      { opacity: 0, transform: "scale(1.1) rotate(-140deg)" },
+    ],
+    { duration: 780, easing: "ease-out" }
+  );
+  sa.onfinish = () => star.remove();
+}
+
+function emitParticles(cx: number, cy: number, def: ElementDef): void {
+  const root = getRoot();
+  const N = 16;
+  for (let i = 0; i < N; i++) {
+    const p = document.createElement("div");
+    const col = def.colors[i % def.colors.length];
+    const sz = 4 + (i % 3) * 3;
+    p.style.cssText =
+      `position:absolute;left:${cx}px;top:${cy}px;width:${sz}px;height:${sz}px;` +
+      `margin:${-sz / 2}px 0 0 ${-sz / 2}px;border-radius:50%;background:${col};box-shadow:0 0 8px ${col};`;
+    root.appendChild(p);
+
+    let kf: Keyframe[];
+    if (def.motion === "rise") {
+      const dx = (Math.random() * 2 - 1) * 40;
+      kf = [
+        { transform: "translate(0px,0px) scale(1)", opacity: 1 },
+        { transform: `translate(${dx}px,-${60 + Math.random() * 50}px) scale(0.2)`, opacity: 0 },
+      ];
+    } else if (def.motion === "riseSoft") {
+      const dx = (Math.random() * 2 - 1) * 26;
+      kf = [
+        { transform: "translate(0px,10px) scale(0.6)", opacity: 0 },
+        { transform: `translate(${dx * 0.5}px,-10px) scale(1)`, opacity: 1, offset: 0.3 },
+        { transform: `translate(${dx}px,-${50 + Math.random() * 40}px) scale(0.3)`, opacity: 0 },
+      ];
+    } else if (def.motion === "orbit") {
+      const ang = (Math.PI * 2 * i) / N;
+      const rad = 20 + Math.random() * 34;
+      kf = [
+        { transform: `rotate(${ang}rad) translateX(0px) scale(1)`, opacity: 1 },
+        { transform: `rotate(${ang + 1.6}rad) translateX(${rad}px) scale(0.2)`, opacity: 0 },
+      ];
+    } else {
+      const ang = Math.random() * Math.PI * 2;
+      const dist = 24 + Math.random() * 42;
+      kf = [
+        { transform: "translate(0px,0px) scale(1)", opacity: 1 },
+        { transform: `translate(${Math.cos(ang) * dist}px,${Math.sin(ang) * dist}px) scale(0.2)`, opacity: 0 },
+      ];
+    }
+    const a = p.animate(kf, { duration: 560 + Math.random() * 360, easing: "ease-out" });
+    a.onfinish = () => p.remove();
+  }
+}
+
+// Zauber-Aufruf an einer Position: roter Runenkreis + Pentagramm + Element-Partikel.
+export function spellCast(cx: number, cy: number, element: SpellElement): void {
+  if (reduceMotion()) return;
+  const def = ELEMENTS[element] || ELEMENTS.arcane;
+  runeCircle(cx, cy, def.rune);
+  emitParticles(cx, cy, def);
+}
+
+// Fliegendes Projektil von Quelle zu Ziel (Komet/Geschoss, Pfeil-Variante fuer
+// Held-Schuesse). Beim Aufprall loest es den Zauber-Effekt (Runenkreis+Partikel) aus.
+export function castProjectile(
+  fromEl: HTMLElement | null,
+  toEl: HTMLElement | null,
+  element: SpellElement,
+  arrow = false
+): void {
+  const at = toEl ? toEl.getBoundingClientRect() : null;
+  // Fallback: ohne saubere Quelle/Ziel direkt den Effekt am Ziel zeigen.
+  if (reduceMotion() || !fromEl || !toEl || !at) {
+    if (at) spellCast(at.left + at.width / 2, at.top + at.height / 2, element);
+    return;
+  }
+  const af = fromEl.getBoundingClientRect();
+  const x0 = af.left + af.width / 2;
+  const y0 = af.top + af.height / 2;
+  const x1 = at.left + at.width / 2;
+  const y1 = at.top + at.height / 2;
+  const dx = x1 - x0;
+  const dy = y1 - y0;
+  const dist = Math.hypot(dx, dy);
+  const ang = Math.atan2(dy, dx);
+
+  const def = ELEMENTS[element] || ELEMENTS.arcane;
+  const head = arrow ? "#efe6cf" : def.colors[0];
+  const tail = arrow ? "#8a8470" : def.colors[1];
+  const len = arrow ? 36 : 26;
+  const thick = arrow ? 3 : 9;
+
+  const root = getRoot();
+  const p = document.createElement("div");
+  p.style.cssText =
+    `position:absolute;left:${x0}px;top:${y0}px;width:${len}px;height:${thick}px;` +
+    `margin:${-thick / 2}px 0 0 ${-len / 2}px;border-radius:${thick}px;` +
+    `background:linear-gradient(90deg, transparent, ${tail} 42%, ${head});` +
+    `box-shadow:0 0 12px ${head};`;
+  root.appendChild(p);
+
+  const dur = Math.max(220, Math.min(520, dist * 0.85));
+  const anim = p.animate(
+    [
+      { transform: `rotate(${ang}rad) translateX(0px)`, opacity: 0.4 },
+      { transform: `rotate(${ang}rad) translateX(${dist * 0.12}px)`, opacity: 1, offset: 0.12 },
+      { transform: `rotate(${ang}rad) translateX(${dist}px)`, opacity: 1 },
+    ],
+    { duration: dur, easing: "cubic-bezier(.4,0,.7,1)" }
+  );
+  anim.onfinish = () => {
+    p.remove();
+    spellCast(x1, y1, element);
+  };
+  anim.oncancel = () => p.remove();
+}

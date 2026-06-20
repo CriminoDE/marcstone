@@ -7,6 +7,22 @@ Format: `## [Version] - Datum` mit Kategorien Hinzugefuegt / Geaendert / Behoben
 
 ---
 
+## [2.2.0] - Sichtbare Magie: Projektile, Sounds, klarer Log
+
+### Hinzugefuegt
+- **Projektile** (`castProjectile` in combatFx): Zauber & zielende Heldenkraefte fliegen sichtbar vom Helden zum Ziel (Komet, Pfeil bei Hunter Steady Shot + Arcane Shot), beim Aufprall folgt der Element-Effekt.
+- **Element-Zauber-VFX**: roter Runenkreis + Pentagramm + Element-Partikel (Feuer/Frost/Arkan/Heilig/Heilung/Schatten) bei jedem Zauber/jeder Heldenkraft.
+- **Rundenstart-Schwerter**: gekreuzte Schwerter bei Zugwechsel (Gold = ich, Rot = Gegner).
+- **Treffer-Sounds** (prozedural, WebAudio): kurzer "hit"-Boom bei Schaden, tieferes "hurt"-Aua wenn der eigene Held getroffen wird (ein Sound pro Ereignis, kein Flaechen-Spam).
+- **Lobby**: zeigt jetzt alle 3 Heldenkraefte der gewaehlten Klasse mit Beschreibung + Tooltip (vorher nur 1).
+
+### Behoben (Kampflog-Klarheit)
+- Marc the Firelord, Dr. Marc (Boom-Bots) und alle Direktzauber/Heldenkraefte loggen jetzt klar WER WIE VIEL Schaden am Helden macht, inkl. Lebens-Differenz (vorher: "Spell/Fireblast … experimental Hero" ohne Quelle/Betrag, bzw. gar keine Zeile). Loest "ich verliere Leben und sehe nicht wodurch".
+
+### Bekannte Grenze / offen
+- Projektile + Quell-Label erscheinen aktuell nur auf dem Bildschirm des Castenden; der Gegner sieht Treffer-Flash + Schadenszahl + Sound + Log, aber (noch) nicht das fliegende Geschoss des Anderen. Beidseitig braucht ein Server-FX-Event (Phase B).
+- Freeze (Mage "Chilled Arcana") ist weiterhin nur kosmetisch; Bot loest keine Battlecries aus. Bewusst offen gelassen (Balance-Entscheidung).
+
 ## [2.1.0] - Kampf-Animationen + Blutregen
 
 ### Hinzugefuegt

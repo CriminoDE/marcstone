@@ -217,7 +217,7 @@ function processEndTurn(room: RoomState, currentTurnConnectionId: string) {
 
 // Simple spell resolution for the practice bot (no targeting AI - sensible defaults).
 function botPlaySpell(room: RoomState, bot: PlayerState, human: PlayerState, card: Card) {
-  const dmgFace = (n: number) => resolveDamage(room, bot, human, n, undefined, true);
+  const dmgFace = (n: number) => resolveDamage(room, bot, human, n, undefined, true, card.name);
   const wipe = (n: number) => {
     human.board.forEach((m) => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= n; });
     human.board = human.board.filter((m) => m.health > 0);
@@ -679,8 +679,10 @@ function handleGameAction(connectionId: string, action: ClientAction) {
 
         // Resolve Hearthstone card Battlecries!
         if (card.templateId === "m_firelord") {
-          addLog(room, `👑🔥 Marc the Firelord casts mighty Inferno!`);
+          addLog(room, `👑🔥 Marc the Firelord entfesselt ein Inferno!`);
+          const hpBefore = opponent.health;
           opponent.health -= 4;
+          addLog(room, `🔥 ${opponent.name}s Held nimmt 4 Schaden (${hpBefore} → ${opponent.health}).`);
           opponent.board.forEach(m => {
             if (m.hasDivineShield) {
               m.hasDivineShield = false;
@@ -697,8 +699,9 @@ function handleGameAction(connectionId: string, action: ClientAction) {
             if (targets.length > 0) {
               const randTarget = targets[Math.floor(Math.random() * targets.length)];
               if ("heroClass" in randTarget) {
+                const hpBefore = randTarget.health;
                 randTarget.health -= 1;
-                addLog(room, `💥 Boom-Bot hits enemy Hero!`);
+                addLog(room, `💥 Boom-Bot trifft ${randTarget.name}s Held für 1 (${hpBefore} → ${randTarget.health}).`);
               } else {
                 if (randTarget.hasDivineShield) {
                   randTarget.hasDivineShield = false;
@@ -752,18 +755,18 @@ function handleGameAction(connectionId: string, action: ClientAction) {
         // Resolve spelling effect
         if (card.templateId === "arc_shot") {
           // deal 2 damage to any target
-          resolveDamage(room, player, opponent, 2, targetId, isTargetHero);
+          resolveDamage(room, player, opponent, 2, targetId, isTargetHero, card.name);
         } else if (card.templateId === "heal_touch") {
           // heal 6 to any target
           resolveHeal(room, player, opponent, 6, targetId, isTargetHero);
         } else if (card.templateId === "fireball") {
           // deal 6 damage to any target
-          resolveDamage(room, player, opponent, 6, targetId, isTargetHero);
+          resolveDamage(room, player, opponent, 6, targetId, isTargetHero, card.name);
         } else if (card.templateId === "meteor") {
-          resolveDamage(room, player, opponent, 8, targetId, isTargetHero);
+          resolveDamage(room, player, opponent, 8, targetId, isTargetHero, card.name);
         } else if (card.templateId === "pyroblast") {
           // deal 10 damage to any target
-          resolveDamage(room, player, opponent, 10, targetId, isTargetHero);
+          resolveDamage(room, player, opponent, 10, targetId, isTargetHero, card.name);
         } else if (card.templateId === "mind_control") {
           if (!isTargetHero && targetId) {
              const enemyIdx = opponent.board.findIndex(m => m.id === targetId);
@@ -816,7 +819,7 @@ function handleGameAction(connectionId: string, action: ClientAction) {
         } else if (card.templateId === "custom_magic") {
           addLog(room, `✨ Alchemie-Zauber gewirkt! Effekt: ${card.spellEffect}`);
           if (card.spellEffect === "damage") {
-            resolveDamage(room, player, opponent, card.spellValue || 1, targetId, isTargetHero);
+            resolveDamage(room, player, opponent, card.spellValue || 1, targetId, isTargetHero, card.name);
           } else if (card.spellEffect === "heal") {
             resolveHeal(room, player, opponent, card.spellValue || 1, targetId, isTargetHero);
           } else if (card.spellEffect === "draw") {
@@ -960,10 +963,10 @@ function handleGameAction(connectionId: string, action: ClientAction) {
       if (pClass === "Mage") {
         if (powerIdx === 0) {
           // Fireblast: deal 1 damage to any target
-          resolveDamage(room, player, opponent, 1, targetId, isTargetHero);
+          resolveDamage(room, player, opponent, 1, targetId, isTargetHero, activePower.name);
         } else if (powerIdx === 1) {
           // Chilled Arcana: deal 1 damage and Freeze it
-          resolveDamage(room, player, opponent, 1, targetId, isTargetHero);
+          resolveDamage(room, player, opponent, 1, targetId, isTargetHero, activePower.name);
           if (targetId && !isTargetHero) {
             const minion = opponent.board.find(m => m.id === targetId) || player.board.find(m => m.id === targetId);
             if (minion) {
@@ -1008,7 +1011,7 @@ function handleGameAction(connectionId: string, action: ClientAction) {
           }
         } else {
           // Mind Spike: deal 1 damage to any target. If it's a minion, reduce its attack by 1.
-          resolveDamage(room, player, opponent, 1, targetId, isTargetHero);
+          resolveDamage(room, player, opponent, 1, targetId, isTargetHero, activePower.name);
           if (targetId && !isTargetHero) {
             const minion = opponent.board.find(m => m.id === targetId);
             if (minion) {
@@ -1369,11 +1372,15 @@ function handleGameAction(connectionId: string, action: ClientAction) {
   }
 }
 
-// Target damage resolver (Spells and target-based Hero Powers)
-function resolveDamage(room: RoomState, player: PlayerState, opponent: PlayerState, amount: number, targetId?: string, isTargetHero?: boolean) {
+// Target damage resolver (Spells and target-based Hero Powers).
+// sourceName = was den Schaden verursacht (Zauber-/Kraft-Name), damit der Log
+// klar sagt WER WIE VIEL Schaden gemacht hat (+ HP von/bis).
+function resolveDamage(room: RoomState, player: PlayerState, opponent: PlayerState, amount: number, targetId?: string, isTargetHero?: boolean, sourceName?: string) {
+  const src = sourceName ?? "Zauber";
   if (isTargetHero) {
+    const hpBefore = opponent.health;
     opponent.health -= amount;
-    addLog(room, `💥 Spell/Fireblast dealt ${amount} damage directly to experimental Hero ${opponent.name}.`);
+    addLog(room, `💥 ${src} trifft ${opponent.name}s Held für ${amount} (${hpBefore} → ${opponent.health}).`);
     if (amount >= 4) {
       triggerRageChat(room, opponent, "high_damage");
     }
@@ -1389,15 +1396,16 @@ function resolveDamage(room: RoomState, player: PlayerState, opponent: PlayerSta
     if (targetMinion) {
       if (targetMinion.hasDivineShield) {
         targetMinion.hasDivineShield = false;
-        addLog(room, `🛡️ Divine Shield on ${targetMinion.name} absorbed the damage!`);
+        addLog(room, `🛡️ Gottesschild von ${targetMinion.name} fängt ${src} ab!`);
       } else {
+        const hpBefore = targetMinion.health;
         targetMinion.health -= amount;
-        addLog(room, `💥 Dealt ${amount} damage to ${targetMinion.name}.`);
+        addLog(room, `💥 ${src} trifft ${targetMinion.name} für ${amount} (${hpBefore} → ${Math.max(0, targetMinion.health)}).`);
         if (targetMinion.health <= 0) {
           triggerRageChat(room, mine ? player : opponent, "minion_died");
         }
       }
-      
+
       // Filter out dead minions
       player.board = player.board.filter(m => m.health > 0);
       opponent.board = opponent.board.filter(m => m.health > 0);

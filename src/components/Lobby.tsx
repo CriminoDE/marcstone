@@ -1,6 +1,6 @@
 import React from "react";
 import { HeroClass, OpenRoomInfo, OnlinePlayerInfo } from "../types";
-import { HERO_POWERS } from "../constants";
+import { HERO_POWERS_LIST } from "../constants";
 import { generateVikingName } from "../utils/names";
 
 interface LobbyProps {
@@ -45,7 +45,7 @@ export function Lobby({
   onQuickJoin,
   onDeleteRoom,
 }: LobbyProps) {
-  const power = HERO_POWERS[selectedClass];
+  const powers = HERO_POWERS_LIST[selectedClass];
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10 md:py-14">
@@ -117,11 +117,25 @@ export function Lobby({
             );
           })}
         </div>
-        <p className="mt-3 text-center text-[11px] text-mg-fog font-body">
-          <span className="text-mg-bronze-bright font-bold">{power.emoji} {power.name}</span>
-          <span className="mx-1.5 text-mg-stone-light">·</span>
-          {power.description}
-        </p>
+        {/* Alle drei Heldenkraefte der gewaehlten Klasse - eine waehlst du zu Spielbeginn */}
+        <div className="mt-3">
+          <div className="text-[9px] text-center text-mg-fog uppercase tracking-[0.15em] font-display mb-1.5">
+            3 Heldenkräfte · eine wählst du zu Spielbeginn
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {powers.map((p, i) => (
+              <div
+                key={i}
+                title={`${p.name}: ${p.description}`}
+                className="flex flex-col items-center text-center gap-1 rounded-xl border border-mg-stone bg-mg-void/40 px-2 py-2.5 hover:border-mg-bronze/60 transition-colors"
+              >
+                <span className="text-xl leading-none">{p.emoji}</span>
+                <span className="text-[10px] font-display font-bold text-mg-bronze-bright leading-tight">{p.name}</span>
+                <span className="text-[9px] text-mg-fog font-body leading-snug">{p.description}</span>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* Primary action */}
         <button
@@ -214,7 +228,16 @@ export function Lobby({
           </h3>
           <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
             <div>
-              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.1 · Blut & Stahl</div>
+              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.2 · Sichtbare Magie</div>
+              <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
+                <li>Zauber & Heldenschüsse fliegen sichtbar (Geschoss/Pfeil) + Runenkreis je Element.</li>
+                <li>Treffer machen jetzt Geräusch, Held-Treffer zeigt Schadenszahl + roten Blitz.</li>
+                <li>Kampflog sagt klar wer wie viel Schaden macht (mit Lebens-Differenz).</li>
+                <li>Rundenstart-Schwerter. Lobby zeigt alle 3 Heldenkräfte.</li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-[11px] font-display font-bold text-mg-fog">v2.1 · Blut & Stahl</div>
               <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
                 <li>Kampf-Animationen: Figuren stürmen ins Ziel, Treffer wackeln, Schadenszahlen fliegen, Gefallene zerstäuben.</li>
                 <li>Eigener Held getroffen = roter Bildschirm-Flash.</li>
