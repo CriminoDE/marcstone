@@ -28,8 +28,8 @@ Raum erstellen -> Warteraum -> "Uebungsgegner hinzufuegen" -> lokaler Bot "Holga
 
 ### v2.7 + v2.8 deployed (Commit a2eff8e, live verifiziert)
 - **v2.7:** Bot loest Battlecries aus (resolveBattlecry geteilt) + Schmiede server-autoritativ (computeForgeCost, kein 0-Mana-10/10-Cheat) + Lobby-Tagline (Seher-Lore + "Game Design: Marc Haevernick").
-- **v2.8 = Free-for-All:** Dreieck (3) / Chaos (4) Spieler, jeder gegen jeden, last-standing. Eigener Pfad `room.mode==="ffa"` + `room.players[]` + `src/components/FfaGame.tsx`, Duell (player1/player2) byte-fuer-byte unangetastet. Ziel-Wahl pro Gegner (targetPlayerId), AoE trifft alle Gegner, Random ueber alle. **Volle Kampf-Animationen** (gleiche FX-Engine wie Duell). Getestet: headless 3er/4er + Browser-E2E (3 Clients) + 1v1-Regression, 0 Crashes.
-- **v1-Grenze:** in FFA noch KEINE Alchemie-Schmiede (CREATE_CUSTOM_CARD/ROLL_FORGE_DICE sind nur duell-verdrahtet). Reconnect Best-Effort (Sitz per Name). **2v2 bewusst weggelassen.**
+- **v2.8 = Free-for-All:** Dreieck (3) / Chaos (4) Spieler, jeder gegen jeden, last-standing. Eigener Pfad `room.mode==="ffa"` + `room.players[]` + `src/components/FfaGame.tsx`, Duell (player1/player2) byte-fuer-byte unangetastet. Ziel-Wahl pro Gegner (targetPlayerId), AoE trifft alle Gegner, Random ueber alle. **Volle Kampf-Animationen** (gleiche FX-Engine wie Duell) + **Alchemie-Schmiede** (Goetter-Wuerfel + Selber-Bauen, `FfaForge.tsx`, Kosten server-autoritativ). Getestet: headless 3er/4er + FFA-Schmiede + Browser-E2E (3 Clients) + 1v1-Regression, 0 Crashes.
+- **v1-Grenze:** Reconnect Best-Effort (Sitz per Name). **2v2 bewusst weggelassen.** (Schmiede + Animationen sind jetzt drin.)
 - **Naechste moegliche Schritte:** Balance-Welle (m_champion-Nerf/Wuerfel-Tuning - braucht Henrys Design-Call), FFA-Schmiede nachruesten, evtl. 2v2.
 
 ### Stand vor diesen Wellen (Referenz, v2.6):
