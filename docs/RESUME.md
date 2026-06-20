@@ -24,7 +24,16 @@ Marcgard = Browser-Kartenduell (Hearthstone-artig), 1v1 online ueber Link, fuer 
 ## Testen ohne zweiten Spieler
 Raum erstellen -> Warteraum -> "Uebungsgegner hinzufuegen" -> lokaler Bot "Holgar" (kein Gemini, kostenlos). WS-Testskripte: `/tmp/wstest.mjs` (Reconnect), `/tmp/bottest.mjs` (Bot) - bei Bedarf neu schreiben.
 
-## STAND (Stand: 2026-06-20, **v2.11 LIVE auf https://marcgard.onrender.com** - Commit 290fe76, deployed + live verifiziert inkl. echtem 2v2-Spiel bis Team-Sieg)
+## STAND (Stand: 2026-06-20, **v2.11 LIVE auf https://marcgard.onrender.com** - Commit 290fe76. ⚠️ v2.12 LOKAL GEBAUT + committed, aber NOCH NICHT GEPUSHT/DEPLOYED - wartet auf Henry-Review + "push")
+
+### ⏳ v2.12 lokal fertig, wartet auf Push (Henry spielt gerade Live-v2.11)
+Lokal auf main committed (nicht gepusht). Wenn Henry "push marcgard" sagt: `git push origin main` + Render-Deploy (Key holen) wie im Deploy-Workflow.
+- **Glossar** (📖 Button Lobby/Duell/FFA) - Keywords/Ablauf/Modi. `src/components/Glossary.tsx`.
+- **Eis-Optik fancy** - Glitzer-Eis auf eingefrorenen Karten (`mg-frost-shimmer`/`mg-frost-pulse` in index.css + CardItem) + `frostNova`-Bildschirmeffekt bei Blizzard (combatFx, getriggert in App + FfaGame).
+- **Mehr Wikinger-Beleidigungen** (triggerRageChat-Pools erweitert).
+- **3 Marc-Themen-Karten** (keyword-only, balance-arm): m_ravens 3M 4/2 Ansturm, m_marksman 4M 5/1 Ansturm, m_warden 4M 4/4 Spott. In Hunter/Mage bzw. Paladin/Priest. **Henry darf vetoen** - docs/BALANCE-CHANGES.md.
+- Patch-Notes (Lobby v2.12) + CHANGELOG v2.12 schon geschrieben. tsc+build gruen, Duell-Sanity gruen.
+- **Noch offen (Henry-Input/Design):** Heldenkraft-Wechsel-Karte + Marc-Fluch/Zorn-Zauber (neue Mechaniken, brauchen Server-Wiring in Duell+FFA + Stats-Call), Balance nach Playtest.
 
 ### ⭐ OFFENE HENRY-WUENSCHE / BACKLOG (fuer naechste Session - WICHTIG zuerst lesen)
 Aus den Live-Playtests gesammelt, nach Prio:

@@ -290,7 +290,15 @@ export function Lobby({
           </h3>
           <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
             <div>
-              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.11 · 2v2 + Bots 🛡️</div>
+              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.12 · Glossar, Eis & frisches Blut 📖</div>
+              <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
+                <li><b>Glossar</b> (📖 oben rechts): erklärt alle Schlüsselwörter, den Spielablauf und die Modi.</li>
+                <li><b>Eis-Optik aufgehübscht:</b> eingefrorene Karten glitzern jetzt richtig, und Blizzard lässt einen Frost-Schwall über den Bildschirm ziehen.</li>
+                <li><b>Neue Marc-Karten:</b> Marcs Raben, Marksmann des Marc, Wächter des Nordens. Plus deutlich mehr fiese Wikinger-Sprüche.</li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-[11px] font-display font-bold text-mg-fog">v2.11 · 2v2 + Bots 🛡️</div>
               <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
                 <li><b>Neuer 2v2-Modus:</b> Team gegen Team. Im Warteraum Team A/B wählen, leere Plätze mit <b>Bots</b> füllen - ihr braucht also keine 4 echten Leute.</li>
                 <li>Schaden trifft nur das Feind-Team, Heilung/Heilige Nova wirkt auf Verbündete. Verbündeten-Panel zeigt den Partner, Sieg = letztes Team steht.</li>

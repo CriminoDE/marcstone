@@ -7,6 +7,17 @@ Format: `## [Version] - Datum` mit Kategorien Hinzugefuegt / Geaendert / Behoben
 
 ---
 
+## [2.12.0] - Glossar, Eis-Optik, Inhalt (lokal gebaut, noch nicht gepusht)
+
+### Hinzugefuegt
+- **Glossar** (`src/components/Glossary.tsx`): erklaert Schluesselwoerter (Spott/Ansturm/Gottesschild/Kampfschrei/Eingefroren), Spielablauf (Mana/Angriff/Heldenkraft/Schmiede/Todesstoss-Kino) und die 3 Modi. Per 📖-Button in Lobby, Duell und FFA/2v2 erreichbar.
+- **Frost-Nova-Effekt** (`frostNova` in combatFx): eisiger Bildschirm-Schimmer + Schneeflocken bei Blizzard & Co. (Duell + FFA/2v2).
+- **3 Marc-Themen-Karten** (nur bestehende Keywords, balance-arm): Marcs Raben (3M 4/2 Ansturm), Marksmann des Marc (4M 5/1 Ansturm), Waechter des Nordens (4M 4/4 Spott). Siehe docs/BALANCE-CHANGES.md (zum Vetoen).
+- **Mehr Wikinger-Auto-Beleidigungen** (groessere Pools fuer minion_died + high_damage).
+
+### Geaendert
+- **Eingefroren-Optik aufgehuebscht:** vereiste Karten bekommen pochenden Eis-Rand + wandernden Glitzer-Streif + Eiskristalle (`mg-frost-shimmer` / `mg-frost-pulse`).
+
 ## [2.11.0] - 2v2-Team-Modus + Bots
 
 ### Hinzugefuegt
