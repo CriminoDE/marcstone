@@ -24,15 +24,15 @@ Marcgard = Browser-Kartenduell (Hearthstone-artig), 1v1 online ueber Link, fuer 
 ## Testen ohne zweiten Spieler
 Raum erstellen -> Warteraum -> "Uebungsgegner hinzufuegen" -> lokaler Bot "Holgar" (kein Gemini, kostenlos). WS-Testskripte: `/tmp/wstest.mjs` (Reconnect), `/tmp/bottest.mjs` (Bot) - bei Bedarf neu schreiben.
 
-## STAND (Stand: 2026-06-20, **Code = v2.8 auf main, LIVE noch v2.6 — Deploy steht aus**)
+## STAND (Stand: 2026-06-20, **v2.8 LIVE auf https://marcgard.onrender.com**)
 
-### ⚠️ OFFEN: DEPLOY v2.7 + v2.8 (braucht RENDER_KEY von Henry)
-Auf `main` committed + gepusht, aber NOCH NICHT live (Render autoDeploy=false):
+### v2.7 + v2.8 deployed (Commit a2eff8e, live verifiziert)
 - **v2.7:** Bot loest Battlecries aus (resolveBattlecry geteilt) + Schmiede server-autoritativ (computeForgeCost, kein 0-Mana-10/10-Cheat) + Lobby-Tagline (Seher-Lore + "Game Design: Marc Haevernick").
-- **v2.8:** Free-for-All-Modus (Dreieck 3 / Chaos 4 Spieler), jeder gegen jeden, last-standing. Eigener Pfad `room.mode==="ffa"` + `FfaGame.tsx`, Duell unangetastet. Headless 3er/4er + Browser-E2E (3 Clients) gruen, 1v1-Regression intakt.
-- **Zum Deployen:** Henry nach RENDER_KEY ("marcgard") fragen, dann Deploy-Workflow oben Schritt 3 (curl POST). ODER Henry triggert selbst im Render-Dashboard.
+- **v2.8 = Free-for-All:** Dreieck (3) / Chaos (4) Spieler, jeder gegen jeden, last-standing. Eigener Pfad `room.mode==="ffa"` + `room.players[]` + `src/components/FfaGame.tsx`, Duell (player1/player2) byte-fuer-byte unangetastet. Ziel-Wahl pro Gegner (targetPlayerId), AoE trifft alle Gegner, Random ueber alle. **Volle Kampf-Animationen** (gleiche FX-Engine wie Duell). Getestet: headless 3er/4er + Browser-E2E (3 Clients) + 1v1-Regression, 0 Crashes.
+- **v1-Grenze:** in FFA noch KEINE Alchemie-Schmiede (CREATE_CUSTOM_CARD/ROLL_FORGE_DICE sind nur duell-verdrahtet). Reconnect Best-Effort (Sitz per Name). **2v2 bewusst weggelassen.**
+- **Naechste moegliche Schritte:** Balance-Welle (m_champion-Nerf/Wuerfel-Tuning - braucht Henrys Design-Call), FFA-Schmiede nachruesten, evtl. 2v2.
 
-### Stand vor diesen Wellen (v2.6 noch live):
+### Stand vor diesen Wellen (Referenz, v2.6):
 
 ### FERTIG + LIVE
 - **Phase 1 Fundament:** Auto-Reconnect+Rejoin, Server-Heartbeat, Endzug-Halten, lautes Timer-Ticken, KI-aus, Render-Hosting, Wach-Ping.
