@@ -526,6 +526,45 @@ export const CARD_TEMPLATES = {
     hasTaunt: true,
     hasDeathrattle: true,
   },
+  // === Karten-Wave (v2.15): Heldenkraft-Wechsel + Bann + grosse Bedrohungen ===
+  "m_runeshift": {
+    name: "Runen-Wandel",
+    type: "spell",
+    cost: 2,
+    attack: 0,
+    health: 0,
+    emoji: "🔁🪄",
+    description: "🔁 Wechsle deine Heldenkraft zur nächsten deiner Klasse - und sie ist sofort wieder einsatzbereit.",
+  },
+  "m_bann": {
+    name: "Marcs Bann",
+    type: "spell",
+    cost: 3,
+    attack: 0,
+    health: 0,
+    emoji: "🌀🚫",
+    description: "🌀 Verbanne einen gegnerischen Diener. Er verschwindet spurlos - kein Todesröcheln, keine Rückkehr.",
+  },
+  "nidhogg": {
+    name: "Nidhögg",
+    type: "minion",
+    cost: 6,
+    attack: 5,
+    health: 5,
+    emoji: "🐉🩸",
+    description: "💀 Todesröcheln: Füge dem gegnerischen Helden 5 Schaden zu. Der Drache nagt selbst im Tod an der Welt.",
+    hasDeathrattle: true,
+  },
+  "valkyrie": {
+    name: "Walküre",
+    type: "minion",
+    cost: 5,
+    attack: 4,
+    health: 5,
+    emoji: "⚔️👰",
+    description: "🛡️ Spott. ❤️ Kampfschrei: Gib allen anderen befreundeten Dienern +1/+1.",
+    hasTaunt: true,
+  },
   // Nur per Todesroecheln beschworen (nicht im Deck):
   "wolf_token": {
     name: "Fenris-Welpe",
@@ -655,7 +694,8 @@ export const STANDARD_CLASS_CARDS: Record<string, string[]> = {
     "m_squire", "pot_greed", "m_champion", "lich_king",
     "m_ravens", "m_marksman",
     "m_wrath", "m_curse", "m_seer",
-    "m_revenant", "m_seeress"
+    "m_revenant", "m_seeress",
+    "m_runeshift", "m_bann"
   ],
   // HEILUNG & SCHATTEN: Heilige Nova + Tempelwaechter exklusiv, Gedankenkontrolle + Sylvanas, zaehe Koerper.
   Priest: [
@@ -665,7 +705,8 @@ export const STANDARD_CLASS_CARDS: Record<string, string[]> = {
     "m_squire", "pot_greed", "m_champion", "arc_shot", "g_footman",
     "m_warden",
     "m_seer", "m_wrath",
-    "m_seeress", "draugr"
+    "m_seeress", "draugr",
+    "m_runeshift", "valkyrie"
   ],
   // BESTIEN & AGGRO: Mehrfachschuss + Schreckenswolf exklusiv, viel Ansturm, schnelle Bedrohungen.
   Hunter: [
@@ -675,7 +716,8 @@ export const STANDARD_CLASS_CARDS: Record<string, string[]> = {
     "m_squire", "pot_greed", "m_champion", "s_belcher", "annoy_tron", "meteor",
     "m_ravens", "m_marksman",
     "m_curse", "fenrir",
-    "fenris_brood", "m_revenant"
+    "fenris_brood", "m_revenant",
+    "nidhogg", "valkyrie"
   ],
   // LICHT & BREITE: Goettlicher Sturm + Silberhand-Ritter exklusiv, Gottesschilde + Spott + Weihe, go-wide.
   Paladin: [
@@ -684,6 +726,7 @@ export const STANDARD_CLASS_CARDS: Record<string, string[]> = {
     "m_firelord", "m_squire", "pot_greed", "m_champion", "b_ogre", "s_tank", "w_rider",
     "m_warden",
     "fenrir", "m_curse",
-    "draugr", "fenris_brood"
+    "draugr", "fenris_brood",
+    "m_bann", "nidhogg"
   ]
 };

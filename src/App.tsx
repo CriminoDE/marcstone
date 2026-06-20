@@ -40,6 +40,8 @@ const SPELL_ELEMENT: Record<string, SpellElement> = {
   divine_storm: "holy",
   m_wrath: "shadow",
   m_curse: "shadow",
+  m_runeshift: "arcane",
+  m_bann: "shadow",
 };
 const HERO_POWER_ELEMENT: Record<HeroClass, SpellElement[]> = {
   Mage: ["fire", "frost", "arcane"],
@@ -659,7 +661,7 @@ export default function App() {
       });
     } else {
       // Spell cards - diese brauchen ein Ziel (inkl. meteor + mind_control, vorher vergessen!)
-      const targetSpells = ["arc_shot", "heal_touch", "fireball", "pyroblast", "meteor", "mind_control", "m_curse"];
+      const targetSpells = ["arc_shot", "heal_touch", "fireball", "pyroblast", "meteor", "mind_control", "m_curse", "m_bann"];
       if (targetSpells.includes(card.templateId)) {
         // Toggle/Establish targeting mode for spell
         setSelectedCardId(card.id);
@@ -667,13 +669,15 @@ export default function App() {
         setTargetingMode("spell_target");
         if (card.templateId === "mind_control") {
           showToast(`${card.name}: Wähle einen GEGNERISCHEN Diener zum Übernehmen!`, "info");
+        } else if (card.templateId === "m_bann") {
+          showToast(`${card.name}: Wähle einen GEGNERISCHEN Diener zum Verbannen!`, "info");
         } else {
           showToast(`${card.name} wird gewirkt! Wähle einen aktiven Diener oder einen der beiden Helden als Ziel!`, "info");
         }
       } else {
         // Spells like Consecration, Flamestrike (AOE, no targets) -> Zauber-Flare sofort
         const el = spellElementOf(card);
-        const friendly = el === "heal" || card.templateId === "pot_greed" || card.spellEffect === "draw";
+        const friendly = el === "heal" || card.templateId === "pot_greed" || card.templateId === "m_runeshift" || card.spellEffect === "draw";
         const c = friendly
           ? centerOf(`hero-${me.id}`)
           : centerOf(opponent ? `hero-${opponent.id}` : `hero-${me.id}`);

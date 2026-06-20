@@ -207,6 +207,11 @@ function fireDeathrattle(room: RoomState, owner: PlayerState, card: Card) {
       if (tgt) { const hp = tgt.health; tgt.health -= 3; recordHeroBlow(room, tgt, 3); addLog(room, `💀 Todesröcheln: Marcs Wiedergänger schlägt ${tgt.name}s Held für 3 (${hp} → ${tgt.health}).`); triggerRageChat(room, tgt, "high_damage"); }
       break;
     }
+    case "nidhogg": {
+      const tgt = enemies[Math.floor(Math.random() * enemies.length)];
+      if (tgt) { const hp = tgt.health; tgt.health -= 5; recordHeroBlow(room, tgt, 5); addLog(room, `💀 Todesröcheln: Nidhögg nagt ${tgt.name}s Held für 5 (${hp} → ${tgt.health}).`); triggerRageChat(room, tgt, "high_damage"); }
+      break;
+    }
     case "draugr": {
       enemies.forEach(e => e.board.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 2; }));
       addLog(room, `💀 Todesröcheln: Draugr-Krieger fügt allen gegnerischen Dienern 2 Schaden zu.`);
@@ -463,6 +468,19 @@ function botPlaySpell(room: RoomState, bot: PlayerState, human: PlayerState, car
     case "m_curse":
       dmgFace(Math.max(3, Math.floor(human.health / 2)));
       break;
+    case "m_runeshift": {
+      const cur = bot.selectedHeroPowerIndex ?? 0;
+      bot.selectedHeroPowerIndex = (cur + 1) % 3;
+      bot.heroPowerUsed = false;
+      break;
+    }
+    case "m_bann":
+      if (human.board.length > 0) {
+        const strongest = [...human.board].sort((a, b) => b.attack - a.attack)[0];
+        const idx = human.board.findIndex(m => m.id === strongest.id);
+        if (idx !== -1) human.board.splice(idx, 1);
+      }
+      break;
     case "custom_magic":
       if (card.spellEffect === "heal") resolveHeal(room, bot, human, card.spellValue || 1, undefined, true);
       else if (card.spellEffect === "draw") draw(card.spellValue || 1);
@@ -561,6 +579,10 @@ function resolveBattlecry(
       addLog(room, `🏹 Sylvanas reißt ${stolen.name} auf deine Seite!`);
       triggerRageChat(room, opponent, "high_damage");
     }
+  } else if (card.templateId === "valkyrie") {
+    // Walküre: gib allen ANDEREN befreundeten Dienern +1/+1.
+    player.board.filter(m => m.id !== card.id).forEach(m => { m.attack += 1; m.health += 1; m.maxHealth += 1; });
+    addLog(room, `⚔️ Walküre stärkt deine Diener: alle anderen +1/+1.`);
   } else if (card.templateId === "m_seer") {
     // Marc der Seher: ziehe 2 Karten, zahle 2 Leben (nie unter 1).
     addLog(room, `🔮 Marc der Seher blickt in den Abgrund.`);
@@ -993,7 +1015,7 @@ async function playFfaBotTurn(room: RoomState, bot: PlayerState) {
         const healing = tpl === "heal_touch" || (tpl === "custom_magic" && pick.spellEffect === "heal");
         if (targetedDmg && enemy) resolveFfaSpell(room, bot, pick, enemy.id, undefined, true);
         else if (healing) resolveFfaSpell(room, bot, pick, bot.id, undefined, true);
-        else if (tpl === "mind_control") {
+        else if (tpl === "mind_control" || tpl === "m_bann") {
           const strongest = ffaOpponents(room, bot).flatMap((o) => o.board).slice().sort((a, b) => b.attack - a.attack)[0];
           if (strongest) resolveFfaSpell(room, bot, pick, undefined, strongest.id, false);
           else resolveFfaSpell(room, bot, pick);
@@ -1100,6 +1122,9 @@ function resolveFfaBattlecry(room: RoomState, actor: PlayerState, card: Card, ta
     const verb = before > 15 ? "fällt auf" : before < 15 ? "steigt auf" : "bleibt bei";
     addLog(room, `🐉❤️ Marc's Breath: ${targetHero.name}s Held ${verb} 15 (${before} → 15).`);
     if (before > 15) triggerRageChat(room, targetHero, "high_damage");
+  } else if (card.templateId === "valkyrie") {
+    actor.board.filter(m => m.id !== card.id).forEach(m => { m.attack += 1; m.health += 1; m.maxHealth += 1; });
+    addLog(room, `⚔️ Walküre stärkt deine Diener: alle anderen +1/+1.`);
   } else if (card.templateId === "m_seer") {
     for (let k = 0; k < 2; k++) {
       if (actor.deck.length > 0) {
@@ -1186,6 +1211,22 @@ function resolveFfaSpell(room: RoomState, actor: PlayerState, card: Card, target
     const amt = Math.max(3, Math.floor(curHp / 2));
     ffaDamageTarget(room, amt, card.name, targetPlayerId, targetId, isTargetHero, actor);
     addLog(room, `🩸 Marcs Fluch zehrt: ${amt} Schaden.`);
+  }
+  else if (t === "m_runeshift") {
+    const cur = actor.selectedHeroPowerIndex ?? 0;
+    actor.selectedHeroPowerIndex = (cur + 1) % 3;
+    actor.heroPowerUsed = false;
+    const np = HERO_POWERS_LIST[actor.heroClass][actor.selectedHeroPowerIndex];
+    addLog(room, `🔁 Runen-Wandel: Heldenkraft gewechselt zu „${np.name}".`);
+  }
+  else if (t === "m_bann") {
+    if (!isTargetHero && targetId) {
+      const found = ffaFindMinion(room, targetId);
+      if (found && isEnemyTarget(room, actor, found.owner)) {
+        found.owner.board = found.owner.board.filter(m => m.id !== targetId);
+        addLog(room, `🌀 Marcs Bann verbannt ${found.minion.name} - spurlos verschwunden.`);
+      }
+    }
   }
   else if (t === "pot_greed") { addLog(room, `📖 Tome of Marc: 2 Karten gezogen.`); drawN(2); }
   else if (t === "mind_control") {
@@ -1938,6 +1979,22 @@ function handleGameAction(connectionId: string, action: ClientAction) {
           const amt = Math.max(3, Math.floor(curHp / 2));
           resolveDamage(room, player, opponent, amt, targetId, isTargetHero, card.name);
           addLog(room, `🩸 Marcs Fluch zehrt: ${amt} Schaden.`);
+        } else if (card.templateId === "m_runeshift") {
+          // Heldenkraft-Wechsel: naechste Kraft der eigenen Klasse + sofort wieder bereit.
+          const cur = player.selectedHeroPowerIndex ?? 0;
+          player.selectedHeroPowerIndex = (cur + 1) % 3;
+          player.heroPowerUsed = false;
+          const np = HERO_POWERS_LIST[player.heroClass][player.selectedHeroPowerIndex];
+          addLog(room, `🔁 Runen-Wandel: Heldenkraft gewechselt zu „${np.name}" - wieder einsatzbereit.`);
+        } else if (card.templateId === "m_bann") {
+          // Verbannen: gegnerischen Diener entfernen (splice = kein Tod -> kein Todesroecheln).
+          if (!isTargetHero && targetId) {
+            const idx = opponent.board.findIndex(m => m.id === targetId);
+            if (idx !== -1) {
+              const banished = opponent.board.splice(idx, 1)[0];
+              addLog(room, `🌀 Marcs Bann verbannt ${banished.name} - spurlos verschwunden.`);
+            }
+          }
         } else if (card.templateId === "custom_magic") {
           addLog(room, `✨ Alchemie-Zauber gewirkt! Effekt: ${card.spellEffect}`);
           if (card.spellEffect === "damage") {

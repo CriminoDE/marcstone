@@ -7,6 +7,18 @@ Format: `## [Version] - Datum` mit Kategorien Hinzugefuegt / Geaendert / Behoben
 
 ---
 
+## [2.15.0] - Karten-Wave: Bann, Heldenkraft-Wandel, grosse Bedrohungen
+
+### Hinzugefuegt
+- **Runen-Wandel** (`m_runeshift`, 2M Zauber): wechselt die eigene Heldenkraft zur naechsten der Klasse (`selectedHeroPowerIndex` +1 mod 3) und setzt `heroPowerUsed=false` (sofort wieder einsatzbereit). Duell + FFA + beide Bots. Die Heldenkraft-Wechsel-Karte von Henrys Wunschliste.
+- **Marcs Bann** (`m_bann`, 3M Zauber, zielbar): verbannt einen gegnerischen Diener per `splice` - **kein Todesroecheln** (sauberer Konter gegen die v2.14-Mechanik). Duell + FFA + Bots + Client-Targeting (Feind-Diener).
+- **Nidhoegg** (`nidhogg`, 6M 5/5): Todesroecheln - 5 Schaden an einen gegnerischen Helden (grosse Bedrohung, Branch in `fireDeathrattle`).
+- **Walkuere** (`valkyrie`, 5M 4/5 Spott): Kampfschrei - alle ANDEREN eigenen Diener +1/+1 (resolveBattlecry + resolveFfaBattlecry).
+- **Client:** Kampfschrei-Tooltip greift jetzt auch bei deutschem "Kampfschrei"-Text (vorher nur ueber Emoji-Heuristik) - zeigt jetzt auch bei Walkuere + Marc der Seher.
+
+### Verifikation
+- Deterministischer Headless-Test (Front-Load-Hook MG_TEST_WAVE, danach entfernt): alle 4 Effekte feuern (Heldenkraft-Wechsel inkl. Bot, Bann entfernt Diener, Nidhoegg-Tod 5 ins Gesicht, Walkuere-Buff), 0 liegende tote Diener, 0 Crashes. Normal-Modus sauber. lint + build gruen.
+
 ## [2.14.0] - Todesroecheln (Deathrattle)
 
 ### Hinzugefuegt

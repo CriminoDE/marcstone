@@ -40,6 +40,17 @@ Waechter = Paladin & Priest. **Sag, wenn du Werte, Klassen-Zuordnung oder Karten
 Offene Frage: 4/2-Ansturm fuer 3 Mana evtl. minimal ueber Kurve - wenn zu stark, 3/2.
 Marksmann 5/1 ist absichtlich fragil (stirbt an jedem Konter/Ping).
 
+## Karten-Wave (v2.15, DEIN VETO - Werte in src/constants.ts)
+
+| Karte | Mana | Typ | Effekt | Klassen | Notiz |
+|---|---|---|---|---|---|
+| Runen-Wandel (`m_runeshift`) | 2 | Zauber | Heldenkraft zur naechsten der Klasse + sofort wieder bereit | Mage, Priest | Kann 2 Heldenkraefte in einem Zug ausloesen (Wandel refresht). Wenn zu stark: refresh raus (nur wechseln) oder 3 Mana. |
+| Marcs Bann (`m_bann`) | 3 | Zauber (zielbar) | Verbannt Feind-Diener (kein Todesroecheln) | Mage, Paladin | Sauberer Konter gegen Todesroecheln/Gottesschild. Hartes Removal fuer 3 - evtl. 4 Mana. |
+| Nidhoegg (`nidhogg`) | 6 | 5/5 | Todesroecheln: 5 an Feind-Held | Hunter, Paladin | Garantierte 5 ins Gesicht, egal wie er stirbt. Druck-Karte. |
+| Walkuere (`valkyrie`) | 5 | 4/5 Spott | Kampfschrei: andere eigene Diener +1/+1 | Priest, Hunter | Spott + Brett-Buff. Stark mit breitem Brett. |
+
+Offene Fragen: Runen-Wandel-Refresh zu stark? Marcs Bann 3 Mana ok als hartes Removal?
+
 ## Todesroecheln-Karten (v2.14, DEIN VETO - Werte in src/constants.ts)
 
 Neue Mechanik Todesroecheln (feuert beim Tod). 4 Karten, in allen Modi + Bots, deterministisch getestet. **Werte/Klassen frei aenderbar.**

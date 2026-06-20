@@ -66,7 +66,7 @@ export function CardItem({
   if (card.hasDivineShield) {
     tooltips.push("✨ Gottesschild: Ignoriert die erste Schadensquelle vollständig.");
   }
-  if (card.description.toLowerCase().includes("battlecry") || card.description.includes("🔥") || card.description.includes("💣") || card.description.includes("❤️")) {
+  if (card.description.toLowerCase().includes("battlecry") || card.description.includes("Kampfschrei") || card.description.includes("🔥") || card.description.includes("💣") || card.description.includes("❤️")) {
     tooltips.push("💥 Kampfschrei: Löst direkt beim Ausspielen einen Einmaleffekt aus.");
   }
   if (card.hasDeathrattle) {

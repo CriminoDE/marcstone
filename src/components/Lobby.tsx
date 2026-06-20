@@ -290,7 +290,15 @@ export function Lobby({
           </h3>
           <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
             <div>
-              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.14 · Todesröcheln 💀</div>
+              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.15 · Bann, Wandel & Drachen 🐉</div>
+              <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
+                <li><b>Runen-Wandel:</b> wechselt deine Heldenkraft zur nächsten deiner Klasse - und sie ist sofort wieder bereit.</li>
+                <li><b>Marcs Bann:</b> verbannt einen Feind-Diener spurlos - kein Todesröcheln, keine Rückkehr.</li>
+                <li><b>Nidhögg</b> (Tod: 5 ins Gesicht) und <b>Walküre</b> (Spott, Kampfschrei: alle eigenen Diener +1/+1).</li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-[11px] font-display font-bold text-mg-fog">v2.14 · Todesröcheln 💀</div>
               <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
                 <li><b>Neue Mechanik - Todesröcheln:</b> manche Diener lösen beim Sterben einen Effekt aus (💀-Symbol auf der Karte). Wirkt über den Tod hinaus.</li>
                 <li><b>4 neue Todesröcheln-Karten:</b> <b>Marcs Wiedergänger</b> (Tod: 3 ins gegnerische Gesicht), <b>Marcs Seherin</b> (Tod: zieh eine Karte), <b>Fenris-Brut</b> (Tod: 2 Welpen) und <b>Draugr-Krieger</b> (Spott, Tod: 2 an alle Feind-Diener).</li>

@@ -24,7 +24,12 @@ Marcgard = Browser-Kartenduell (Hearthstone-artig), 1v1 online ueber Link, fuer 
 ## Testen ohne zweiten Spieler
 Raum erstellen -> Warteraum -> "Uebungsgegner hinzufuegen" -> lokaler Bot "Holgar" (kein Gemini, kostenlos). WS-Testskripte: `/tmp/wstest.mjs` (Reconnect), `/tmp/bottest.mjs` (Bot) - bei Bedarf neu schreiben.
 
-## STAND (Stand: 2026-06-20, **v2.14 (Todesroecheln) LIVE auf https://marcgard.onrender.com** - Commit 375017d, deployed (dep-d8rgel4) + verifiziert: health 200, Live-JS sha256-identisch mit Build + enthaelt v2.14/Todesröcheln, WS erstellt Raum. Vorher v2.13 = b876817.)
+## STAND (Stand: 2026-06-21, **v2.15 (Karten-Wave) gebaut + getestet** - Deploy-Status siehe unten. Vorher v2.14 Todesroecheln LIVE 375017d.)
+
+### v2.15 - Karten-Wave (Bann + Heldenkraft-Wandel + Bedrohungen)
+- **4 Karten:** `m_runeshift` Runen-Wandel (2M Zauber: Heldenkraft +1 mod 3 + heroPowerUsed=false = sofort wieder bereit; die Wunschlisten-Karte), `m_bann` Marcs Bann (3M zielbar: verbannt Feind-Diener per splice = KEIN Todesroecheln), `nidhogg` Nidhoegg (6M 5/5, Todesroecheln 5 an Feind-Held), `valkyrie` Walkuere (5M 4/5 Spott, Kampfschrei: andere eigene Diener +1/+1).
+- Verdrahtet: Duell PLAY_CARD + botPlaySpell + resolveBattlecry + fireDeathrattle, FFA resolveFfaSpell + resolveFfaBattlecry + FFA-Bot (m_bann wie mind_control auf staerksten Feind-Diener), Client targetSpells + FFA_TARGETED_SPELLS + SPELL_ELEMENT + Kampfschrei-Tooltip-Fix.
+- **Verifiziert:** deterministischer Headless-Test (MG_TEST_WAVE-Hook, danach entfernt) - alle 4 feuern (Runen-Wandel auch beim Bot), 0 liegende Diener, 0 Crashes. Normal-Mode sauber. lint+build gruen.
 
 ### v2.14 - Todesroecheln (Deathrattle)
 - **Neue Mechanik:** `hasDeathrattle`-Diener feuern beim Tod einen Effekt. Server-zentral: **eine** `reap(room)`-Funktion (in server.ts bei den Finisher-Helfern) ersetzt die ~35 verstreuten `board.filter(health>0)` - sammelt tote Diener auf allen Brettern, feuert `fireDeathrattle`, wiederholt fuer Kettentode. `fireDeathrattle` mutiert direkt (keine Rekursion). Wirkt in Duell + FFA + 2v2 + beide Bots (alle Schadenspfade laufen durch reap).
