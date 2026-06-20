@@ -361,7 +361,7 @@ export function FfaGame({ room, connectionId, myName, sendAction, onLeave, showT
             {me.board.length >= 0 && me.hand.map(card => {
               const affordable = isMyTurn && card.cost <= me.mana;
               return (
-                <CardItem key={card.id} card={card} isOwner canBePlayed={affordable}
+                <CardItem key={card.id} card={card} isOwner canBePlayed={affordable} inHand
                   className="w-20 md:w-24" onClick={() => setPreviewCardId(card.id)} />
               );
             })}

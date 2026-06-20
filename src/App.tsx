@@ -1433,6 +1433,7 @@ export default function App() {
                         card={card}
                         isSelected={isPlayedSelected}
                         canBePlayed={isActiveTurn && isAffordable}
+                        inHand
                         onClick={() => setPreviewCardId(card.id)}
                       />
                     );
