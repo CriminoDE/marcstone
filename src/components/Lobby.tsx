@@ -214,7 +214,15 @@ export function Lobby({
           </h3>
           <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
             <div>
-              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.0 · Marcgard erwacht</div>
+              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.1 · Blut & Stahl</div>
+              <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
+                <li>Kampf-Animationen: Figuren stürmen ins Ziel, Treffer wackeln, Schadenszahlen fliegen, Gefallene zerstäuben.</li>
+                <li>Eigener Held getroffen = roter Bildschirm-Flash.</li>
+                <li>Fällt ein Held unter 10 Leben, wird der Schnee zu blutrotem Regen.</li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-[11px] font-display font-bold text-mg-fog">v2.0 · Marcgard erwacht</div>
               <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
                 <li>Dunkel-nordische Optik, Schnee und fliegende Raben.</li>
                 <li>Neuer Name, neue Schrift, neue Lobby.</li>

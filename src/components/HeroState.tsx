@@ -65,6 +65,7 @@ export function HeroState({
 
   return (
     <div
+      id={`hero-${player.id}`}
       onClick={() => {
         if (canBeTargeted && onHeroClick) {
           onHeroClick();

@@ -11,12 +11,16 @@ interface Raven { x: number; y: number; vx: number; baseY: number; t: number; si
 interface AtmosphereProps {
   // Fired when a raven spawns, so a sound layer can caw in time. Optional.
   onRaven?: () => void;
+  // Wenn ein Held kurz vorm Tod steht: Schnee faerbt sich blutrot + wird zu Regen.
+  bloodRain?: boolean;
 }
 
-export function Atmosphere({ onRaven }: AtmosphereProps) {
+export function Atmosphere({ onRaven, bloodRain = false }: AtmosphereProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const onRavenRef = useRef(onRaven);
   onRavenRef.current = onRaven;
+  const bloodRef = useRef(bloodRain);
+  bloodRef.current = bloodRain;
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -61,6 +65,7 @@ export function Atmosphere({ onRaven }: AtmosphereProps) {
     let frame = 0;
     let nextRaven = 700 + Math.random() * 900; // frames until next raven (~12-27s @60fps)
     let raf = 0;
+    let redMix = 0; // 0 = Schnee weiss, 1 = Blutregen. Wird sanft hin-/weggeblendet.
 
     const spawnRaven = () => {
       const fromLeft = Math.random() < 0.5;
@@ -80,19 +85,41 @@ export function Atmosphere({ onRaven }: AtmosphereProps) {
       frame++;
       ctx.clearRect(0, 0, w, h);
 
-      // Snow
-      ctx.fillStyle = "#E8EDF4";
+      // Sanfter Uebergang Schnee <-> Blutregen
+      redMix += ((bloodRef.current ? 1 : 0) - redMix) * 0.025;
+      if (redMix < 0.001) redMix = 0;
+
+      // Flockenfarbe von Frost (#E8EDF4) nach Blut (#BE2D2D) interpolieren
+      const cr = Math.round(232 + (190 - 232) * redMix);
+      const cg = Math.round(237 + (45 - 237) * redMix);
+      const cb = Math.round(244 + (45 - 244) * redMix);
+      const dropColor = `rgb(${cr},${cg},${cb})`;
+      const rain = redMix > 0.18;
+
+      ctx.fillStyle = dropColor;
+      ctx.strokeStyle = dropColor;
       for (const f of flakes) {
         f.phase += 0.01;
-        f.y += f.vy;
-        f.x += Math.sin(f.phase) * f.drift * 0.5;
+        // Blutregen faellt schneller + steiler (weniger Seitwaerts-Drift)
+        f.y += f.vy * (1 + redMix * 1.7);
+        f.x += Math.sin(f.phase) * f.drift * 0.5 * (1 - redMix * 0.75);
         if (f.y > h + 5) { f.y = -5; f.x = Math.random() * w; }
         if (f.x > w + 5) f.x = -5;
         if (f.x < -5) f.x = w + 5;
         ctx.globalAlpha = f.alpha;
-        ctx.beginPath();
-        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
-        ctx.fill();
+        if (rain) {
+          // Regen: kurzer fallender Strich statt Flocke
+          const len = 3 + redMix * f.vy * 9;
+          ctx.lineWidth = Math.max(0.8, f.r * 0.9);
+          ctx.beginPath();
+          ctx.moveTo(f.x, f.y);
+          ctx.lineTo(f.x, f.y + len);
+          ctx.stroke();
+        } else {
+          ctx.beginPath();
+          ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
       ctx.globalAlpha = 1;
 
@@ -130,6 +157,7 @@ export function Atmosphere({ onRaven }: AtmosphereProps) {
     <>
       <div className="mg-aurora" aria-hidden />
       <div className="mg-fog" aria-hidden />
+      <div className="mg-blood-veil" data-active={bloodRain ? "1" : "0"} aria-hidden />
       <div className="mg-vignette" aria-hidden />
       <canvas
         ref={canvasRef}

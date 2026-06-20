@@ -7,6 +7,22 @@ Format: `## [Version] - Datum` mit Kategorien Hinzugefuegt / Geaendert / Behoben
 
 ---
 
+## [2.1.0] - Kampf-Animationen + Blutregen
+
+### Hinzugefuegt
+- **Kampf-Animationen** (`src/utils/combatFx.ts`, komplett von React entkoppelt: eigene Overlay-Ebene an `document.body` + Web Animations API direkt am Knoten, ueberlebt Re-Renders):
+  - **Angreifer-Lunge:** die angreifende Figur holt aus, stoesst zum Ziel und federt zurueck (sofort beim Klick, optimistisch).
+  - **Treffer-Reaktion** (ueber HP-Zustands-Diff, also auf BEIDEN Bildschirmen): getroffene Figur/Held wackelt, roter Flash, aufsteigende Schadenszahl `-X`, Funken-Stoss.
+  - **Tod-Rauch:** gefallene Figuren zerstaeuben mit dunklem Blut-Rauch an ihrer letzten Position.
+  - **Bildschirm-Flash:** roter Voll-Flash, wenn der eigene Held Schaden nimmt (Staerke skaliert mit Schaden).
+- **Blutregen:** faellt ein Held auf <= 10 Leben, faerbt sich der Schnee blutrot und wird zu Regen (sanfter Uebergang) + pulsierender roter Schleier.
+
+### Technik
+- Server bleibt autoritativ; FX reagieren rein clientseitig auf `ROOM_STATE_UPDATE`-Diffs. Alles respektiert `prefers-reduced-motion`.
+
+### Infra
+- Hosting auf **marcgard.onrender.com** umgezogen (neuer Render-Service, alter `marcstone` geloescht - Free-Tier erlaubt nur eine aktive Instanz). Wach-Ping-Variable angepasst.
+
 ## [2.0.0-a] - Phase 2 Start: Marcgard-Rebranding (Optik)
 
 ### Hinzugefuegt

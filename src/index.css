@@ -68,6 +68,11 @@ body {
   100% { transform: translateX(-10%) skewX(-8deg); opacity: 0.5; }
 }
 
+@keyframes bloodPulse {
+  0%, 100% { filter: brightness(0.95); }
+  50% { filter: brightness(1.4); }
+}
+
 /* ---- Atmosphaere-Layer ---- */
 .mg-vignette {
   position: fixed;
@@ -98,6 +103,21 @@ body {
   filter: blur(8px);
   animation: auroraShift 24s ease-in-out infinite;
   z-index: -1;
+}
+/* Blutregen-Schleier: blendet bei niedrigem Helden-HP sanft ein. z-index 26,
+   knapp ueber der Vignette (25), unter dem Schnee-Canvas (30). */
+.mg-blood-veil {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 26;
+  background: radial-gradient(120% 100% at 50% 38%, transparent 44%, rgba(120,12,12,0.46) 100%);
+  opacity: 0;
+  transition: opacity 2.4s ease;
+}
+.mg-blood-veil[data-active="1"] {
+  opacity: 1;
+  animation: bloodPulse 3.4s ease-in-out infinite;
 }
 
 /* ---- Selektions-/Status-Glows (neu eingefaerbt) ---- */
@@ -142,5 +162,5 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mg-fog, .mg-aurora, .mg-marc-glow { animation: none; }
+  .mg-fog, .mg-aurora, .mg-marc-glow, .mg-blood-veil { animation: none; }
 }

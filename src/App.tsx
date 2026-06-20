@@ -7,10 +7,11 @@ import { EndTurnButton } from "./components/EndTurnButton";
 import { FuseTimer } from "./components/FuseTimer";
 import { Atmosphere } from "./components/Atmosphere";
 import { MusicToggle } from "./components/MusicToggle";
-import { Card, RoomState, HeroClass, ClientAction, GameEvent, OpenRoomInfo, OnlinePlayerInfo } from "./types";
+import { Card, RoomState, HeroClass, ClientAction, GameEvent, OpenRoomInfo, OnlinePlayerInfo, PlayerState } from "./types";
 import { HERO_POWER_COST, HERO_POWERS, HERO_POWERS_LIST } from "./constants";
 import { playSound, playRaven } from "./utils/audio";
 import { generateVikingName } from "./utils/names";
+import { flashDamage, deathPoof, screenFlash, lungeAttack } from "./utils/combatFx";
 
 export default function App() {
   // Connection states
@@ -60,6 +61,10 @@ export default function App() {
   
   const lastTickPlayed = React.useRef<number>(-1);
 
+  // Combat-FX: letzter HP-Stand + Position pro Figur/Held, um Treffer/Tode zu erkennen.
+  const prevHpRef = useRef<Map<string, { hp: number; rect: DOMRect | null }>>(new Map());
+  const prevPhaseRef = useRef<string | null>(null);
+
   // Connection refs for robust auto-reconnect + auto-rejoin
   const wsRef = useRef<WebSocket | null>(null);
   const shouldReconnectRef = useRef<boolean>(true);
@@ -103,6 +108,63 @@ export default function App() {
 
     return () => clearInterval(interval);
   }, [room?.turnEndTime, room?.phase, room?.heroSelectionEndTime, me?.id]);
+
+  // Combat-FX: laeuft NACH dem Render (Elemente existieren + zeigen neue HP).
+  // Vergleicht den letzten HP-Stand mit dem aktuellen -> Treffer-Wackeln, roter
+  // Flash + Schadenszahl, Tod-Rauch, und voller Bildschirm-Flash beim eigenen Helden.
+  useEffect(() => {
+    if (!room) {
+      prevHpRef.current.clear();
+      prevPhaseRef.current = null;
+      return;
+    }
+
+    const rectOf = (id: string): DOMRect | null => {
+      const el = document.getElementById(id);
+      return el ? el.getBoundingClientRect() : null;
+    };
+
+    const cur = new Map<string, { hp: number; rect: DOMRect | null }>();
+    const scan = (p: PlayerState | null) => {
+      if (!p) return;
+      const hk = `hero-${p.id}`;
+      cur.set(hk, { hp: p.health, rect: rectOf(hk) });
+      for (const m of p.board) {
+        const ck = `card-${m.id}`;
+        cur.set(ck, { hp: m.health, rect: rectOf(ck) });
+      }
+    };
+    scan(room.player1);
+    scan(room.player2);
+
+    const prev = prevHpRef.current;
+    // Nur waehrend laufendem Kampf animieren - nicht beim Austeilen oder Neustart.
+    const canAnimate = room.phase === "playing" && prevPhaseRef.current === "playing";
+
+    if (canAnimate) {
+      const myHeroKey = me ? `hero-${me.id}` : "";
+      // Treffer (HP gesunken, Figur lebt noch)
+      cur.forEach((now, key) => {
+        const before = prev.get(key);
+        if (!before || now.hp >= before.hp) return;
+        const dmg = before.hp - now.hp;
+        const isHero = key.startsWith("hero-");
+        flashDamage(document.getElementById(key), dmg, { big: isHero || dmg >= 5 });
+        if (isHero && key === myHeroKey) {
+          screenFlash(0.5 + dmg / 14);
+        }
+      });
+      // Tode (Figur war da, jetzt weg) -> Rauch an letzter Position
+      prev.forEach((before, key) => {
+        if (cur.has(key) || !key.startsWith("card-") || !before.rect) return;
+        const r = before.rect;
+        deathPoof(r.left + r.width / 2, r.top + r.height / 2);
+      });
+    }
+
+    prevPhaseRef.current = room.phase;
+    prevHpRef.current = cur;
+  }, [room, me?.id]);
 
   // Auto save playerName to localStorage + keep ref in sync for the long-lived socket handlers
   useEffect(() => {
@@ -537,6 +599,14 @@ export default function App() {
         }
       }
 
+      // Sofortiges, taktiles Feedback: die angreifende Figur stoesst zum Ziel.
+      // Der Treffer (Wackeln/Schaden) folgt ueber den Zustands-Diff, sobald der
+      // Server den Angriff bestaetigt.
+      lungeAttack(
+        document.getElementById(`card-${selectedAttackerId}`),
+        document.getElementById(isTargetHero ? `hero-${targetId}` : `card-${targetId}`)
+      );
+
       sendAction({
         type: "ATTACK",
         payload: {
@@ -890,6 +960,11 @@ export default function App() {
   const isWinnerOpponent = room.phase === "victory" && room.winnerId === opponent?.id;
   const isDraw = room.phase === "victory" && room.winnerId === "DRAW";
 
+  // Blutregen, sobald ein Held auf 10 HP oder weniger faellt.
+  const bloodRain =
+    room.phase === "playing" &&
+    (((room.player1?.health ?? 99) <= 10) || ((room.player2?.health ?? 99) <= 10));
+
   return (
     <div
       onClick={handleCancelTargeting}
@@ -897,7 +972,7 @@ export default function App() {
         targetingMode !== "none" ? "cursor-crosshair" : ""
       }`}
     >
-      <Atmosphere onRaven={playRaven} />
+      <Atmosphere onRaven={playRaven} bloodRain={bloodRain} />
       {/* 1. Global Game HUD Status Bar */}
       <header className="max-w-7xl mx-auto w-full bg-mg-slate/90 border border-mg-stone rounded-2xl p-3 shadow-lg flex flex-wrap gap-4 items-center justify-between z-20">
         <div className="flex items-center gap-3">
