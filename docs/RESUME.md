@@ -24,7 +24,7 @@ Marcgard = Browser-Kartenduell (Hearthstone-artig), 1v1 online ueber Link, fuer 
 ## Testen ohne zweiten Spieler
 Raum erstellen -> Warteraum -> "Uebungsgegner hinzufuegen" -> lokaler Bot "Holgar" (kein Gemini, kostenlos). WS-Testskripte: `/tmp/wstest.mjs` (Reconnect), `/tmp/bottest.mjs` (Bot) - bei Bedarf neu schreiben.
 
-## STAND (Stand: 2026-06-22, **v2.17 (Timer-Smooth) gebaut** - Deploy siehe unten. Vorher v2.16 Original-IP-Umbau LIVE ac5418b.)
+## STAND (Stand: 2026-06-22, **v2.17 (Timer-Smooth + Balancing-Plan) LIVE auf https://marcgard.onrender.com** - Commit 74c66f5, deployed (dep-d8spf0k) + verifiziert: health 200, sha-identisch, WS ok. Vorher v2.16 = ac5418b.)
 
 ### v2.17 - Soße Teil 1: Timer smooth + KI-Balancing-Plan
 - **FuseTimer** (`src/components/FuseTimer.tsx`) jetzt rAF-getrieben aus `room.turnEndTime` -> Lunte brennt KONTINUIERLICH runter statt pro Sekunde zu springen (Henry: "war abgehackt"). Flamme atmet jede Frame, Panik-Phase flackert haerter. Fallback auf Integer-Prop wenn kein endTime.
