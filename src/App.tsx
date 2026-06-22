@@ -1288,7 +1288,7 @@ export default function App() {
       {/* Burning-fuse turn timer */}
       {room.phase === "playing" && (
         <div className="max-w-7xl mx-auto w-full mt-2 px-1 z-20 relative">
-          <FuseTimer remaining={timeRemaining} total={45} active={!!isActiveTurn} />
+          <FuseTimer remaining={timeRemaining} total={45} active={!!isActiveTurn} endTimeMs={room.turnEndTime} />
         </div>
       )}
 

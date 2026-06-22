@@ -24,7 +24,12 @@ Marcgard = Browser-Kartenduell (Hearthstone-artig), 1v1 online ueber Link, fuer 
 ## Testen ohne zweiten Spieler
 Raum erstellen -> Warteraum -> "Uebungsgegner hinzufuegen" -> lokaler Bot "Holgar" (kein Gemini, kostenlos). WS-Testskripte: `/tmp/wstest.mjs` (Reconnect), `/tmp/bottest.mjs` (Bot) - bei Bedarf neu schreiben.
 
-## STAND (Stand: 2026-06-22, **v2.16 (Original-IP-Umbau) LIVE auf https://marcgard.onrender.com** - Commit ac5418b, deployed (dep-d8sp71p) + verifiziert: health 200, Live-JS sha256-identisch mit Build, 0 Blizzard-Namen im Bundle, WS ok. Vorher v2.15 = 0ff4d13.)
+## STAND (Stand: 2026-06-22, **v2.17 (Timer-Smooth) gebaut** - Deploy siehe unten. Vorher v2.16 Original-IP-Umbau LIVE ac5418b.)
+
+### v2.17 - Soße Teil 1: Timer smooth + KI-Balancing-Plan
+- **FuseTimer** (`src/components/FuseTimer.tsx`) jetzt rAF-getrieben aus `room.turnEndTime` -> Lunte brennt KONTINUIERLICH runter statt pro Sekunde zu springen (Henry: "war abgehackt"). Flamme atmet jede Frame, Panik-Phase flackert haerter. Fallback auf Integer-Prop wenn kein endTime.
+- **`docs/BALANCING-PLAN.md`** geschrieben (Henry-Auftrag): Bot-Self-Play-Sim + Analyse-Agent, ehrliche Einschaetzung. Siehe Roadmap-Punkt 4.
+- Combat-FX war schon reich -> der grosse offene Soße-Block ist SOUND (Dashboard + ElevenLabs/Eagle, siehe Roadmap Punkt 1).
 
 ### v2.16 - Original-IP-Umbau (WICHTIG: Spiel ist jetzt blizzard-frei, oeffentlich zeigbar)
 - **Alle HS-abgeleiteten Anzeigenamen raus.** ~26 Kartennamen + 10 Heldenkraefte + Keyword-Begriffe (Gottesschild->Runenschild, Kampfschrei->Schlachtruf, Todesroecheln->Grabhauch) auf eigene dunkel-nordische Begriffe. Silver Hand->Klingenknappe. Server-Logs/Lobby/Forge mitgezogen.
@@ -50,8 +55,17 @@ Raum erstellen -> Warteraum -> "Uebungsgegner hinzufuegen" -> lokaler Bot "Holga
 - Patch-Notes v2.13 in Lobby + CHANGELOG + BALANCE-CHANGES (Veto-Tabelle). lint+build gruen.
 - **OFFEN: Henry-Spieltest, dann committen + pushen + Render-Deploy.** Danach: Klassensystem-Weiche (siehe unten) + naechste Mechaniken-Wave.
 
-### 🎯 NAECHSTE SESSION: krasse Karten-Wave (Henry-Entscheidungen 2026-06-20 stehen)
-**Design-Weichen sind GESTELLT (Henry hat entschieden, nicht mehr neu fragen):**
+### 🎯 ROADMAP (Henry-Reihenfolge, 2026-06-22): Soße -> Balancing -> Login+DB -> Random-Deck -> neue Helden
+1. **Soße (laeuft):** visuelle Juice ist schon reich (combatFx: shake/impactBurst/deathPoof/screenFlash/frostNova/heroDeathExplosion/lunge/finisher-Kino). Timer in v2.17 auf rAF-smooth gezogen (war abgehackt). **Groesster offener Soße-Block = SOUND** - Henry will KEINE Random-Trash-Sounds, sondern: (a) ein **Sound-Dashboard** zum Preview/Tausch pro Event, (b) Quellen = ElevenLabs-SFX-Generierung (Key in `APPS/video-use/.env`, Henry-Go noetig) + Eagle-Lib (MCP-Zugang) + Stock (Pexels/Storyblocks/Artgrid). Plan: System bauen, Kandidaten generieren, Henry kuratiert via Dashboard, dann buendeln (lokal, CREDITS.md pflegen).
+2. **kleines Balancing** (von Hand, mit Henry) - Werte in `docs/BALANCE-CHANGES.md`.
+3. **Login + DB** (Henry macht Supabase selbst, Phase C) - Voraussetzung fuers Echt-Daten-Tracking.
+4. **KI-Balancing-Auswertung:** voller Plan in **`docs/BALANCING-PLAN.md`**. Kern: Bot-Self-Play-Sim (tausende Spiele, KEINE DB noetig, baubar JETZT) -> Stats je Karte -> Analyse-Agent schlaegt Tuning vor -> Henry nickt ab. Echt-Spieler-Daten verfeinern spaeter via DB.
+5. **Random-Deck-Schnellduell** (kein Klassen-Pick, Random-Deck kann OP sein) - erhoeht Balance-Bedeutung. Hinweis: No-Login-Spiel gibt es SCHON (kein Account noetig); neu ist nur der Random-Deck-Modus.
+6. **Neue Helden** + spaeter Azteken-Update (Mexiko).
+
+Karten-Stand: genug Karten fuer jetzt (viele lokale). Henry-Frage "noch Karten oder Balancing?" -> erst Soße/Balancing, neue Karten kommen mit neuen Helden/Mechaniken.
+
+### Design-Weichen (Henry hat entschieden, nicht neu fragen):
 - ✅ **Todesroecheln (Deathrattle) = GEBAUT in v2.14** (zentrale `reap`-Funktion + 4 Karten, siehe v2.14-Block oben). Lifesteal/Zauberschaden/Windfury bewusst NICHT jetzt - die kommen evtl. in spaeteren Wellen, wenn Henry sie will. Fuer neue Deathrattle-Karten: nur Karte in constants + Branch in `fireDeathrattle` (Duell+FFA teilen sich die Funktion) + Klassen-Liste. Kein Kern-Refactor mehr noetig.
 - **Universal-Karten-Pool = ERST mit dem Deckbau (Phase C), NICHT jetzt.** Begruendung Henry/Claude: ohne Deckbau macht ein Universal-Pool alle Klassen wieder ~gleich = undo von v2.9. Kuratierte `STANDARD_CLASS_CARDS` bleiben bis Deckbau existiert. Voll-Hearthstone verworfen.
 - **Dann krasse Karten-Wave:** mehr Marc-Legendaere mit Deathrattle (Marcs Bann, Zorn-Reihe, Heldenkraft-Wechsel-Karte). Jede neue Karte = Wiring in Duell (PLAY_CARD/resolveBattlecry/botPlaySpell) + FFA (resolveFfaSpell/resolveFfaBattlecry/FFA-Bot) + Client (targetSpells/FFA_TARGETED_SPELLS/SPELL_ELEMENT) + Glossar bei neuem Keyword, sonst tote Karte (meteor/mind_control-Falle).
