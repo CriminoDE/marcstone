@@ -24,7 +24,7 @@ Marcgard = Browser-Kartenduell (Hearthstone-artig), 1v1 online ueber Link, fuer 
 ## Testen ohne zweiten Spieler
 Raum erstellen -> Warteraum -> "Uebungsgegner hinzufuegen" -> lokaler Bot "Holgar" (kein Gemini, kostenlos). WS-Testskripte: `/tmp/wstest.mjs` (Reconnect), `/tmp/bottest.mjs` (Bot) - bei Bedarf neu schreiben.
 
-## STAND (Stand: 2026-06-22, **v2.16 (Original-IP-Umbau) gebaut + getestet** - Deploy siehe unten. Vorher v2.15 LIVE 0ff4d13.)
+## STAND (Stand: 2026-06-22, **v2.16 (Original-IP-Umbau) LIVE auf https://marcgard.onrender.com** - Commit ac5418b, deployed (dep-d8sp71p) + verifiziert: health 200, Live-JS sha256-identisch mit Build, 0 Blizzard-Namen im Bundle, WS ok. Vorher v2.15 = 0ff4d13.)
 
 ### v2.16 - Original-IP-Umbau (WICHTIG: Spiel ist jetzt blizzard-frei, oeffentlich zeigbar)
 - **Alle HS-abgeleiteten Anzeigenamen raus.** ~26 Kartennamen + 10 Heldenkraefte + Keyword-Begriffe (Gottesschild->Runenschild, Kampfschrei->Schlachtruf, Todesroecheln->Grabhauch) auf eigene dunkel-nordische Begriffe. Silver Hand->Klingenknappe. Server-Logs/Lobby/Forge mitgezogen.
