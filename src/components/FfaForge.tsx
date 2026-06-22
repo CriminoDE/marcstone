@@ -126,7 +126,7 @@ export function FfaForge({ me, isMyTurn, roomId, sendAction, showToast, onClose 
               <div className="flex gap-2 mb-2">
                 {chip(taunt, setTaunt, "🛡️ Spott")}
                 {chip(charge, setCharge, "⚡ Ansturm")}
-                {chip(shield, setShield, "✨ Gottesschild")}
+                {chip(shield, setShield, "✨ Runenschild")}
               </div>
               <div className="flex flex-wrap gap-1 mb-1">{MINION_EMOJI.map(e => <button key={e} onClick={() => setEmoji(e)} className={`text-lg w-8 h-8 rounded-md ${emoji === e ? "bg-mg-bronze/40 ring-1 ring-mg-bronze" : "bg-mg-void/40"}`}>{e}</button>)}</div>
             </>

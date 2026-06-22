@@ -290,18 +290,25 @@ export function Lobby({
           </h3>
           <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
             <div>
-              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.15 · Bann, Wandel & Drachen 🐉</div>
+              <div className="text-[11px] font-display font-bold text-mg-frost-text">v2.16 · Eigene Welt 🛡️</div>
               <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
-                <li><b>Runen-Wandel:</b> wechselt deine Heldenkraft zur nächsten deiner Klasse - und sie ist sofort wieder bereit.</li>
-                <li><b>Marcs Bann:</b> verbannt einen Feind-Diener spurlos - kein Todesröcheln, keine Rückkehr.</li>
-                <li><b>Nidhögg</b> (Tod: 5 ins Gesicht) und <b>Walküre</b> (Spott, Kampfschrei: alle eigenen Diener +1/+1).</li>
+                <li><b>Alle Karten tragen jetzt eigene, nordische Namen</b> (Ymir, Surtr, Hela, Fafnir ...). Werte und Effekte bleiben genau gleich.</li>
+                <li>Schlüsselwörter neu benannt: <b>Runenschild</b>, <b>Schlachtruf</b>, <b>Grabhauch</b>. Schau ins 📖 Glossar.</li>
               </ul>
             </div>
             <div>
-              <div className="text-[11px] font-display font-bold text-mg-fog">v2.14 · Todesröcheln 💀</div>
+              <div className="text-[11px] font-display font-bold text-mg-fog">v2.15 · Bann, Wandel & Drachen 🐉</div>
               <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
-                <li><b>Neue Mechanik - Todesröcheln:</b> manche Diener lösen beim Sterben einen Effekt aus (💀-Symbol auf der Karte). Wirkt über den Tod hinaus.</li>
-                <li><b>4 neue Todesröcheln-Karten:</b> <b>Marcs Wiedergänger</b> (Tod: 3 ins gegnerische Gesicht), <b>Marcs Seherin</b> (Tod: zieh eine Karte), <b>Fenris-Brut</b> (Tod: 2 Welpen) und <b>Draugr-Krieger</b> (Spott, Tod: 2 an alle Feind-Diener).</li>
+                <li><b>Runen-Wandel:</b> wechselt deine Heldenkraft zur nächsten deiner Klasse - und sie ist sofort wieder bereit.</li>
+                <li><b>Marcs Bann:</b> verbannt einen Feind-Diener spurlos - kein Grabhauch, keine Rückkehr.</li>
+                <li><b>Nidhögg</b> (Tod: 5 ins Gesicht) und <b>Walküre</b> (Spott, Schlachtruf: alle eigenen Diener +1/+1).</li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-[11px] font-display font-bold text-mg-fog">v2.14 · Grabhauch 💀</div>
+              <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
+                <li><b>Neue Mechanik - Grabhauch:</b> manche Diener lösen beim Sterben einen Effekt aus (💀-Symbol auf der Karte). Wirkt über den Tod hinaus.</li>
+                <li><b>4 neue Grabhauch-Karten:</b> <b>Marcs Wiedergänger</b> (Tod: 3 ins gegnerische Gesicht), <b>Marcs Seherin</b> (Tod: zieh eine Karte), <b>Fenris-Brut</b> (Tod: 2 Welpen) und <b>Draugr-Krieger</b> (Spott, Tod: 2 an alle Feind-Diener).</li>
               </ul>
             </div>
             <div>
@@ -349,7 +356,7 @@ export function Lobby({
               <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
                 <li><b>Eigene Klassen-Decks:</b> Mage = Frost/Feuer (Blizzard), Priest = Heilung/Schatten (Heilige Nova), Hunter = Bestien (Mehrfachschuss), Paladin = Licht (Göttlicher Sturm). 8 neue Karten.</li>
                 <li><b>Einfrieren wirkt jetzt wirklich</b> - eingefrorene Diener überspringen ihren Angriff, mit blauer Eis-Optik ❄️.</li>
-                <li><b>Spielbare Karten leuchten</b> (genug Mana) statt alles grau. Keywords (Spott/Ansturm/Gottesschild) jetzt deutlich auf der Karte.</li>
+                <li><b>Spielbare Karten leuchten</b> (genug Mana) statt alles grau. Keywords (Spott/Ansturm/Runenschild) jetzt deutlich auf der Karte.</li>
                 <li>Balance: Marc's Champion 6 Mana, Dr. Marc stärker, Paladin aufgewertet.</li>
               </ul>
             </div>
@@ -358,7 +365,7 @@ export function Lobby({
               <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
                 <li>Neuer Spassmodus: <b>Dreieck (3 Spieler)</b> und <b>Chaos (4 Spieler)</b>, jeder gegen jeden. Letzter Überlebender gewinnt.</li>
                 <li>Gegner oben im Dreieck angeordnet, du wählst bei Zaubern/Angriffen genau welchen Gegner du triffst.</li>
-                <li>Flächenzauber treffen alle Gegner, Ragnaros & Dr. Marc streuen über alle. Beitritt per Raum-Code, Start ab 3 Spielern.</li>
+                <li>Flächenzauber treffen alle Gegner, Surtr & Dr. Marc streuen über alle. Beitritt per Raum-Code, Start ab 3 Spielern.</li>
                 <li>Volle Kampf-Animationen auch im Free-for-All: Treffer, Schadenszahlen, Tod-Rauch, Lunge, Zauber-Projektile, Rundenstart-Schwerter.</li>
                 <li>Alchemie-Schmiede (Götter-Würfel + Selber-Bauen) jetzt auch im Free-for-All.</li>
               </ul>
@@ -366,7 +373,7 @@ export function Lobby({
             <div>
               <div className="text-[11px] font-display font-bold text-mg-fog">v2.7 · Fairer Übungsgegner</div>
               <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[10px] text-mg-fog font-body">
-                <li>Holgar löst jetzt Battlecries aus (Firelord, Dr. Marc, Marc's Breath & Co.) statt sie als stumme Körper zu spielen - deutlich härterer Gegner.</li>
+                <li>Holgar löst jetzt Battlecries aus (Feuerjarl, Dr. Marc, Marcs Odem & Co.) statt sie als stumme Körper zu spielen - deutlich härterer Gegner.</li>
                 <li>Schmiede gegen Schummeln abgesichert: Karten-Kosten werden serverseitig berechnet, kein 0-Mana-10/10 mehr möglich.</li>
               </ul>
             </div>

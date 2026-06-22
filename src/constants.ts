@@ -3,7 +3,7 @@ import { Card } from "./types";
 export const CARD_TEMPLATES = {
   // 1 Mana Minions
   "g_footman": {
-    name: "Goldshire Footman",
+    name: "Hügelwächter",
     type: "minion",
     cost: 1,
     attack: 1,
@@ -13,7 +13,7 @@ export const CARD_TEMPLATES = {
     hasTaunt: true,
   },
   "b_murloc": {
-    name: "Baby Murloc",
+    name: "Sumpfbalg",
     type: "minion",
     cost: 1,
     attack: 2,
@@ -23,7 +23,7 @@ export const CARD_TEMPLATES = {
     hasCharge: true,
   },
   "s_slime": {
-    name: "Shiny Slime",
+    name: "Kriechschleim",
     type: "minion",
     cost: 1,
     attack: 1,
@@ -34,7 +34,7 @@ export const CARD_TEMPLATES = {
 
   // 1 Mana Spells
   "arc_shot": {
-    name: "Arcane Shot",
+    name: "Runenpfeil",
     type: "spell",
     cost: 1,
     attack: 0,
@@ -45,7 +45,7 @@ export const CARD_TEMPLATES = {
 
   // 2 Mana Minions
   "b_warrior": {
-    name: "Bluegill Warrior",
+    name: "Fjordkrieger",
     type: "minion",
     cost: 2,
     attack: 3,
@@ -55,18 +55,18 @@ export const CARD_TEMPLATES = {
     hasCharge: true,
   },
   "annoy_tron": {
-    name: "Annoy-o-Tron",
+    name: "Klapperkobold",
     type: "minion",
     cost: 2,
     attack: 1,
     health: 2,
     emoji: "🤖",
-    description: "🛡️ Spott. 🌟 Gottesschild. HALLO!!!",
+    description: "🛡️ Spott. 🌟 Runenschild. Klappert dir ein Loch in den Schädel.",
     hasTaunt: true,
     hasDivineShield: true,
   },
   "crocolisk": {
-    name: "River Crocolisk",
+    name: "Flussechse",
     type: "minion",
     cost: 2,
     attack: 2,
@@ -77,7 +77,7 @@ export const CARD_TEMPLATES = {
 
   // 2 Mana Spells
   "heal_touch": {
-    name: "Healing Touch",
+    name: "Heilende Hand",
     type: "spell",
     cost: 2,
     attack: 0,
@@ -88,7 +88,7 @@ export const CARD_TEMPLATES = {
 
   // 3 Mana Minions
   "s_tank": {
-    name: "Spider Tank",
+    name: "Panzerspinne",
     type: "minion",
     cost: 3,
     attack: 3,
@@ -97,17 +97,17 @@ export const CARD_TEMPLATES = {
     description: "Dicker Panzer. Hervorragende Werte.",
   },
   "s_crusader": {
-    name: "Scarlet Crusader",
+    name: "Scharlach-Streiter",
     type: "minion",
     cost: 3,
     attack: 3,
     health: 1,
     emoji: "⚔️",
-    description: "🌟 Gottesschild. Schluckt den ersten Treffer.",
+    description: "🌟 Runenschild. Schluckt den ersten Treffer.",
     hasDivineShield: true,
   },
   "w_rider": {
-    name: "Wolfrider",
+    name: "Wolfsreiter",
     type: "minion",
     cost: 3,
     attack: 3,
@@ -119,28 +119,28 @@ export const CARD_TEMPLATES = {
 
   // 4 Mana Minions
   "c_yeti": {
-    name: "Chillwind Yeti",
+    name: "Ymir, der Frostriese",
     type: "minion",
     cost: 4,
     attack: 4,
     health: 5,
     emoji: "❄️",
-    description: "Der Alpha-Yeti. Ein absoluter Brocken.",
+    description: "Ein wandelnder Eisberg. Ein absoluter Brocken.",
   },
   "s_shieldmasta": {
-    name: "Sen'jin Shieldmasta",
+    name: "Schildwart der Veste",
     type: "minion",
     cost: 4,
     attack: 3,
     health: 5,
     emoji: "👹",
-    description: "🛡️ Spott. 'TAZ'DINGO!!!'",
+    description: "🛡️ Spott. 'Keiner kommt vorbei!'",
     hasTaunt: true,
   },
 
   // 4 Mana Spells
   "fireball": {
-    name: "Fireball",
+    name: "Flammenstoß",
     type: "spell",
     cost: 4,
     attack: 0,
@@ -149,7 +149,7 @@ export const CARD_TEMPLATES = {
     description: "🔥 Füge 6 Schaden an einem beliebigen Ziel zu.",
   },
   "consecration": {
-    name: "Consecration",
+    name: "Heiliger Bannkreis",
     type: "spell",
     cost: 4,
     attack: 0,
@@ -160,7 +160,7 @@ export const CARD_TEMPLATES = {
 
   // 5 Mana Minions
   "s_belcher": {
-    name: "Sludge Belcher",
+    name: "Sumpfwanst",
     type: "minion",
     cost: 5,
     attack: 3,
@@ -172,36 +172,36 @@ export const CARD_TEMPLATES = {
 
   // 6 Mana Minions
   "b_ogre": {
-    name: "Boulderfist Ogre",
+    name: "Felsfaust-Jötun",
     type: "minion",
     cost: 6,
     attack: 6,
     health: 7,
     emoji: "🪵",
-    description: "Die ultimative Legende. Rohe Übermacht.",
+    description: "Ein Bergriese aus dem Norden. Rohe Übermacht.",
   },
   "sunwalker": {
-    name: "Sunwalker",
+    name: "Sonnenwächter",
     type: "minion",
     cost: 6,
     attack: 4,
     health: 5,
     emoji: "🐂",
-    description: "🛡️ Spott. 🌟 Gottesschild.",
+    description: "🛡️ Spott. 🌟 Runenschild.",
     hasTaunt: true,
     hasDivineShield: true,
   },
   "sylvanas": {
-    name: "Sylvanas Windrunner",
+    name: "Hela, die Rabenkönigin",
     type: "minion",
     cost: 6,
     attack: 5,
     health: 5,
-    emoji: "🏹🧝‍♀️",
-    description: "❤️ Kampfschrei: Raube einen zufälligen gegnerischen Diener und stell ihn auf dein Brett!",
+    emoji: "🏹🦅",
+    description: "❤️ Schlachtruf: Raube einen zufälligen gegnerischen Diener und stell ihn auf dein Brett!",
   },
   "meteor": {
-    name: "Meteor Strike",
+    name: "Sternenfall",
     type: "spell",
     cost: 6,
     attack: 0,
@@ -212,7 +212,7 @@ export const CARD_TEMPLATES = {
 
   // 7 Mana Spells
   "flamestrike": {
-    name: "Flamestrike",
+    name: "Flammenwand",
     type: "spell",
     cost: 7,
     attack: 0,
@@ -223,47 +223,47 @@ export const CARD_TEMPLATES = {
 
   // 8 Mana Minions
   "lich_king": {
-    name: "The Lich King",
+    name: "Der Frostkönig",
     type: "minion",
     cost: 8,
     attack: 8,
     health: 8,
     emoji: "👑",
-    description: "🛡️ Spott. 🌟 Gottesschild. 'Kniet vor eurem König!'",
+    description: "🛡️ Spott. 🌟 Runenschild. 'Kniet, oder erfriert!'",
     hasTaunt: true,
     hasDivineShield: true,
   },
   "ragnaros": {
-    name: "Ragnaros the Firelord",
+    name: "Surtr, der Flammenfürst",
     type: "minion",
     cost: 8,
     attack: 8,
     health: 8,
     emoji: "🔥👺",
-    description: "🔥 Kampfschrei: Füge einem zufälligen Gegner 8 Schaden zu!",
+    description: "🔥 Schlachtruf: Füge einem zufälligen Gegner 8 Schaden zu!",
   },
   "m_firelord": {
-    name: "Marc the Firelord",
+    name: "Marc der Feuerjarl",
     type: "minion",
     cost: 8,
     attack: 7,
     health: 7,
     emoji: "👑🔥",
-    description: "🔥 Kampfschrei: Füge allen Gegnern 4 Schaden zu!",
+    description: "🔥 Schlachtruf: Füge allen Gegnern 4 Schaden zu!",
   },
 
   // 10 Mana Minions & Spells
   "deathwing": {
-    name: "Deathwing",
+    name: "Fafnir, der Weltendrache",
     type: "minion",
     cost: 10,
     attack: 12,
     health: 12,
     emoji: "🐉",
-    description: "Drache der Apokalypse. Fegt das Brett leer.",
+    description: "Drache des Untergangs. Sein Atem fegt die Welt leer.",
   },
   "pyroblast": {
-    name: "Pyroblast",
+    name: "Glutsturm",
     type: "spell",
     cost: 10,
     attack: 0,
@@ -272,7 +272,7 @@ export const CARD_TEMPLATES = {
     description: "☄️ Füge 10 Schaden zu! Der totale Untergang.",
   },
   "mind_control": {
-    name: "Mind Control",
+    name: "Gedankenfessel",
     type: "spell",
     cost: 10,
     attack: 0,
@@ -283,7 +283,7 @@ export const CARD_TEMPLATES = {
 
   // Newly Balanced Marcgard cards
   "m_squire": {
-    name: "Marc's Squire",
+    name: "Marcs Knappe",
     type: "minion",
     cost: 1,
     attack: 1,
@@ -299,10 +299,10 @@ export const CARD_TEMPLATES = {
     attack: 7,
     health: 7,
     emoji: "💣💥",
-    description: "💣 Kampfschrei: Füge 3 zufälligen Zielen je 2 Schaden zu!",
+    description: "💣 Schlachtruf: Füge 3 zufälligen Zielen je 2 Schaden zu!",
   },
   "pot_greed": {
-    name: "Tome of Marc",
+    name: "Marcs Foliant",
     type: "spell",
     cost: 3,
     attack: 0,
@@ -311,23 +311,23 @@ export const CARD_TEMPLATES = {
     description: "🃏 Ziehe 2 Karten.",
   },
   "alexstrasza": {
-    name: "Marc's Breath",
+    name: "Marcs Odem",
     type: "minion",
     cost: 9,
     attack: 8,
     health: 8,
     emoji: "🐉❤️",
-    description: "❤️ Kampfschrei: Setze das Leben eines beliebigen Helden auf 15.",
+    description: "❤️ Schlachtruf: Setze das Leben eines beliebigen Helden auf 15.",
     battlecryNeedsTarget: true,
   },
   "m_champion": {
-    name: "Marc's Champion",
+    name: "Marcs Vorkämpfer",
     type: "minion",
     cost: 6,
     attack: 4,
     health: 5,
     emoji: "🏇🛡️",
-    description: "🌟 Gottesschild. ⚡ Ansturm. Sofortige Schlagkraft.",
+    description: "🌟 Runenschild. ⚡ Ansturm. Sofortige Schlagkraft.",
     hasDivineShield: true,
     hasCharge: true,
   },
@@ -335,7 +335,7 @@ export const CARD_TEMPLATES = {
   // === Klassen-Signaturkarten (Wave: Klassen-Identitaet) - alle ziellos, kein neues Targeting noetig ===
   // Mage - Frost & Kontrolle
   "blizzard": {
-    name: "Blizzard",
+    name: "Eissturm",
     type: "spell",
     cost: 5,
     attack: 0,
@@ -344,7 +344,7 @@ export const CARD_TEMPLATES = {
     description: "🌨️ Füge allen gegnerischen Dienern 2 Schaden zu und friere sie ein.",
   },
   "frost_ele": {
-    name: "Wasserelementar",
+    name: "Frostwächter",
     type: "minion",
     cost: 4,
     attack: 3,
@@ -354,7 +354,7 @@ export const CARD_TEMPLATES = {
   },
   // Priest - Heilung & Schatten
   "holy_nova": {
-    name: "Heilige Nova",
+    name: "Lichtwoge",
     type: "spell",
     cost: 5,
     attack: 0,
@@ -363,7 +363,7 @@ export const CARD_TEMPLATES = {
     description: "🌟 2 Schaden an allen Gegner-Dienern. +2 Leben für deinen Helden und alle eigenen Diener.",
   },
   "temple_guard": {
-    name: "Tempelwächter",
+    name: "Hallenwächter",
     type: "minion",
     cost: 4,
     attack: 3,
@@ -374,7 +374,7 @@ export const CARD_TEMPLATES = {
   },
   // Hunter - Bestien & Aggro
   "multi_shot": {
-    name: "Mehrfachschuss",
+    name: "Pfeilhagel",
     type: "spell",
     cost: 4,
     attack: 0,
@@ -383,7 +383,7 @@ export const CARD_TEMPLATES = {
     description: "🎯 Füge zwei zufälligen gegnerischen Zielen je 3 Schaden zu.",
   },
   "dire_wolf": {
-    name: "Schreckenswolf",
+    name: "Rudelwolf",
     type: "minion",
     cost: 2,
     attack: 3,
@@ -394,7 +394,7 @@ export const CARD_TEMPLATES = {
   },
   // Paladin - Licht & Breite
   "divine_storm": {
-    name: "Göttlicher Sturm",
+    name: "Heiliger Wirbel",
     type: "spell",
     cost: 5,
     attack: 0,
@@ -403,13 +403,13 @@ export const CARD_TEMPLATES = {
     description: "✨ Gib allen befreundeten Dienern +1/+1.",
   },
   "silver_knight": {
-    name: "Silberhand-Ritter",
+    name: "Bannerritter",
     type: "minion",
     cost: 4,
     attack: 4,
     health: 4,
     emoji: "⚜️",
-    description: "🌟 Gottesschild. Streiter des Lichts.",
+    description: "🌟 Runenschild. Streiter des Lichts.",
     hasDivineShield: true,
   },
 
@@ -445,7 +445,7 @@ export const CARD_TEMPLATES = {
     hasTaunt: true,
   },
 
-  // === Marc-Legendäre (Wave "Marcs Macht") - nutzen nur bestehende Frameworks (Zauber + Kampfschrei) ===
+  // === Marc-Legendäre (Wave "Marcs Macht") - nutzen nur bestehende Frameworks (Zauber + Schlachtruf) ===
   "m_wrath": {
     name: "Zorn des Marc",
     type: "spell",
@@ -471,7 +471,7 @@ export const CARD_TEMPLATES = {
     attack: 3,
     health: 4,
     emoji: "🔮👁️",
-    description: "🔮 Kampfschrei: Blick in den Abgrund - ziehe 2 Karten, verliere aber 2 Leben.",
+    description: "🔮 Schlachtruf: Blick in den Abgrund - ziehe 2 Karten, verliere aber 2 Leben.",
   },
   "fenrir": {
     name: "Fenrir der Endwolf",
@@ -492,7 +492,7 @@ export const CARD_TEMPLATES = {
     attack: 3,
     health: 2,
     emoji: "🧟🩸",
-    description: "💀 Todesröcheln: Füge einem gegnerischen Helden 3 Schaden zu. Der Fluch schlägt im Tod zurück.",
+    description: "💀 Grabhauch: Füge einem gegnerischen Helden 3 Schaden zu. Der Fluch schlägt im Tod zurück.",
     hasDeathrattle: true,
   },
   "m_seeress": {
@@ -502,7 +502,7 @@ export const CARD_TEMPLATES = {
     attack: 2,
     health: 2,
     emoji: "🔮👁️",
-    description: "💀 Todesröcheln: Ziehe eine Karte. Ihr letzter Blick gilt der Zukunft.",
+    description: "💀 Grabhauch: Ziehe eine Karte. Ihr letzter Blick gilt der Zukunft.",
     hasDeathrattle: true,
   },
   "fenris_brood": {
@@ -512,7 +512,7 @@ export const CARD_TEMPLATES = {
     attack: 3,
     health: 3,
     emoji: "🐺🐾",
-    description: "💀 Todesröcheln: Beschwöre zwei 2/2 Welpen. Die Brut stirbt nie ganz.",
+    description: "💀 Grabhauch: Beschwöre zwei 2/2 Welpen. Die Brut stirbt nie ganz.",
     hasDeathrattle: true,
   },
   "draugr": {
@@ -522,7 +522,7 @@ export const CARD_TEMPLATES = {
     attack: 4,
     health: 4,
     emoji: "💀⚔️",
-    description: "🛡️ Spott. 💀 Todesröcheln: Füge allen gegnerischen Dienern 2 Schaden zu.",
+    description: "🛡️ Spott. 💀 Grabhauch: Füge allen gegnerischen Dienern 2 Schaden zu.",
     hasTaunt: true,
     hasDeathrattle: true,
   },
@@ -543,7 +543,7 @@ export const CARD_TEMPLATES = {
     attack: 0,
     health: 0,
     emoji: "🌀🚫",
-    description: "🌀 Verbanne einen gegnerischen Diener. Er verschwindet spurlos - kein Todesröcheln, keine Rückkehr.",
+    description: "🌀 Verbanne einen gegnerischen Diener. Er verschwindet spurlos - kein Grabhauch, keine Rückkehr.",
   },
   "nidhogg": {
     name: "Nidhögg",
@@ -552,7 +552,7 @@ export const CARD_TEMPLATES = {
     attack: 5,
     health: 5,
     emoji: "🐉🩸",
-    description: "💀 Todesröcheln: Füge dem gegnerischen Helden 5 Schaden zu. Der Drache nagt selbst im Tod an der Welt.",
+    description: "💀 Grabhauch: Füge dem gegnerischen Helden 5 Schaden zu. Der Drache nagt selbst im Tod an der Welt.",
     hasDeathrattle: true,
   },
   "valkyrie": {
@@ -562,7 +562,7 @@ export const CARD_TEMPLATES = {
     attack: 4,
     health: 5,
     emoji: "⚔️👰",
-    description: "🛡️ Spott. ❤️ Kampfschrei: Gib allen anderen befreundeten Dienern +1/+1.",
+    description: "🛡️ Spott. ❤️ Schlachtruf: Gib allen anderen befreundeten Dienern +1/+1.",
     hasTaunt: true,
   },
   // Nur per Todesroecheln beschworen (nicht im Deck):
@@ -607,7 +607,7 @@ export const HERO_POWER_COST = 2;
 export const HERO_POWERS_LIST = {
   Mage: [
     {
-      name: "Fireblast",
+      name: "Feuerstoß",
       description: "Füge einem beliebigen Ziel 1 Schaden zu.",
       emoji: "🔥",
     },
@@ -617,58 +617,58 @@ export const HERO_POWERS_LIST = {
       emoji: "❄️",
     },
     {
-      name: "Unstable Magic",
+      name: "Wilde Magie",
       description: "Füge einem zufälligen gegnerischen Diener 1-3 zufälligen Schaden zu.",
       emoji: "🌀",
     }
   ],
   Priest: [
     {
-      name: "Lesser Heal",
+      name: "Kleine Heilung",
       description: "Heile 2 Leben an einem beliebigen Ziel.",
       emoji: "🩹",
     },
     {
-      name: "Power Infusion",
+      name: "Kraftsegen",
       description: "Gib einem befreundeten Diener +2 Leben.",
       emoji: "✨",
     },
     {
-      name: "Mind Spike",
+      name: "Geistesstich",
       description: "Füge einem beliebigen Ziel 1 Schaden zu. Ein getroffener Diener verliert bis zu seinem nächsten Zug 1 Angriff.",
       emoji: "🔮",
     }
   ],
   Hunter: [
     {
-      name: "Steady Shot",
+      name: "Zielschuss",
       description: "Füge dem gegnerischen Helden 2 Schaden zu.",
       emoji: "🏹",
     },
     {
-      name: "Call Pet",
+      name: "Wildruf",
       description: "Beschwöre einen 1/1 Wildkeiler mit Ansturm.",
       emoji: "🐗",
     },
     {
-      name: "Explosive Trap",
+      name: "Berstfalle",
       description: "Füge allen gegnerischen Dienern 1 Schaden zu.",
       emoji: "💣",
     }
   ],
   Paladin: [
     {
-      name: "Reinforce",
-      description: "Beschwöre einen 1/1 Rekruten der Silbernen Hand.",
+      name: "Rekrutieren",
+      description: "Beschwöre einen 1/1 Klingenknappen.",
       emoji: "🫡",
     },
     {
       name: "Aegis Armor",
-      description: "Gib einem befreundeten Diener Gottesschild.",
+      description: "Gib einem befreundeten Diener Runenschild.",
       emoji: "🛡️",
     },
     {
-      name: "Holy Light",
+      name: "Lichtsegen",
       description: "Füge einem gegnerischen Diener 2 Schaden zu und heile deinen Helden um 2 Leben.",
       emoji: "☀️",
     }
@@ -684,7 +684,7 @@ export const HERO_POWERS = {
 
 // Klassen-Identitaet: jede Klasse hat einen eigenen Themen-Stapel + 2 exklusive Signaturkarten.
 // Mage = Frost/Feuer-Burn, Priest = Heilung/Schatten/Geist, Hunter = Bestien/Aggro,
-// Paladin = Licht/Gottesschild/breit. Die Legendaeren sind absichtlich NICHT mehr ueberall gleich.
+// Paladin = Licht/Runenschild/breit. Die Legendaeren sind absichtlich NICHT mehr ueberall gleich.
 export const STANDARD_CLASS_CARDS: Record<string, string[]> = {
   // FROST & FEUER: viel Direktschaden, Blizzard + Wasserelementar exklusiv. Wenig Heilung.
   Mage: [
@@ -697,7 +697,7 @@ export const STANDARD_CLASS_CARDS: Record<string, string[]> = {
     "m_revenant", "m_seeress",
     "m_runeshift", "m_bann"
   ],
-  // HEILUNG & SCHATTEN: Heilige Nova + Tempelwaechter exklusiv, Gedankenkontrolle + Sylvanas, zaehe Koerper.
+  // HEILUNG & SCHATTEN: Heilige Nova + Tempelwaechter exklusiv, Gedankenkontrolle + Hela, zaehe Koerper.
   Priest: [
     "holy_nova", "heal_touch", "temple_guard", "mind_control", "sylvanas",
     "s_slime", "crocolisk", "annoy_tron", "s_shieldmasta", "s_belcher", "sunwalker", "b_ogre", "c_yeti",
@@ -719,7 +719,7 @@ export const STANDARD_CLASS_CARDS: Record<string, string[]> = {
     "fenris_brood", "m_revenant",
     "nidhogg", "valkyrie"
   ],
-  // LICHT & BREITE: Goettlicher Sturm + Silberhand-Ritter exklusiv, Gottesschilde + Spott + Weihe, go-wide.
+  // LICHT & BREITE: Goettlicher Sturm + Silberhand-Ritter exklusiv, Runenschilde + Spott + Weihe, go-wide.
   Paladin: [
     "divine_storm", "silver_knight", "consecration", "s_crusader", "sunwalker", "annoy_tron", "g_footman",
     "lich_king", "alexstrasza", "s_shieldmasta", "s_belcher", "c_yeti", "crocolisk", "s_slime", "heal_touch",

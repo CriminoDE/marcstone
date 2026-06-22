@@ -24,7 +24,14 @@ Marcgard = Browser-Kartenduell (Hearthstone-artig), 1v1 online ueber Link, fuer 
 ## Testen ohne zweiten Spieler
 Raum erstellen -> Warteraum -> "Uebungsgegner hinzufuegen" -> lokaler Bot "Holgar" (kein Gemini, kostenlos). WS-Testskripte: `/tmp/wstest.mjs` (Reconnect), `/tmp/bottest.mjs` (Bot) - bei Bedarf neu schreiben.
 
-## STAND (Stand: 2026-06-21, **v2.15 (Karten-Wave) LIVE auf https://marcgard.onrender.com** - Commit 0ff4d13, deployed (dep-d8rh2jo) + verifiziert: health 200, Live-JS sha256-identisch mit Build + enthaelt v2.15/Runen-Wandel/Marcs Bann, WS erstellt Raum. Vorher v2.14 = 375017d.)
+## STAND (Stand: 2026-06-22, **v2.16 (Original-IP-Umbau) gebaut + getestet** - Deploy siehe unten. Vorher v2.15 LIVE 0ff4d13.)
+
+### v2.16 - Original-IP-Umbau (WICHTIG: Spiel ist jetzt blizzard-frei, oeffentlich zeigbar)
+- **Alle HS-abgeleiteten Anzeigenamen raus.** ~26 Kartennamen + 10 Heldenkraefte + Keyword-Begriffe (Gottesschild->Runenschild, Kampfschrei->Schlachtruf, Todesroecheln->Grabhauch) auf eigene dunkel-nordische Begriffe. Silver Hand->Klingenknappe. Server-Logs/Lobby/Forge mitgezogen.
+- ⚠️ **NUR Anzeige-Strings.** `templateId`s (z.B. "fireball","sylvanas","ragnaros" lowercase) + Werte + Effekte + komplette Logik UNVERAENDERT. Logik haengt an templateId, nicht am Namen. Code-Kommentare nennen teils noch HS-Namen (intern, egal).
+- Henry-Entscheidung 2026-06-22: Umbenennen + gleiche Werte = legal sauber (Mechanik/Zahlen nicht schuetzbar, nur Ausgestaltung). Spaeter geplant: **Azteken-Update** (wenn Henry in Mexiko) mit Quetzalcoatl etc.
+- Verifiziert: lint+build gruen, headless 3/3 Sieg, 0 Crashes/Errors, neue Namen in Logs.
+- **Offen/spaeter:** Code-Kommentare entblizzarden (kosmetisch), Klassennamen (Mage/Priest/Hunter/Paladin sind generisch, ok) evtl. nordisch umlabeln (Seher/Skalde/Jaeger/Schildwart). Icons/Art = Polishing (Henry hat ChatGPT-API-Key fuer transparente Icon-Generierung angeboten; Eagle-Lib hat schon welche).
 
 ### v2.15 - Karten-Wave (Bann + Heldenkraft-Wandel + Bedrohungen)
 - **4 Karten:** `m_runeshift` Runen-Wandel (2M Zauber: Heldenkraft +1 mod 3 + heroPowerUsed=false = sofort wieder bereit; die Wunschlisten-Karte), `m_bann` Marcs Bann (3M zielbar: verbannt Feind-Diener per splice = KEIN Todesroecheln), `nidhogg` Nidhoegg (6M 5/5, Todesroecheln 5 an Feind-Held), `valkyrie` Walkuere (5M 4/5 Spott, Kampfschrei: andere eigene Diener +1/+1).

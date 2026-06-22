@@ -757,7 +757,7 @@ export default function App() {
       setSelectedAttackerId(null);
       setTargetingMode("heropower_target");
       if (hClass === "Paladin" && powerIdx === 1) {
-        showToast(`Wähle einen BEFREUNDETEN Diener, dem du Gottesschild verleihst! ✨`, "info");
+        showToast(`Wähle einen BEFREUNDETEN Diener, dem du Runenschild verleihst! ✨`, "info");
       } else {
         showToast(`Wähle eine Diener-Karte oder ein Helden-Portrait zum Verbrennen/Heilen!`, "info");
       }
@@ -1223,10 +1223,10 @@ export default function App() {
   if (previewCard) {
     if (previewCard.hasTaunt) previewKeywords.push("🛡️ Spott: Gegner müssen zuerst diesen Diener angreifen.");
     if (previewCard.hasCharge) previewKeywords.push("⚡ Ansturm: Kann sofort im selben Zug angreifen.");
-    if (previewCard.hasDivineShield) previewKeywords.push("✨ Gottesschild: Ignoriert die erste Schadensquelle komplett.");
+    if (previewCard.hasDivineShield) previewKeywords.push("✨ Runenschild: Ignoriert die erste Schadensquelle komplett.");
     const d = previewCard.description.toLowerCase();
     if (d.includes("battlecry") || previewCard.description.includes("🔥") || previewCard.description.includes("💣") || previewCard.description.includes("❤️"))
-      previewKeywords.push("💥 Kampfschrei: Löst direkt beim Ausspielen einen Einmaleffekt aus.");
+      previewKeywords.push("💥 Schlachtruf: Löst direkt beim Ausspielen einen Einmaleffekt aus.");
     if (previewCard.type === "spell") previewKeywords.push("🔮 Zauber: Einmaliger Effekt, danach verbraucht.");
   }
   const previewAffordable = !!me && previewCard ? me.mana >= previewCard.cost : false;
@@ -1825,7 +1825,7 @@ export default function App() {
                         onChange={(e) => setForgeShield(e.target.checked)}
                         className="rounded border-mg-stone text-purple-600 focus:ring-purple-500 cursor-pointer"
                       />
-                      ✨ Gottesschild
+                      ✨ Runenschild
                     </label>
                   </div>
                 </div>

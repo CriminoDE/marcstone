@@ -204,22 +204,22 @@ function fireDeathrattle(room: RoomState, owner: PlayerState, card: Card) {
   switch (card.templateId) {
     case "m_revenant": {
       const tgt = enemies[Math.floor(Math.random() * enemies.length)];
-      if (tgt) { const hp = tgt.health; tgt.health -= 3; recordHeroBlow(room, tgt, 3); addLog(room, `💀 Todesröcheln: Marcs Wiedergänger schlägt ${tgt.name}s Held für 3 (${hp} → ${tgt.health}).`); triggerRageChat(room, tgt, "high_damage"); }
+      if (tgt) { const hp = tgt.health; tgt.health -= 3; recordHeroBlow(room, tgt, 3); addLog(room, `💀 Grabhauch: Marcs Wiedergänger schlägt ${tgt.name}s Held für 3 (${hp} → ${tgt.health}).`); triggerRageChat(room, tgt, "high_damage"); }
       break;
     }
     case "nidhogg": {
       const tgt = enemies[Math.floor(Math.random() * enemies.length)];
-      if (tgt) { const hp = tgt.health; tgt.health -= 5; recordHeroBlow(room, tgt, 5); addLog(room, `💀 Todesröcheln: Nidhögg nagt ${tgt.name}s Held für 5 (${hp} → ${tgt.health}).`); triggerRageChat(room, tgt, "high_damage"); }
+      if (tgt) { const hp = tgt.health; tgt.health -= 5; recordHeroBlow(room, tgt, 5); addLog(room, `💀 Grabhauch: Nidhögg nagt ${tgt.name}s Held für 5 (${hp} → ${tgt.health}).`); triggerRageChat(room, tgt, "high_damage"); }
       break;
     }
     case "draugr": {
       enemies.forEach(e => e.board.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 2; }));
-      addLog(room, `💀 Todesröcheln: Draugr-Krieger fügt allen gegnerischen Dienern 2 Schaden zu.`);
+      addLog(room, `💀 Grabhauch: Draugr-Krieger fügt allen gegnerischen Dienern 2 Schaden zu.`);
       break;
     }
     case "m_seeress": {
       if (owner.deck.length > 0) { const d = owner.deck.pop()!; if (owner.hand.length < 10) owner.hand.push(d); else addLog(room, `Hand voll! Verbrannt: ${d.name}.`); }
-      addLog(room, `💀 Todesröcheln: Marcs Seherin zieht eine Karte.`);
+      addLog(room, `💀 Grabhauch: Marcs Seherin zieht eine Karte.`);
       break;
     }
     case "fenris_brood": {
@@ -228,7 +228,7 @@ function fireDeathrattle(room: RoomState, owner: PlayerState, card: Card) {
         owner.board.push(createCardInstance("wolf_token", `wolf-${Math.random().toString(36).substring(2, 7)}`));
         summoned++;
       }
-      addLog(room, `💀 Todesröcheln: Fenris-Brut beschwört ${summoned} Welpe(n).`);
+      addLog(room, `💀 Grabhauch: Fenris-Brut beschwört ${summoned} Welpe(n).`);
       break;
     }
   }
@@ -291,7 +291,7 @@ function rollForgedCard(diceManaCost: number): Card {
   let atk = 1 + Math.floor(Math.random() * Math.max(1, statPoints - 1));
   let hp = Math.max(1, statPoints - atk);
   atk = Math.min(12, atk); hp = Math.min(12, hp);
-  const tags = [hasTaunt ? "🛡️ Spott" : "", hasCharge ? "⚡ Ansturm" : "", hasDivineShield ? "✨ Gottesschild" : ""].filter(Boolean).join(", ");
+  const tags = [hasTaunt ? "🛡️ Spott" : "", hasCharge ? "⚡ Ansturm" : "", hasDivineShield ? "✨ Runenschild" : ""].filter(Boolean).join(", ");
   return {
     id, templateId: "custom_magic", name: forgePick(FORGE_NAMES_MINION), type: "minion",
     cost: printedCost, attack: atk, health: hp, maxHealth: hp, emoji: forgePick(FORGE_EMOJI_MINION),
@@ -492,7 +492,7 @@ function botPlaySpell(room: RoomState, bot: PlayerState, human: PlayerState, car
 }
 
 // Resolve a minion's Battlecry. Shared by human PLAY_CARD and the practice bot, so Holgar
-// actually triggers Firelord / Dr. Marc / Marc's Breath / Ragnaros / Sylvanas instead of
+// actually triggers Firelord / Dr. Marc / Marcs Odem / Surtr / Hela instead of
 // playing them as vanilla bodies. For targeted battlecries (alexstrasza) pass the chosen
 // targetId/isTargetHero; the bot computes a sensible default before calling.
 function resolveBattlecry(
@@ -505,7 +505,7 @@ function resolveBattlecry(
 ) {
   setActiveFx(fxFromCard(player.name, card));
   if (card.templateId === "m_firelord") {
-    addLog(room, `👑🔥 Marc der Feuerlord entfesselt ein Inferno!`);
+    addLog(room, `👑🔥 Marc der Feuerjarl entfesselt ein Inferno!`);
     const hpBefore = opponent.health;
     opponent.health -= 4;
     recordHeroBlow(room, opponent, 4);
@@ -542,31 +542,31 @@ function resolveBattlecry(
     }
     reap(room);
   } else if (card.templateId === "alexstrasza") {
-    // Marc's Breath: setzt das Leben EINES beliebigen Helden auf 15 (Ziel waehlt der Spieler).
+    // Marcs Odem: setzt das Leben EINES beliebigen Helden auf 15 (Ziel waehlt der Spieler).
     const targetHero = isTargetHero
       ? (targetId === player.id ? player : opponent)
       : opponent;
     const before = targetHero.health;
     targetHero.health = 15;
     const verb = before > 15 ? "faellt auf" : before < 15 ? "steigt auf" : "bleibt bei";
-    addLog(room, `🐉❤️ Marc's Breath: ${targetHero.name}s Held ${verb} 15 (${before} → 15).`);
+    addLog(room, `🐉❤️ Marcs Odem: ${targetHero.name}s Held ${verb} 15 (${before} → 15).`);
     if (before > 15) triggerRageChat(room, targetHero, "high_damage");
   } else if (card.templateId === "ragnaros") {
-    addLog(room, `🔥 STIRB, INSEKT! Ragnaros schleudert 8 Schaden auf einen zufälligen Feind!`);
+    addLog(room, `🔥 STIRB, INSEKT! Surtr schleudert 8 Schaden auf einen zufälligen Feind!`);
     const targets = [opponent, ...opponent.board];
     if (targets.length > 0) {
         const randTarget = targets[Math.floor(Math.random() * targets.length)];
         if ("heroClass" in randTarget) {
            randTarget.health -= 8;
            recordHeroBlow(room, randTarget as PlayerState, 8);
-           addLog(room, `🔥 Ragnaros trifft den gegnerischen Helden für 8 Schaden!`);
+           addLog(room, `🔥 Surtr trifft den gegnerischen Helden für 8 Schaden!`);
         } else {
            if (randTarget.hasDivineShield) {
               randTarget.hasDivineShield = false;
            } else {
               randTarget.health -= 8;
            }
-           addLog(room, `🔥 Ragnaros trifft ${randTarget.name} für 8 Schaden!`);
+           addLog(room, `🔥 Surtr trifft ${randTarget.name} für 8 Schaden!`);
         }
     }
     reap(room);
@@ -576,7 +576,7 @@ function resolveBattlecry(
       const stealIdx = Math.floor(Math.random() * opponent.board.length);
       const stolen = opponent.board.splice(stealIdx, 1)[0];
       player.board.push(stolen);
-      addLog(room, `🏹 Sylvanas reißt ${stolen.name} auf deine Seite!`);
+      addLog(room, `🏹 Hela reißt ${stolen.name} auf deine Seite!`);
       triggerRageChat(room, opponent, "high_damage");
     }
   } else if (card.templateId === "valkyrie") {
@@ -651,7 +651,7 @@ async function playAITurn(room: RoomState) {
         pick.isReady = pick.hasCharge || false;
         bot.board.push(pick);
         addLog(room, `🛡️ ${bot.name} stellt ${pick.name} auf (${pick.attack}/${pick.health}).`);
-        // Battlecry ausloesen. Marc's Breath braucht ein Ziel: Bot heilt sich, wenn er
+        // Battlecry ausloesen. Marcs Odem braucht ein Ziel: Bot heilt sich, wenn er
         // unter 15 und nicht ueber dem Menschen liegt, sonst nukt er den Menschen auf 15 runter.
         if (pick.templateId === "alexstrasza") {
           const healSelf = bot.health < 15 && bot.health <= human.health;
@@ -814,7 +814,7 @@ function ffaHitHero(room: RoomState, target: PlayerState, amount: number, src: s
 function ffaHitMinion(room: RoomState, owner: PlayerState, minion: Card, amount: number, src: string) {
   if (minion.hasDivineShield) {
     minion.hasDivineShield = false;
-    addLog(room, `🛡️ Gottesschild von ${minion.name} fängt ${src} ab!`);
+    addLog(room, `🛡️ Runenschild von ${minion.name} fängt ${src} ab!`);
   } else {
     const before = minion.health;
     minion.health -= amount;
@@ -854,7 +854,7 @@ function ffaHealTarget(room: RoomState, caster: PlayerState, amount: number, tar
     addLog(room, `💚 ${caster.name}s Held wird um ${amount} geheilt.`);
   }
 }
-// Zufälliges Feind-Ziel quer über ALLE Gegner (Held oder Diener) - für Ragnaros/Dr. Marc.
+// Zufälliges Feind-Ziel quer über ALLE Gegner (Held oder Diener) - für Surtr/Dr. Marc.
 function ffaRandomEnemyTarget(room: RoomState, actor: PlayerState): { hero?: PlayerState; owner?: PlayerState; minion?: Card } | null {
   const pool: { hero?: PlayerState; owner?: PlayerState; minion?: Card }[] = [];
   for (const o of ffaOpponents(room, actor)) {
@@ -1086,7 +1086,7 @@ function resolveFfaBattlecry(room: RoomState, actor: PlayerState, card: Card, ta
   setActiveFx(fxFromCard(actor.name, card));
   const opp = ffaOpponents(room, actor);
   if (card.templateId === "m_firelord") {
-    addLog(room, `👑🔥 Marc the Firelord entfesselt ein Inferno über ALLE Gegner!`);
+    addLog(room, `👑🔥 Marc der Feuerjarl entfesselt ein Inferno über ALLE Gegner!`);
     opp.forEach(o => {
       ffaHitHero(room, o, 4, "Inferno");
       o.board.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 4; });
@@ -1102,9 +1102,9 @@ function resolveFfaBattlecry(room: RoomState, actor: PlayerState, card: Card, ta
     }
   } else if (card.templateId === "ragnaros") {
     const t = ffaRandomEnemyTarget(room, actor);
-    addLog(room, `🔥 Ragnaros schleudert 8 Schaden auf einen zufälligen Feind!`);
-    if (t?.hero) ffaHitHero(room, t.hero, 8, "Ragnaros");
-    else if (t?.owner && t?.minion) ffaHitMinion(room, t.owner, t.minion, 8, "Ragnaros");
+    addLog(room, `🔥 Surtr schleudert 8 Schaden auf einen zufälligen Feind!`);
+    if (t?.hero) ffaHitHero(room, t.hero, 8, "Surtr");
+    else if (t?.owner && t?.minion) ffaHitMinion(room, t.owner, t.minion, 8, "Surtr");
   } else if (card.templateId === "sylvanas") {
     const withMinions = opp.filter(o => o.board.length > 0);
     if (withMinions.length > 0 && actor.board.length < 7) {
@@ -1112,7 +1112,7 @@ function resolveFfaBattlecry(room: RoomState, actor: PlayerState, card: Card, ta
       const stolen = victim.board.splice(Math.floor(Math.random() * victim.board.length), 1)[0];
       stolen.isReady = false;
       actor.board.push(stolen);
-      addLog(room, `🏹 Sylvanas reißt ${stolen.name} von ${victim.name} auf deine Seite!`);
+      addLog(room, `🏹 Hela reißt ${stolen.name} von ${victim.name} auf deine Seite!`);
       triggerRageChat(room, victim, "high_damage");
     }
   } else if (card.templateId === "alexstrasza") {
@@ -1120,7 +1120,7 @@ function resolveFfaBattlecry(room: RoomState, actor: PlayerState, card: Card, ta
     const before = targetHero.health;
     targetHero.health = 15;
     const verb = before > 15 ? "fällt auf" : before < 15 ? "steigt auf" : "bleibt bei";
-    addLog(room, `🐉❤️ Marc's Breath: ${targetHero.name}s Held ${verb} 15 (${before} → 15).`);
+    addLog(room, `🐉❤️ Marcs Odem: ${targetHero.name}s Held ${verb} 15 (${before} → 15).`);
     if (before > 15) triggerRageChat(room, targetHero, "high_damage");
   } else if (card.templateId === "valkyrie") {
     actor.board.filter(m => m.id !== card.id).forEach(m => { m.attack += 1; m.health += 1; m.maxHealth += 1; });
@@ -1302,9 +1302,9 @@ function handleFfaAttack(room: RoomState, actor: PlayerState, payload: any, ws: 
     if (owner.board.some(m => m.hasTaunt) && !defender.hasTaunt) { ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Du musst einen Spott-Diener angreifen!" } })); return; }
 
     addLog(room, `⚔️ ${attacker.name} (${attacker.attack}/${attacker.health}) greift ${defender.name} (${defender.attack}/${defender.health}) an.`);
-    if (defender.hasDivineShield) { defender.hasDivineShield = false; addLog(room, `🌟 Gottesschild von ${defender.name} fängt den Angriff ab!`); }
+    if (defender.hasDivineShield) { defender.hasDivineShield = false; addLog(room, `🌟 Runenschild von ${defender.name} fängt den Angriff ab!`); }
     else defender.health -= attacker.attack;
-    if (attacker.hasDivineShield) { attacker.hasDivineShield = false; addLog(room, `🌟 Gottesschild von ${attacker.name} fängt den Konter ab!`); }
+    if (attacker.hasDivineShield) { attacker.hasDivineShield = false; addLog(room, `🌟 Runenschild von ${attacker.name} fängt den Konter ab!`); }
     else attacker.health -= defender.attack;
     attacker.isReady = false;
 
@@ -1363,8 +1363,8 @@ function handleFfaHeroPower(room: RoomState, actor: PlayerState, payload: any, w
     else if (powerIdx === 1) summon("fast_boar", "Fast Boar", "🐗", true, "🐗 Ansturm. Schnelles Tier.");
     else { ffaOpponents(room, actor).forEach(o => { o.board.forEach(m => { if (m.hasDivineShield) m.hasDivineShield = false; else m.health -= 1; }); reap(room); }); addLog(room, `💣 Sprengfalle trifft alle gegnerischen Diener für 1.`); }
   } else if (pClass === "Paladin") {
-    if (powerIdx === 0) summon("sh_recruit", "Silver Hand Recruit", "🫡", false, "Von der Heldenkraft beschworen.");
-    else if (powerIdx === 1) { if (targetId) { const m = actor.board.find(x => x.id === targetId); if (m) { m.hasDivineShield = true; addLog(room, `🛡️ ${m.name} erhält Gottesschild.`); } } else ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Ziel für Aegis nötig!" } })); }
+    if (powerIdx === 0) summon("sh_recruit", "Klingenknappe", "🫡", false, "Von der Heldenkraft beschworen.");
+    else if (powerIdx === 1) { if (targetId) { const m = actor.board.find(x => x.id === targetId); if (m) { m.hasDivineShield = true; addLog(room, `🛡️ ${m.name} erhält Runenschild.`); } } else ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Ziel für Aegis nötig!" } })); }
     else {
       if (targetId && !isTargetHero) { const f = ffaFindMinion(room, targetId); if (f && f.owner.id !== actor.id) { ffaHitMinion(room, f.owner, f.minion, 2, power.name); actor.health = Math.min(30, actor.health + 2); addLog(room, `☀️ Holy Light: 2 Schaden + 2 Heilung.`); } }
       else { actor.health = Math.min(30, actor.health + 2); addLog(room, `☀️ Holy Light heilt deinen Helden um 2.`); }
@@ -1889,10 +1889,10 @@ function handleGameAction(connectionId: string, action: ClientAction) {
                 if (player.board.length < 7) {
                    const stolen = opponent.board.splice(enemyIdx, 1)[0];
                    player.board.push(stolen);
-                   addLog(room, `👁️ Mind Control took over ${stolen.name}!`);
+                   addLog(room, `👁️ Gedankenfessel reißt ${stolen.name} auf deine Seite!`);
                 } else {
                    opponent.board.splice(enemyIdx, 1);
-                   addLog(room, `👁️ Mind Control destroyed target (board full).`);
+                   addLog(room, `👁️ Gedankenfessel zerschmettert das Ziel (Brett voll).`);
                 }
              }
           }
@@ -2268,7 +2268,7 @@ function handleGameAction(connectionId: string, action: ClientAction) {
             const recruit: Card = {
               id: recruitId,
               templateId: "sh_recruit",
-              name: "Silver Hand Recruit",
+              name: "Klingenknappe",
               type: "minion",
               cost: 1,
               attack: 1,
@@ -2279,7 +2279,7 @@ function handleGameAction(connectionId: string, action: ClientAction) {
               isReady: false,
             };
             player.board.push(recruit);
-            addLog(room, `🫡 Summoned a 1/1 Silver Hand Recruit.`);
+            addLog(room, `🫡 1/1 Klingenknappe beschworen.`);
           } else {
             ws.send(JSON.stringify({ type: "ERROR", payload: { message: "Board is full! Recruit couldn't join." } }));
           }
@@ -2753,7 +2753,7 @@ function resolveDamage(room: RoomState, player: PlayerState, opponent: PlayerSta
     if (targetMinion) {
       if (targetMinion.hasDivineShield) {
         targetMinion.hasDivineShield = false;
-        addLog(room, `🛡️ Gottesschild von ${targetMinion.name} fängt ${src} ab!`);
+        addLog(room, `🛡️ Runenschild von ${targetMinion.name} fängt ${src} ab!`);
       } else {
         const hpBefore = targetMinion.health;
         targetMinion.health -= amount;

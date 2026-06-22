@@ -7,6 +7,19 @@ Format: `## [Version] - Datum` mit Kategorien Hinzugefuegt / Geaendert / Behoben
 
 ---
 
+## [2.16.0] - Original-IP-Umbau (Sicherheit)
+
+Alle von Hearthstone abgeleiteten Namen raus, damit das Spiel oeffentlich gezeigt/promotet werden kann ohne Blizzard-Risiko. **Nur Anzeige-Strings geaendert - templateIds, Werte, Effekte, Logik alle unveraendert** (Logik haengt an templateId, nicht am Namen). Eigene Marc-/Norse-Karten waren eh schon original.
+
+### Geaendert
+- **~26 Kartennamen** auf eigene, dunkel-nordische Namen: Sylvanas->Hela die Rabenkoenigin, Ragnaros->Surtr der Flammenfuerst, Deathwing->Fafnir der Weltendrache, Lich King->Der Frostkoenig, Boulderfist->Felsfaust-Joetun, Chillwind Yeti->Ymir der Frostriese, Pyroblast->Glutsturm, Fireball->Flammenstoss, Flamestrike->Flammenwand, Consecration->Heiliger Bannkreis, Mind Control->Gedankenfessel, Blizzard->Eissturm, Goldshire Footman->Huegelwaechter, Murloc->Sumpfbalg, usw. Marc-Karten germanisiert (Marc's Breath->Marcs Odem, Marc's Champion->Marcs Vorkaempfer ...).
+- **Heldenkraft-Namen** entblizzardet: Fireblast->Feuerstoss, Steady Shot->Zielschuss, Lesser Heal->Kleine Heilung, Reinforce->Rekrutieren, Holy Light->Lichtsegen, Mind Spike->Geistesstich, Power Infusion->Kraftsegen, Call Pet->Wildruf, Explosive Trap->Berstfalle, Unstable Magic->Wilde Magie. Silver Hand Recruit->Klingenknappe.
+- **Keyword-Begriffe** leicht umformuliert (Mechanik gleich, klar erkennbar): Gottesschild->**Runenschild**, Kampfschrei->**Schlachtruf**, Todesroecheln->**Grabhauch**. In Karten, Glossar, Tooltips, Server-Logs konsistent.
+- Server-Logs + Lobby-Patch-Notes + Forge-UI auf die neuen Namen gezogen (keine Blizzard-Begriffe mehr user-facing; nur Code-Kommentare + lowercase templateIds bleiben intern).
+
+### Verifikation
+- lint + build gruen. Headless 3 Spiele: 3/3 Sieg, 0 Crashes, 0 Server-Errors, Effekte feuern weiter (neue Namen in Logs). Hinweis: Spiel-Mechaniken/Werte sind nicht schuetzbar, nur konkrete Ausgestaltung (Name/Art/Flavor) - daher reicht Umbenennen + eigene Karten.
+
 ## [2.15.0] - Karten-Wave: Bann, Heldenkraft-Wandel, grosse Bedrohungen
 
 ### Hinzugefuegt
